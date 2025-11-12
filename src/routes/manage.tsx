@@ -28,14 +28,26 @@ export default function ManageApps() {
     github_repo: "",
     source_type: "github" as SourceType,
     current_version: "",
+    category: "",
   });
   const [releases, setReleases] = useState<Release[]>([]);
   const [loadingReleases, setLoadingReleases] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     loadApps();
+    loadCategories();
   }, []);
+
+  const loadCategories = async () => {
+    try {
+      const fetchedCategories = await api.getCategories();
+      setCategories(fetchedCategories);
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  };
 
   useEffect(() => {
     if (formData.repo || formData.github_repo) {
@@ -82,14 +94,19 @@ export default function ManageApps() {
     e.preventDefault();
 
     try {
+      const submitData = {
+        ...formData,
+        url: formData.url.trim(),
+      };
       if (editingApp) {
-        await api.updateApp(editingApp.id, formData);
+        await api.updateApp(editingApp.id, submitData);
       } else {
-        await api.createApp(formData);
+        await api.createApp(submitData);
       }
 
       resetForm();
       await loadApps();
+      await loadCategories();
     } catch (error) {
       console.error("Error saving app:", error);
       alert("Error saving app. Please try again.");
@@ -102,11 +119,12 @@ export default function ManageApps() {
     const sourceType = app.source_type || "github";
     setFormData({
       name: app.name,
-      url: app.url,
+      url: app.url || "",
       repo: app.repo || app.github_repo,
       github_repo: app.github_repo || app.repo,
       source_type: sourceType,
       current_version: app.current_version,
+      category: app.category || "",
     });
   };
 
@@ -131,6 +149,7 @@ export default function ManageApps() {
       github_repo: "",
       source_type: "github",
       current_version: "",
+      category: "",
     });
     setReleases([]);
   };
@@ -174,7 +193,7 @@ export default function ManageApps() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="url">URL</Label>
+              <Label htmlFor="url">URL (optional)</Label>
               <Input
                 id="url"
                 type="url"
@@ -182,9 +201,26 @@ export default function ManageApps() {
                 onChange={(e) =>
                   setFormData({ ...formData, url: e.target.value })
                 }
-                required
-                placeholder="https://app.example.com"
+                placeholder="https://app.example.com (leave empty for services without URLs)"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Category (optional)</Label>
+              <Input
+                id="category"
+                list="category-options"
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
+                placeholder="e.g., Media, Development, Infrastructure"
+              />
+              <datalist id="category-options">
+                {categories.map((category) => (
+                  <option key={category} value={category} />
+                ))}
+              </datalist>
             </div>
 
             <div className="space-y-2">
@@ -207,6 +243,9 @@ export default function ManageApps() {
                 <option value="github">GitHub Releases</option>
                 <option value="ghcr">GitHub Container Registry</option>
                 <option value="dockerhub">Docker Hub</option>
+                <option value="k8s">
+                  Kubernetes Registry (registry.k8s.io)
+                </option>
               </Select>
             </div>
 
@@ -216,6 +255,8 @@ export default function ManageApps() {
                   ? "Docker Image"
                   : formData.source_type === "ghcr"
                   ? "GitHub Container Registry Image"
+                  : formData.source_type === "k8s"
+                  ? "Kubernetes Registry Image"
                   : "GitHub Repository"}
               </Label>
               <Input
@@ -235,6 +276,8 @@ export default function ManageApps() {
                     ? "owner/image or library/image"
                     : formData.source_type === "ghcr"
                     ? "owner/repo or owner/repo/image"
+                    : formData.source_type === "k8s"
+                    ? "image-name or owner/image-name"
                     : "owner/repo or https://github.com/owner/repo"
                 }
               />
@@ -315,13 +358,16 @@ export default function ManageApps() {
                     <div>
                       <CardTitle>{app.name}</CardTitle>
                       <CardDescription>
-                        {app.url} • {app.repo || app.github_repo} (
+                        {app.url ? `${app.url} • ` : ""}
+                        {app.repo || app.github_repo} (
                         {app.source_type === "ghcr"
                           ? "GHCR"
                           : app.source_type === "dockerhub"
                           ? "Docker Hub"
+                          : app.source_type === "k8s"
+                          ? "K8s Registry"
                           : "GitHub Releases"}
-                        )
+                        ){app.category && ` • ${app.category}`}
                       </CardDescription>
                     </div>
                     <div className="flex gap-2">

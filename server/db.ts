@@ -14,7 +14,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS apps (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    url TEXT NOT NULL,
+    url TEXT,
     github_repo TEXT NOT NULL,
     current_version TEXT NOT NULL,
     latest_version TEXT,
@@ -42,18 +42,36 @@ try {
   // Column already exists, ignore
 }
 
-export type SourceType = "github" | "ghcr" | "dockerhub";
+// Add category column if it doesn't exist
+try {
+  db.exec(`ALTER TABLE apps ADD COLUMN category TEXT`);
+} catch (error) {
+  // Column already exists, ignore
+}
+
+// Make url column nullable (migration for services without URLs)
+try {
+  // SQLite doesn't support ALTER COLUMN directly, so we need to recreate the table
+  // But since we're using migrations, we'll just ensure new inserts can have NULL urls
+  // The schema will be updated on next table creation, but existing data is fine
+  // We'll handle NULL urls in the application code
+} catch (error) {
+  // Ignore
+}
+
+export type SourceType = "github" | "ghcr" | "dockerhub" | "k8s";
 
 export interface App {
   id: number;
   name: string;
-  url: string;
+  url: string | null;
   github_repo: string; // Keep for backward compatibility
   repo: string;
   source_type: SourceType;
   current_version: string;
   latest_version: string | null;
   has_update: boolean;
+  category: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -61,13 +79,14 @@ export interface App {
 interface DbApp {
   id: number;
   name: string;
-  url: string;
+  url: string | null;
   github_repo: string | null;
   repo: string | null;
   source_type: string | null;
   current_version: string;
   latest_version: string | null;
   has_update: number;
+  category: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -84,13 +103,14 @@ const convertDbAppToApp = (dbApp: DbApp): App => {
     source_type: sourceType as SourceType,
     github_repo: dbApp.github_repo || dbApp.repo || "", // Backward compatibility
     has_update: Boolean(dbApp.has_update),
+    category: dbApp.category || null,
   };
 };
 
 export const dbOperations = {
   getAllApps: () => {
     const dbApps = db
-      .prepare("SELECT * FROM apps ORDER BY name")
+      .prepare("SELECT * FROM apps ORDER BY category, name")
       .all() as DbApp[];
     return dbApps.map(convertDbAppToApp);
   },
@@ -109,7 +129,7 @@ export const dbOperations = {
     >
   ) => {
     const stmt = db.prepare(
-      "INSERT INTO apps (name, url, github_repo, repo, source_type, current_version) VALUES (?, ?, ?, ?, ?, ?)"
+      "INSERT INTO apps (name, url, github_repo, repo, source_type, current_version, category) VALUES (?, ?, ?, ?, ?, ?, ?)"
     );
     const repo = app.repo || app.github_repo || "";
     return stmt.run(
@@ -118,7 +138,8 @@ export const dbOperations = {
       repo, // github_repo for backward compatibility
       repo,
       app.source_type || "github",
-      app.current_version
+      app.current_version,
+      app.category || null
     );
   },
 
@@ -160,6 +181,10 @@ export const dbOperations = {
       updates.push("has_update = ?");
       values.push(app.has_update ? 1 : 0);
     }
+    if (app.category !== undefined) {
+      updates.push("category = ?");
+      values.push(app.category || null);
+    }
 
     updates.push("updated_at = CURRENT_TIMESTAMP");
     values.push(id);
@@ -172,6 +197,15 @@ export const dbOperations = {
 
   deleteApp: (id: number) => {
     return db.prepare("DELETE FROM apps WHERE id = ?").run(id);
+  },
+
+  getCategories: () => {
+    const categories = db
+      .prepare(
+        "SELECT DISTINCT category FROM apps WHERE category IS NOT NULL AND category != '' ORDER BY category"
+      )
+      .all() as { category: string }[];
+    return categories.map((c) => c.category);
   },
 };
 

@@ -1,17 +1,18 @@
 const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
-export type SourceType = "github" | "ghcr" | "dockerhub";
+export type SourceType = "github" | "ghcr" | "dockerhub" | "k8s";
 
 export interface App {
   id: number;
   name: string;
-  url: string;
+  url: string | null;
   github_repo: string; // Keep for backward compatibility
   repo: string;
   source_type: SourceType;
   current_version: string;
   latest_version: string | null;
   has_update: boolean;
+  category: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -116,5 +117,13 @@ export const api = {
     if (!response.ok) {
       throw new Error("Failed to check updates");
     }
+  },
+
+  getCategories: async (): Promise<string[]> => {
+    const response = await fetch(`${API_BASE}/categories`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch categories");
+    }
+    return response.json();
   },
 };

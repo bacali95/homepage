@@ -46,42 +46,77 @@ export default function HomePage() {
     );
   }
 
+  // Group apps by category
+  const groupedApps = apps.reduce((acc, app) => {
+    const category = app.category || "Uncategorized";
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(app);
+    return acc;
+  }, {} as Record<string, typeof apps>);
+
+  // Sort categories, with "Uncategorized" at the end
+  const sortedCategories = Object.keys(groupedApps).sort((a, b) => {
+    if (a === "Uncategorized") return 1;
+    if (b === "Uncategorized") return -1;
+    return a.localeCompare(b);
+  });
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">My Homelab Services</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {apps.map((app) => (
-          <Card key={app.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <CardTitle className="text-xl">{app.name}</CardTitle>
-                {app.has_update ? (
-                  <Badge
-                    variant="destructive"
-                    className="flex items-center gap-1"
-                  >
-                    <AlertCircle className="h-3 w-3" />
-                    Update Available
-                  </Badge>
-                ) : null}
-              </div>
-              <CardDescription>
-                Version: {app.current_version}
-                {app.latest_version && app.has_update ? (
-                  <span className="ml-2 text-destructive">
-                    → {app.latest_version}
-                  </span>
-                ) : null}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-end">
-              <Link to={app.url} target="_blank" rel="noopener noreferrer">
-                <Button size="sm" variant="outline">
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+      <div className="space-y-8">
+        {sortedCategories.map((category) => (
+          <div key={category}>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">
+              {category}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {groupedApps[category].map((app) => (
+                <Card
+                  key={app.id}
+                  className="hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-xl">{app.name}</CardTitle>
+                      {app.has_update ? (
+                        <Badge
+                          variant="destructive"
+                          className="flex items-center gap-1"
+                        >
+                          <AlertCircle className="h-3 w-3" />
+                          Update Available
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <CardDescription>
+                      Version: {app.current_version}
+                      {app.latest_version && app.has_update ? (
+                        <span className="ml-2 text-destructive">
+                          → {app.latest_version}
+                        </span>
+                      ) : null}
+                    </CardDescription>
+                  </CardHeader>
+                  {app.url && (
+                    <CardContent className="flex justify-end">
+                      <Link
+                        to={app.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button size="sm" variant="outline">
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>

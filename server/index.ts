@@ -4,6 +4,7 @@ import cors from "cors";
 import { dbOperations } from "./db.js";
 import { fetchTags as fetchGhcrTags } from "./github.js";
 import { fetchTags as fetchDockerHubTags } from "./dockerhub.js";
+import { fetchTags as fetchK8sTags } from "./k8s-registry.js";
 import { fetchReleases } from "./github-releases.js";
 import { startUpdateChecker } from "./update-checker.js";
 
@@ -40,9 +41,16 @@ app.get("/api/apps/:id", (req, res) => {
 
 app.post("/api/apps", (req, res) => {
   try {
-    const { name, url, repo, github_repo, source_type, current_version } =
-      req.body;
-    if (!name || !url || (!repo && !github_repo) || !current_version) {
+    const {
+      name,
+      url,
+      repo,
+      github_repo,
+      source_type,
+      current_version,
+      category,
+    } = req.body;
+    if (!name || (!repo && !github_repo) || !current_version) {
       return res.status(400).json({ error: "Missing required fields" });
     }
     const result = dbOperations.createApp({
@@ -52,6 +60,7 @@ app.post("/api/apps", (req, res) => {
       github_repo: repo || github_repo,
       source_type: source_type || "github",
       current_version,
+      category: category || null,
     });
     res.status(201).json({ id: result.lastInsertRowid });
   } catch (error) {
@@ -63,8 +72,15 @@ app.post("/api/apps", (req, res) => {
 app.put("/api/apps/:id", (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { name, url, repo, github_repo, source_type, current_version } =
-      req.body;
+    const {
+      name,
+      url,
+      repo,
+      github_repo,
+      source_type,
+      current_version,
+      category,
+    } = req.body;
     dbOperations.updateApp(id, {
       name,
       url,
@@ -72,6 +88,7 @@ app.put("/api/apps/:id", (req, res) => {
       github_repo: repo || github_repo,
       source_type,
       current_version,
+      category: category || null,
     });
     res.json({ success: true });
   } catch (error) {
@@ -111,12 +128,25 @@ app.get("/api/releases", async (req, res) => {
     } else if (source === "dockerhub") {
       const tags = await fetchDockerHubTags(repo);
       res.json(tags);
+    } else if (source === "k8s") {
+      const tags = await fetchK8sTags(repo);
+      res.json(tags);
     } else {
       return res.status(400).json({ error: "Invalid source type" });
     }
   } catch (error) {
     console.error("Error fetching releases:", error);
     res.status(500).json({ error: "Failed to fetch releases" });
+  }
+});
+
+app.get("/api/categories", (req, res) => {
+  try {
+    const categories = dbOperations.getCategories();
+    res.json(categories);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res.status(500).json({ error: "Failed to fetch categories" });
   }
 });
 
