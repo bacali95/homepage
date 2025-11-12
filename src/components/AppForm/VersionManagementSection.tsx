@@ -2,47 +2,52 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
-import { api } from "@/lib/api";
-import { useState } from "react";
+import { useFetchVersionFromPod } from "@/lib/use-apps";
 import { type FormSectionProps } from "./types";
+import { toast } from "@/lib/use-toast";
 
 export function VersionManagementSection({
   formData,
   onFormDataChange,
 }: FormSectionProps) {
-  const [fetchingVersion, setFetchingVersion] = useState(false);
+  const fetchVersionMutation = useFetchVersionFromPod();
 
   const handleFetchVersionFromPod = async () => {
     if (!formData.docker_image) {
-      alert("Please enter a Docker image first");
+      toast.warning("Please enter a Docker image first");
       return;
     }
 
     if (!formData.k8s_namespace) {
-      alert("Please enter a Kubernetes namespace first");
+      toast.warning("Please enter a Kubernetes namespace first");
       return;
     }
 
-    setFetchingVersion(true);
     try {
-      const result = await api.fetchVersionFromPod(
-        formData.docker_image,
-        formData.k8s_namespace
-      );
+      const result = await fetchVersionMutation.mutateAsync({
+        dockerImage: formData.docker_image,
+        namespace: formData.k8s_namespace,
+      });
       if (result.version) {
         onFormDataChange({ current_version: result.version });
+        toast.success(
+          "Version fetched successfully",
+          `Current version: ${result.version}`
+        );
       } else {
-        alert(
-          "Could not find version from running pod. Make sure the pod is running and the image matches."
+        toast.warning(
+          "Could not find version from running pod",
+          "Make sure the pod is running and the image matches."
         );
       }
     } catch (error) {
       console.error("Error fetching version from pod:", error);
-      alert(
-        "Failed to fetch version from pod. Make sure kubectl is configured and the pod is running."
+      toast.error(
+        "Failed to fetch version from pod",
+        error instanceof Error
+          ? error.message
+          : "Make sure kubectl is configured and the pod is running."
       );
-    } finally {
-      setFetchingVersion(false);
     }
   };
 
@@ -123,10 +128,10 @@ export function VersionManagementSection({
                 type="button"
                 variant="outline"
                 onClick={handleFetchVersionFromPod}
-                disabled={fetchingVersion}
+                disabled={fetchVersionMutation.isPending}
                 className="h-10"
               >
-                {fetchingVersion ? (
+                {fetchVersionMutation.isPending ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <Download className="mr-2 h-4 w-4" />
