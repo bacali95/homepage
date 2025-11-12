@@ -3,7 +3,7 @@ import { dbOperations } from "../db.js";
 
 const router = Router();
 
-router.get("/", (req, res) => {
+router.get("/", (_req, res) => {
   try {
     const categories = dbOperations.getCategories();
     res.json(categories);

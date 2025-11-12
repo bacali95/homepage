@@ -109,3 +109,90 @@ npm start
 ```
 
 The frontend will be served from the `dist/` directory, and the API will run on port 3001 (or the PORT environment variable).
+
+## Versioning
+
+The app uses semantic versioning managed through `package.json` and `standard-version`. The current version is stored in the `version` field of `package.json`.
+
+### Updating the Version
+
+We use [standard-version](https://github.com/conventional-changelog/standard-version) to automate version bumps, changelog generation, and git tagging.
+
+#### Quick Version Bump
+
+For a patch release (bug fixes):
+
+```bash
+yarn version:patch
+```
+
+For a minor release (new features):
+
+```bash
+yarn version:minor
+```
+
+For a major release (breaking changes):
+
+```bash
+yarn version:major
+```
+
+For a prerelease:
+
+```bash
+yarn version:prerelease
+```
+
+#### Manual Version Bump
+
+If you want to specify a specific version:
+
+```bash
+yarn version
+```
+
+This will:
+
+1. Bump the version in `package.json` based on your commits (following [Conventional Commits](https://www.conventionalcommits.org/))
+2. Generate/update `CHANGELOG.md`
+3. Create a git tag (e.g., `v1.0.1`)
+4. Commit the changes
+
+#### Release Workflow
+
+After running a version command, push the changes and tags:
+
+```bash
+git push --follow-tags origin main
+```
+
+Or use the release script:
+
+```bash
+yarn release
+```
+
+### Docker Image Tags
+
+When pushing to GitHub Container Registry, images are tagged with:
+
+- `latest` - Latest build from main branch
+- `<version>` - Version from package.json (e.g., `1.0.0`)
+- `<short-sha>` - Short commit SHA (e.g., `a1b2c3d`)
+- `<tag-version>` - If a version tag is pushed (e.g., `v1.0.1` creates tag `1.0.1`)
+
+### GitHub Container Registry
+
+The app automatically builds and pushes Docker images to GitHub Container Registry (ghcr.io) on:
+
+- Pushes to the `main` branch
+- Version tag pushes (e.g., `v1.0.0`)
+
+Images are available at: `ghcr.io/<your-username>/<repo-name>:<tag>`
+
+To pull and use the image:
+
+```bash
+docker pull ghcr.io/<your-username>/<repo-name>:latest
+```

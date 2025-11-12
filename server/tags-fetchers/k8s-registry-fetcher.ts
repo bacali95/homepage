@@ -1,4 +1,4 @@
-import { type Tag, createTagsFetcher, compareVersions } from "./common.js";
+import { createTagsFetcher, compareVersions } from "./common.js";
 
 export interface K8sRegistryResponse {
   name: string;

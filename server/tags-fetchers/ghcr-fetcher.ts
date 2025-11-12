@@ -1,6 +1,5 @@
 import {
   type Tag,
-  createTagsFetcher,
   normalizePath,
   createGitHubHeaders,
   isSemver,

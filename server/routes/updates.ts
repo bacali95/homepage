@@ -3,7 +3,7 @@ import { checkForUpdates } from "../update-checker.js";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
+router.post("/", async (_req, res) => {
   try {
     await checkForUpdates();
     res.json({ success: true });

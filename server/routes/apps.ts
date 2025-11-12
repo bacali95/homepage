@@ -4,7 +4,7 @@ import { checkForUpdate } from "../update-checker.js";
 
 const router = Router();
 
-router.get("/", (req, res) => {
+router.get("/", (_req, res) => {
   try {
     const apps = dbOperations.getAllApps();
     res.json(apps);

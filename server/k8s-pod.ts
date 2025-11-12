@@ -38,7 +38,6 @@ export async function getVersionFromPod(
     // Extract image name and tag from dockerImage
     const imageParts = dockerImage.split(":");
     const imageName = imageParts[0];
-    const imageTag = imageParts[1] || "latest";
 
     // Search through all pods
     for (const pod of pods.items) {
