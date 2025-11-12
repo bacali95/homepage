@@ -36,94 +36,120 @@ export interface DockerHubTag {
 
 export type Release = GitHubRelease | GitHubTag | DockerHubTag;
 
+// Reusable request configuration
+interface RequestOptions extends RequestInit {
+  errorMessage?: string;
+  parseResponse?: boolean;
+}
+
+// Reusable request handler
+async function request<T>(
+  endpoint: string,
+  options: RequestOptions = {}
+): Promise<T> {
+  const {
+    errorMessage,
+    parseResponse = true,
+    headers = {},
+    ...fetchOptions
+  } = options;
+
+  const url = endpoint.startsWith("http") ? endpoint : `${API_BASE}${endpoint}`;
+  const defaultHeaders: HeadersInit = {
+    "Content-Type": "application/json",
+    ...headers,
+  };
+
+  const response = await fetch(url, {
+    ...fetchOptions,
+    headers: defaultHeaders,
+  });
+
+  if (!response.ok) {
+    const message =
+      errorMessage || `Request failed with status ${response.status}`;
+    throw new Error(message);
+  }
+
+  if (!parseResponse) {
+    return undefined as T;
+  }
+
+  return response.json();
+}
+
+// Reusable HTTP method helpers
+const http = {
+  get: <T>(endpoint: string, errorMessage?: string): Promise<T> =>
+    request<T>(endpoint, { method: "GET", errorMessage }),
+
+  post: <T>(
+    endpoint: string,
+    body?: unknown,
+    errorMessage?: string
+  ): Promise<T> =>
+    request<T>(endpoint, {
+      method: "POST",
+      body: body ? JSON.stringify(body) : undefined,
+      errorMessage,
+    }),
+
+  put: <T>(
+    endpoint: string,
+    body?: unknown,
+    errorMessage?: string
+  ): Promise<T> =>
+    request<T>(endpoint, {
+      method: "PUT",
+      body: body ? JSON.stringify(body) : undefined,
+      errorMessage,
+    }),
+
+  delete: (endpoint: string, errorMessage?: string): Promise<void> =>
+    request<void>(endpoint, {
+      method: "DELETE",
+      parseResponse: false,
+      errorMessage,
+    }),
+};
+
 export const api = {
-  getApps: async (): Promise<App[]> => {
-    const response = await fetch(`${API_BASE}/apps`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch apps");
-    }
-    return response.json();
-  },
+  getApps: (): Promise<App[]> =>
+    http.get<App[]>("/apps", "Failed to fetch apps"),
 
-  getApp: async (id: number): Promise<App> => {
-    const response = await fetch(`${API_BASE}/apps/${id}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch app");
-    }
-    return response.json();
-  },
+  getApp: (id: number): Promise<App> =>
+    http.get<App>(`/apps/${id}`, "Failed to fetch app"),
 
-  createApp: async (
+  createApp: (
     app: Omit<
       App,
       "id" | "created_at" | "updated_at" | "latest_version" | "has_update"
     >
-  ): Promise<{ id: number }> => {
-    const response = await fetch(`${API_BASE}/apps`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(app),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to create app");
-    }
-    return response.json();
-  },
+  ): Promise<{ id: number }> =>
+    http.post<{ id: number }>("/apps", app, "Failed to create app"),
 
-  updateApp: async (
+  updateApp: (
     id: number,
     app: Partial<Omit<App, "id" | "created_at" | "updated_at">>
-  ): Promise<void> => {
-    const response = await fetch(`${API_BASE}/apps/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(app),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to update app");
-    }
-  },
+  ): Promise<void> =>
+    http.put<void>(`/apps/${id}`, app, "Failed to update app"),
 
-  deleteApp: async (id: number): Promise<void> => {
-    const response = await fetch(`${API_BASE}/apps/${id}`, {
-      method: "DELETE",
-    });
-    if (!response.ok) {
-      throw new Error("Failed to delete app");
-    }
-  },
+  deleteApp: (id: number): Promise<void> =>
+    http.delete(`/apps/${id}`, "Failed to delete app"),
 
-  fetchReleasesBySource: async (
+  fetchReleasesBySource: (
     source: SourceType,
     repo: string
   ): Promise<Release[]> => {
-    const response = await fetch(
-      `${API_BASE}/releases?source=${source}&repo=${encodeURIComponent(repo)}`
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch releases");
-    }
-    return response.json();
+    const endpoint = `/releases?source=${source}&repo=${encodeURIComponent(
+      repo
+    )}`;
+    return http.get<Release[]>(endpoint, "Failed to fetch releases");
   },
 
-  checkUpdates: async (): Promise<void> => {
-    const response = await fetch(`${API_BASE}/check-updates`, {
-      method: "POST",
-    });
-    if (!response.ok) {
-      throw new Error("Failed to check updates");
-    }
-  },
+  checkUpdates: (): Promise<void> =>
+    http.post<void>("/check-updates", undefined, "Failed to check updates"),
 
-  getCategories: async (): Promise<string[]> => {
-    const response = await fetch(`${API_BASE}/categories`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch categories");
-    }
-    return response.json();
-  },
+  getCategories: (): Promise<string[]> =>
+    http.get<string[]>("/categories", "Failed to fetch categories"),
 };

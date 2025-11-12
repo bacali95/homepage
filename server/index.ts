@@ -69,7 +69,7 @@ app.post("/api/apps", (req, res) => {
   }
 });
 
-app.put("/api/apps/:id", (req, res) => {
+app.put("/api/apps/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const {
@@ -81,6 +81,12 @@ app.put("/api/apps/:id", (req, res) => {
       current_version,
       category,
     } = req.body;
+
+    // Check if current_version is being updated
+    const app = dbOperations.getApp(id);
+    const isVersionUpdate =
+      app && current_version && current_version !== app.current_version;
+
     dbOperations.updateApp(id, {
       name,
       url,
@@ -90,6 +96,18 @@ app.put("/api/apps/:id", (req, res) => {
       current_version,
       category: category || null,
     });
+
+    // If version was updated, check for updates for this app instantly
+    if (isVersionUpdate) {
+      try {
+        const { checkForUpdate } = await import("./update-checker.js");
+        await checkForUpdate(id);
+      } catch (error) {
+        // Log error but don't fail the update request
+        console.error("Error checking updates after version update:", error);
+      }
+    }
+
     res.json({ success: true });
   } catch (error) {
     console.error("Error updating app:", error);
