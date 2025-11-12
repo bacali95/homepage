@@ -2,21 +2,11 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import { Plus, Settings, RefreshCw } from "lucide-react";
-import { api, type App, type Release, type SourceType } from "@/lib/api";
+import { api, type App, type SourceType } from "@/lib/api";
 import { groupAppsByCategory, sortCategories } from "@/lib/utils";
 import { AppCard } from "@/components/AppCard";
-import { AppForm } from "@/components/AppForm";
+import { AppForm, type FormData } from "@/components/AppForm";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
-interface FormData {
-  name: string;
-  url: string;
-  repo: string;
-  github_repo: string;
-  source_type: SourceType;
-  current_version: string;
-  category: string;
-}
 
 const initialFormData: FormData = {
   name: "",
@@ -26,6 +16,8 @@ const initialFormData: FormData = {
   source_type: "github",
   current_version: "",
   category: "",
+  docker_image: "",
+  k8s_namespace: "",
 };
 
 export default function App() {
@@ -35,8 +27,6 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingApp, setEditingApp] = useState<App | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [releases, setReleases] = useState<Release[]>([]);
-  const [loadingReleases, setLoadingReleases] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [checkingUpdates, setCheckingUpdates] = useState(false);
 
@@ -45,18 +35,6 @@ export default function App() {
     loadApps();
     loadCategories();
   }, []);
-
-  // Load releases when repo changes
-  useEffect(() => {
-    if (formData.repo || formData.github_repo) {
-      const timeoutId = setTimeout(() => {
-        loadReleases();
-      }, 500);
-      return () => clearTimeout(timeoutId);
-    } else {
-      setReleases([]);
-    }
-  }, [formData.repo, formData.github_repo, formData.source_type]);
 
   const loadApps = async () => {
     try {
@@ -75,25 +53,6 @@ export default function App() {
       setCategories(fetchedCategories);
     } catch (error) {
       console.error("Error loading categories:", error);
-    }
-  };
-
-  const loadReleases = async () => {
-    const repo = formData.repo || formData.github_repo;
-    if (!repo) return;
-
-    setLoadingReleases(true);
-    try {
-      const fetchedReleases: Release[] = await api.fetchReleasesBySource(
-        formData.source_type,
-        repo
-      );
-      setReleases(fetchedReleases);
-    } catch (error) {
-      console.error("Error loading releases:", error);
-      setReleases([]);
-    } finally {
-      setLoadingReleases(false);
     }
   };
 
@@ -132,6 +91,8 @@ export default function App() {
       source_type: sourceType,
       current_version: app.current_version,
       category: app.category || "",
+      docker_image: app.docker_image || "",
+      k8s_namespace: app.k8s_namespace || "",
     });
     setDrawerOpen(true);
   };
@@ -156,7 +117,6 @@ export default function App() {
   const resetForm = () => {
     setEditingApp(null);
     setFormData(initialFormData);
-    setReleases([]);
   };
 
   const closeDrawer = () => {
@@ -175,8 +135,8 @@ export default function App() {
       repo: "",
       github_repo: "",
       current_version: "",
+      docker_image: formData.docker_image, // Keep docker_image when changing source type
     });
-    setReleases([]);
   };
 
   const handleCheckUpdates = async () => {
@@ -325,9 +285,7 @@ export default function App() {
           >
             <AppForm
               formData={formData}
-              releases={releases}
               categories={categories}
-              loadingReleases={loadingReleases}
               editingApp={!!editingApp}
               onFormDataChange={handleFormDataChange}
               onSourceTypeChange={handleSourceTypeChange}

@@ -13,6 +13,8 @@ export interface App {
   latest_version: string | null;
   has_update: boolean;
   category: string | null;
+  docker_image: string | null;
+  k8s_namespace: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -152,4 +154,15 @@ export const api = {
 
   getCategories: (): Promise<string[]> =>
     http.get<string[]>("/categories", "Failed to fetch categories"),
+
+  fetchVersionFromPod: (
+    dockerImage: string,
+    namespace: string
+  ): Promise<{ version: string | null }> => {
+    const params = new URLSearchParams({ dockerImage, namespace });
+    return http.get<{ version: string | null }>(
+      `/fetch-pod-version?${params.toString()}`,
+      "Failed to fetch version from pod"
+    );
+  },
 };

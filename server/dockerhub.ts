@@ -36,11 +36,20 @@ export async function fetchTags(image: string): Promise<DockerHubTag[]> {
 
     const url = `https://hub.docker.com/v2/repositories/${imagePath}/tags?page_size=100`;
 
-    const response = await fetch(url);
+    // Add browser-like headers to avoid Cloudflare protection
+    const headers: HeadersInit = {
+      "User-Agent":
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      Accept: "application/json",
+      "Accept-Language": "en-US,en;q=0.9",
+      "Accept-Encoding": "gzip, deflate, br",
+    };
+
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch Docker Hub tags: ${response.statusText}`
+        `Failed to fetch Docker Hub tags for image ${image}: ${response.statusText} (${response.status})`
       );
     }
 

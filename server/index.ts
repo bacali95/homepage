@@ -7,6 +7,8 @@ import { fetchTags as fetchDockerHubTags } from "./dockerhub.js";
 import { fetchTags as fetchK8sTags } from "./k8s-registry.js";
 import { fetchReleases } from "./github-releases.js";
 import { startUpdateChecker } from "./update-checker.js";
+import { getVersionFromPod } from "./k8s-pod.js";
+import { updateVersionsFromPods } from "./k8s-pod.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -49,6 +51,8 @@ app.post("/api/apps", (req, res) => {
       source_type,
       current_version,
       category,
+      docker_image,
+      k8s_namespace,
     } = req.body;
     if (!name || (!repo && !github_repo) || !current_version) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -61,6 +65,8 @@ app.post("/api/apps", (req, res) => {
       source_type: source_type || "github",
       current_version,
       category: category || null,
+      docker_image: docker_image || null,
+      k8s_namespace: k8s_namespace || null,
     });
     res.status(201).json({ id: result.lastInsertRowid });
   } catch (error) {
@@ -80,6 +86,8 @@ app.put("/api/apps/:id", async (req, res) => {
       source_type,
       current_version,
       category,
+      docker_image,
+      k8s_namespace,
     } = req.body;
 
     // Check if current_version is being updated
@@ -95,6 +103,8 @@ app.put("/api/apps/:id", async (req, res) => {
       source_type,
       current_version,
       category: category || null,
+      docker_image: docker_image || null,
+      k8s_namespace: k8s_namespace || null,
     });
 
     // If version was updated, check for updates for this app instantly
@@ -179,8 +189,41 @@ app.post("/api/check-updates", async (req, res) => {
   }
 });
 
+app.get("/api/fetch-pod-version", async (req, res) => {
+  try {
+    const dockerImage = req.query.dockerImage as string;
+    const namespace = req.query.namespace as string;
+
+    if (!dockerImage) {
+      return res.status(400).json({ error: "dockerImage parameter required" });
+    }
+
+    if (!namespace) {
+      return res.status(400).json({ error: "namespace parameter required" });
+    }
+
+    const version = await getVersionFromPod(dockerImage, namespace);
+    res.json({ version });
+  } catch (error) {
+    console.error("Error fetching version from pod:", error);
+    res.status(500).json({ error: "Failed to fetch version from pod" });
+  }
+});
+
 // Start update checker
 startUpdateChecker();
+
+// Start pod version updater (runs every hour)
+setInterval(() => {
+  updateVersionsFromPods().catch((error) => {
+    console.error("Error updating versions from pods:", error);
+  });
+}, 60 * 60 * 1000); // Run every hour
+
+// Run immediately on startup
+updateVersionsFromPods().catch((error) => {
+  console.error("Error updating versions from pods on startup:", error);
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
