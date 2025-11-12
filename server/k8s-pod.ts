@@ -1,7 +1,17 @@
-import { exec } from "child_process";
-import { promisify } from "util";
+import * as k8s from "@kubernetes/client-node";
 
-const execAsync = promisify(exec);
+// Initialize Kubernetes client
+let k8sApi: k8s.CoreV1Api | null = null;
+
+function getK8sApi(): k8s.CoreV1Api {
+  if (!k8sApi) {
+    const kc = new k8s.KubeConfig();
+    // This will use ~/.kube/config or KUBECONFIG env var
+    kc.loadFromDefault();
+    k8sApi = kc.makeApiClient(k8s.CoreV1Api);
+  }
+  return k8sApi;
+}
 
 /**
  * Fetches the current running version from a Kubernetes pod by matching the docker image.
@@ -16,13 +26,12 @@ export async function getVersionFromPod(
   namespace: string
 ): Promise<string | null> {
   try {
-    // Try to find pods with a more specific query in the specified namespace
-    const command = `kubectl get pods -n ${namespace} -o json`;
-
-    const { stdout } = await execAsync(command);
-    const pods = JSON.parse(stdout);
-
-    if (!pods.items || pods.items.length === 0) {
+    const api = getK8sApi();
+    // The API returns V1PodList directly, but at runtime it may have a body property
+    // We'll handle both cases for compatibility
+    const response = await api.listNamespacedPod({ namespace });
+    const pods = (response as any).body || response;
+    if (!pods?.items || pods.items.length === 0) {
       return null;
     }
 
