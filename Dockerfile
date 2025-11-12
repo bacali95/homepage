@@ -3,6 +3,9 @@ FROM node:24-alpine AS builder
 
 WORKDIR /app
 
+# Install build dependencies for native modules (better-sqlite3)
+RUN apk add --no-cache python3 make g++ sqlite-dev
+
 # Enable corepack for Yarn
 RUN corepack enable && corepack prepare yarn@4.11.0 --activate
 
@@ -25,6 +28,9 @@ RUN yarn install --immutable --production && \
 
 # Production stage
 FROM node:24-alpine
+
+# Install SQLite runtime libraries for better-sqlite3
+RUN apk add --no-cache sqlite-libs
 
 WORKDIR /app
 
