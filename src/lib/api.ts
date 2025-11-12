@@ -165,4 +165,19 @@ export const api = {
       "Failed to fetch version from pod"
     );
   },
+
+  exportApps: (): Promise<App[]> =>
+    http.get<App[]>("/apps", "Failed to export apps"),
+
+  importApps: (
+    apps: Omit<
+      App,
+      "id" | "created_at" | "updated_at" | "latest_version" | "has_update"
+    >[]
+  ): Promise<{ success: boolean; imported: number; errors?: string[] }> =>
+    http.post<{ success: boolean; imported: number; errors?: string[] }>(
+      "/apps/import",
+      apps,
+      "Failed to import apps"
+    ),
 };

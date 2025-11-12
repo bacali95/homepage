@@ -75,6 +75,72 @@ app.post("/api/apps", (req, res) => {
   }
 });
 
+app.post("/api/apps/import", (req, res) => {
+  try {
+    const apps = req.body;
+    if (!Array.isArray(apps)) {
+      return res.status(400).json({ error: "Expected an array of apps" });
+    }
+
+    const errors: string[] = [];
+    let imported = 0;
+
+    for (const app of apps) {
+      try {
+        const {
+          name,
+          url,
+          repo,
+          github_repo,
+          source_type,
+          current_version,
+          category,
+          docker_image,
+          k8s_namespace,
+        } = app;
+
+        if (!name || (!repo && !github_repo) || !current_version) {
+          errors.push(
+            `App "${
+              name || "unknown"
+            }": Missing required fields (name, repo/github_repo, or current_version)`
+          );
+          continue;
+        }
+
+        dbOperations.createApp({
+          name,
+          url: url || null,
+          repo: repo || github_repo,
+          github_repo: repo || github_repo,
+          source_type: source_type || "github",
+          current_version,
+          category: category || null,
+          docker_image: docker_image || null,
+          k8s_namespace: k8s_namespace || null,
+        });
+        imported++;
+      } catch (error) {
+        const appName = app.name || "unknown";
+        errors.push(
+          `App "${appName}": ${
+            error instanceof Error ? error.message : "Failed to import"
+          }`
+        );
+      }
+    }
+
+    res.json({
+      success: true,
+      imported,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (error) {
+    console.error("Error importing apps:", error);
+    res.status(500).json({ error: "Failed to import apps" });
+  }
+});
+
 app.put("/api/apps/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);

@@ -1,12 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
-import { Plus, Settings, RefreshCw } from "lucide-react";
+import { Menu, MenuItem, MenuTrigger } from "@/components/ui/menu";
+import {
+  Plus,
+  Settings,
+  RefreshCw,
+  MoreVertical,
+  Moon,
+  Sun,
+  Monitor,
+  Download,
+  Upload,
+} from "lucide-react";
 import { api, type App, type SourceType } from "@/lib/api";
 import { groupAppsByCategory, sortCategories } from "@/lib/utils";
 import { AppCard } from "@/components/AppCard";
 import { AppForm, type FormData } from "@/components/AppForm";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme, type Theme } from "@/lib/use-theme";
 
 const initialFormData: FormData = {
   name: "",
@@ -29,12 +40,35 @@ export default function App() {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [categories, setCategories] = useState<string[]>([]);
   const [checkingUpdates, setCheckingUpdates] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load initial data
   useEffect(() => {
     loadApps();
     loadCategories();
   }, []);
+
+  // Handle Escape key
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        if (drawerOpen) {
+          setDrawerOpen(false);
+          setEditingApp(null);
+          setFormData(initialFormData);
+        } else if (editMode) {
+          setEditMode(false);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [drawerOpen, editMode]);
 
   const loadApps = async () => {
     try {
@@ -153,6 +187,158 @@ export default function App() {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const apps = await api.exportApps();
+
+      // Remove database-specific fields for export
+      const exportData = apps.map((app) => {
+        const {
+          id,
+          created_at,
+          updated_at,
+          latest_version,
+          has_update,
+          ...exportApp
+        } = app;
+        return exportApp;
+      });
+
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `homepage-backup-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting apps:", error);
+      alert("Failed to export apps. Please try again.");
+    }
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const fileContent = await file.text();
+      const apps = JSON.parse(fileContent) as Omit<
+        App,
+        "id" | "created_at" | "updated_at" | "latest_version" | "has_update"
+      >[];
+
+      if (!Array.isArray(apps)) {
+        throw new Error(
+          "Invalid backup file format. Expected an array of apps."
+        );
+      }
+
+      // Validate apps
+      const errors: string[] = [];
+      const validApps = apps.filter((app, index) => {
+        if (!app.name) {
+          errors.push(`App at index ${index}: Missing name`);
+          return false;
+        }
+        if (!app.current_version) {
+          errors.push(`App "${app.name}": Missing current_version`);
+          return false;
+        }
+        if (!app.repo && !app.github_repo) {
+          errors.push(`App "${app.name}": Missing repo or github_repo`);
+          return false;
+        }
+        return true;
+      });
+
+      if (validApps.length === 0) {
+        alert(`No valid apps to import. Errors:\n${errors.join("\n")}`);
+        return;
+      }
+
+      // Show confirmation dialog
+      const confirmed = confirm(
+        `This will import ${validApps.length} app(s). ${
+          errors.length > 0 ? `\n\nWarnings:\n${errors.join("\n")}` : ""
+        }\n\nDo you want to continue?`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      // Import apps
+      const result = await api.importApps(validApps);
+
+      if (result.success) {
+        alert(
+          `Successfully imported ${result.imported} app(s).${
+            result.errors && result.errors.length > 0
+              ? `\n\nErrors:\n${result.errors.join("\n")}`
+              : ""
+          }`
+        );
+        await loadApps();
+        await loadCategories();
+      } else {
+        alert("Failed to import apps. Please check the console for details.");
+      }
+    } catch (error) {
+      console.error("Error importing apps:", error);
+      if (error instanceof SyntaxError) {
+        alert("Invalid JSON file. Please check the file format.");
+      } else {
+        alert(
+          `Failed to import apps: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
+      }
+    } finally {
+      setImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const cycleTheme = () => {
+    const themes: Theme[] = ["light", "dark", "system"];
+    const currentIndex = themes.findIndex((t) => t === theme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setTheme(themes[nextIndex]);
+  };
+
+  const getThemeIcon = () => {
+    switch (theme) {
+      case "light":
+        return <Sun className="h-4 w-4" />;
+      case "dark":
+        return <Moon className="h-4 w-4" />;
+      default:
+        return <Monitor className="h-4 w-4" />;
+    }
+  };
+
+  const getThemeLabel = () => {
+    switch (theme) {
+      case "light":
+        return "Light";
+      case "dark":
+        return "Dark";
+      default:
+        return "System";
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
@@ -184,45 +370,84 @@ export default function App() {
                   Manage and monitor your self-hosted applications
                 </p>
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
-                <ThemeToggle />
-                <Button
-                  onClick={handleCheckUpdates}
-                  variant="outline"
-                  disabled={checkingUpdates}
-                  className="flex-1 sm:flex-initial shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <RefreshCw
-                    className={`mr-2 h-4 w-4 ${
-                      checkingUpdates ? "animate-spin" : ""
-                    }`}
-                  />
-                  <span className="hidden sm:inline">
-                    {checkingUpdates ? "Checking..." : "Check Updates"}
-                  </span>
-                  <span className="sm:hidden">
-                    {checkingUpdates ? "Checking..." : "Check"}
-                  </span>
-                </Button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Button
                   onClick={handleAdd}
-                  className="flex-1 sm:flex-initial shadow-sm hover:shadow-md transition-shadow"
+                  className="shadow-sm hover:shadow-md transition-shadow"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   <span className="hidden sm:inline">Add App</span>
                   <span className="sm:hidden">Add</span>
                 </Button>
-                <Button
-                  variant={editMode ? "default" : "outline"}
-                  onClick={() => setEditMode(!editMode)}
-                  className="flex-1 sm:flex-initial shadow-sm hover:shadow-md transition-shadow"
+                <Menu
+                  trigger={
+                    <MenuTrigger>
+                      <Button
+                        variant="outline"
+                        className="shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </MenuTrigger>
+                  }
                 >
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">
-                    {editMode ? "Exit Edit Mode" : "Edit Mode"}
-                  </span>
-                  <span className="sm:hidden">Edit</span>
-                </Button>
+                  <MenuItem onClick={cycleTheme}>
+                    <div className="flex items-center gap-2">
+                      {getThemeIcon()}
+                      <span>Theme: {getThemeLabel()}</span>
+                    </div>
+                  </MenuItem>
+                  <MenuItem onClick={handleExport}>
+                    <div className="flex items-center gap-2">
+                      <Download className="h-4 w-4" />
+                      <span>Export Backup</span>
+                    </div>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={importing}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Upload
+                        className={`h-4 w-4 ${
+                          importing ? "animate-pulse" : ""
+                        }`}
+                      />
+                      <span>
+                        {importing ? "Importing..." : "Import Backup"}
+                      </span>
+                    </div>
+                  </MenuItem>
+                  <MenuItem
+                    onClick={handleCheckUpdates}
+                    disabled={checkingUpdates}
+                  >
+                    <div className="flex items-center gap-2">
+                      <RefreshCw
+                        className={`h-4 w-4 ${
+                          checkingUpdates ? "animate-spin" : ""
+                        }`}
+                      />
+                      <span>
+                        {checkingUpdates ? "Checking..." : "Check Updates"}
+                      </span>
+                    </div>
+                  </MenuItem>
+                  <MenuItem onClick={() => setEditMode(!editMode)}>
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      <span>{editMode ? "Exit Edit Mode" : "Edit Mode"}</span>
+                    </div>
+                  </MenuItem>
+                </Menu>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleImport}
+                  className="hidden"
+                  id="import-file-input"
+                />
               </div>
             </div>
           </div>
