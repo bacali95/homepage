@@ -11,12 +11,12 @@ async function getLatestVersionForApp(app: App): Promise<string | null> {
   if (app.source_type === "dockerhub") {
     return await getDockerHubLatestTag(app.repo);
   } else if (app.source_type === "ghcr") {
-    return await getGhcrLatestTag(app.repo || app.github_repo);
+    return await getGhcrLatestTag(app.repo);
   } else if (app.source_type === "k8s") {
-    return await getK8sLatestTag(app.repo || app.github_repo);
+    return await getK8sLatestTag(app.repo);
   } else {
     // Default to GitHub Releases
-    return await getLatestRelease(app.repo || app.github_repo);
+    return await getLatestRelease(app.repo);
   }
 }
 

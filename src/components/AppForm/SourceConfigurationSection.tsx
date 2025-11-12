@@ -76,10 +76,9 @@ export function SourceConfigurationSection({
           </Label>
           <Input
             id="repo"
-            value={formData.repo || formData.github_repo}
+            value={formData.repo}
             onChange={(e) => {
-              const value = e.target.value;
-              onFormDataChange({ repo: value, github_repo: value });
+              onFormDataChange({ repo: e.target.value });
             }}
             required
             placeholder={getRepoPlaceholder(formData.source_type)}

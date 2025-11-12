@@ -34,31 +34,48 @@ router.post("/", (req, res) => {
       name,
       url,
       repo,
-      github_repo,
       source_type,
       current_version,
       category,
       docker_image,
       k8s_namespace,
     } = req.body;
-    if (!name || (!repo && !github_repo) || !current_version) {
-      return res.status(400).json({ error: "Missing required fields" });
+    if (!name || !repo || !current_version) {
+      return res.status(400).json({
+        error: "Missing required fields (name, repo, current_version)",
+      });
+    }
+    if (typeof category !== "string" || category.trim() === "") {
+      return res
+        .status(400)
+        .json({ error: "category is required and must be a non-empty string" });
+    }
+    if (typeof docker_image !== "string" || docker_image.trim() === "") {
+      return res.status(400).json({
+        error: "docker_image is required and must be a non-empty string",
+      });
+    }
+    if (typeof k8s_namespace !== "string" || k8s_namespace.trim() === "") {
+      return res.status(400).json({
+        error: "k8s_namespace is required and must be a non-empty string",
+      });
     }
     const result = dbOperations.createApp({
       name,
       url,
-      repo: repo || github_repo,
-      github_repo: repo || github_repo,
+      repo,
       source_type: source_type || "github",
       current_version,
-      category: category || null,
-      docker_image: docker_image || null,
-      k8s_namespace: k8s_namespace || null,
+      category,
+      docker_image,
+      k8s_namespace,
     });
     res.status(201).json({ id: result.lastInsertRowid });
   } catch (error) {
     console.error("Error creating app:", error);
-    res.status(500).json({ error: "Failed to create app" });
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to create app";
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -78,7 +95,6 @@ router.post("/import", (req, res) => {
           name,
           url,
           repo,
-          github_repo,
           source_type,
           current_version,
           category,
@@ -86,11 +102,35 @@ router.post("/import", (req, res) => {
           k8s_namespace,
         } = app;
 
-        if (!name || (!repo && !github_repo) || !current_version) {
+        if (!name || !repo || !current_version) {
           errors.push(
             `App "${
               name || "unknown"
-            }": Missing required fields (name, repo/github_repo, or current_version)`
+            }": Missing required fields (name, repo, or current_version)`
+          );
+          continue;
+        }
+        if (typeof category !== "string" || category.trim() === "") {
+          errors.push(
+            `App "${
+              name || "unknown"
+            }": category is required and must be a non-empty string`
+          );
+          continue;
+        }
+        if (typeof docker_image !== "string" || docker_image.trim() === "") {
+          errors.push(
+            `App "${
+              name || "unknown"
+            }": docker_image is required and must be a non-empty string`
+          );
+          continue;
+        }
+        if (typeof k8s_namespace !== "string" || k8s_namespace.trim() === "") {
+          errors.push(
+            `App "${
+              name || "unknown"
+            }": k8s_namespace is required and must be a non-empty string`
           );
           continue;
         }
@@ -98,13 +138,12 @@ router.post("/import", (req, res) => {
         dbOperations.createApp({
           name,
           url: url || null,
-          repo: repo || github_repo,
-          github_repo: repo || github_repo,
+          repo,
           source_type: source_type || "github",
           current_version,
-          category: category || null,
-          docker_image: docker_image || null,
-          k8s_namespace: k8s_namespace || null,
+          category,
+          docker_image,
+          k8s_namespace,
         });
         imported++;
       } catch (error) {
@@ -135,7 +174,6 @@ router.put("/:id", async (req, res) => {
       name,
       url,
       repo,
-      github_repo,
       source_type,
       current_version,
       category,
@@ -148,16 +186,41 @@ router.put("/:id", async (req, res) => {
     const isVersionUpdate =
       app && current_version && current_version !== app.current_version;
 
+    // Validate required fields if they are being updated
+    if (
+      category !== undefined &&
+      (typeof category !== "string" || category.trim() === "")
+    ) {
+      return res
+        .status(400)
+        .json({ error: "category is required and must be a non-empty string" });
+    }
+    if (
+      docker_image !== undefined &&
+      (typeof docker_image !== "string" || docker_image.trim() === "")
+    ) {
+      return res.status(400).json({
+        error: "docker_image is required and must be a non-empty string",
+      });
+    }
+    if (
+      k8s_namespace !== undefined &&
+      (typeof k8s_namespace !== "string" || k8s_namespace.trim() === "")
+    ) {
+      return res.status(400).json({
+        error: "k8s_namespace is required and must be a non-empty string",
+      });
+    }
+
     dbOperations.updateApp(id, {
       name,
       url,
-      repo: repo || github_repo,
-      github_repo: repo || github_repo,
+      repo,
       source_type,
       current_version,
-      category: category || null,
-      docker_image: docker_image || null,
-      k8s_namespace: k8s_namespace || null,
+      category,
+      docker_image,
+      k8s_namespace,
     });
 
     // If version was updated, check for updates for this app instantly
@@ -173,7 +236,9 @@ router.put("/:id", async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error("Error updating app:", error);
-    res.status(500).json({ error: "Failed to update app" });
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to update app";
+    res.status(500).json({ error: errorMessage });
   }
 });
 

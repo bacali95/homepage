@@ -26,7 +26,6 @@ const initialFormData: FormData = {
   name: "",
   url: "",
   repo: "",
-  github_repo: "",
   source_type: "github",
   current_version: "",
   category: "",
@@ -108,8 +107,7 @@ export default function App() {
     setFormData({
       name: app.name,
       url: app.url || "",
-      repo: app.repo || app.github_repo,
-      github_repo: app.github_repo || app.repo,
+      repo: app.repo,
       source_type: sourceType,
       current_version: app.current_version,
       category: app.category || "",
@@ -158,7 +156,6 @@ export default function App() {
       ...formData,
       source_type: sourceType,
       repo: "",
-      github_repo: "",
       current_version: "",
       docker_image: formData.docker_image, // Keep docker_image when changing source type
     });

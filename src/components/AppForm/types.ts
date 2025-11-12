@@ -4,7 +4,6 @@ export interface FormData {
   name: string;
   url: string;
   repo: string;
-  github_repo: string;
   source_type: SourceType;
   current_version: string;
   category: string;

@@ -6,15 +6,14 @@ export interface App {
   id: number;
   name: string;
   url: string | null;
-  github_repo: string; // Keep for backward compatibility
   repo: string;
   source_type: SourceType;
   current_version: string;
   latest_version: string | null;
   has_update: boolean;
-  category: string | null;
-  docker_image: string | null;
-  k8s_namespace: string | null;
+  category: string;
+  docker_image: string;
+  k8s_namespace: string;
   created_at: string;
   updated_at: string;
 }

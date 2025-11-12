@@ -34,7 +34,7 @@ export function AppCard({ app, editMode, onEdit, onDelete }: AppCardProps) {
                 </span>
               )}
               <span className="truncate block text-muted-foreground/70">
-                {app.repo || app.github_repo}
+                {app.repo}
               </span>
               <span className="inline-block">
                 <Badge variant="secondary" className="text-xs font-normal">

@@ -15,63 +15,18 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     url TEXT,
-    github_repo TEXT NOT NULL,
+    repo TEXT NOT NULL,
+    source_type TEXT DEFAULT 'github',
     current_version TEXT NOT NULL,
     latest_version TEXT,
     has_update INTEGER DEFAULT 0,
+    category TEXT NOT NULL,
+    docker_image TEXT NOT NULL,
+    k8s_namespace TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
-
-// Add source_type column if it doesn't exist (migration)
-try {
-  db.exec(`ALTER TABLE apps ADD COLUMN source_type TEXT DEFAULT 'github'`);
-  // Migrate existing 'github' to 'ghcr' if they were using container registry
-  // We'll keep 'github' for releases and use 'ghcr' for container registry
-} catch (error) {
-  // Column already exists, ignore
-}
-
-// Add repo column if it doesn't exist (for backward compatibility)
-try {
-  db.exec(`ALTER TABLE apps ADD COLUMN repo TEXT`);
-  // Migrate existing github_repo to repo
-  db.exec(`UPDATE apps SET repo = github_repo WHERE repo IS NULL`);
-} catch (error) {
-  // Column already exists, ignore
-}
-
-// Add category column if it doesn't exist
-try {
-  db.exec(`ALTER TABLE apps ADD COLUMN category TEXT`);
-} catch (error) {
-  // Column already exists, ignore
-}
-
-// Add docker_image column if it doesn't exist (for Kubernetes pod version fetching)
-try {
-  db.exec(`ALTER TABLE apps ADD COLUMN docker_image TEXT`);
-} catch (error) {
-  // Column already exists, ignore
-}
-
-// Add k8s_namespace column if it doesn't exist (for Kubernetes namespace)
-try {
-  db.exec(`ALTER TABLE apps ADD COLUMN k8s_namespace TEXT`);
-} catch (error) {
-  // Column already exists, ignore
-}
-
-// Make url column nullable (migration for services without URLs)
-try {
-  // SQLite doesn't support ALTER COLUMN directly, so we need to recreate the table
-  // But since we're using migrations, we'll just ensure new inserts can have NULL urls
-  // The schema will be updated on next table creation, but existing data is fine
-  // We'll handle NULL urls in the application code
-} catch (error) {
-  // Ignore
-}
 
 export type SourceType = "github" | "ghcr" | "dockerhub" | "k8s";
 
@@ -79,15 +34,14 @@ export interface App {
   id: number;
   name: string;
   url: string | null;
-  github_repo: string; // Keep for backward compatibility
   repo: string;
   source_type: SourceType;
   current_version: string;
   latest_version: string | null;
   has_update: boolean;
-  category: string | null;
-  docker_image: string | null;
-  k8s_namespace: string | null;
+  category: string;
+  docker_image: string;
+  k8s_namespace: string;
   created_at: string;
   updated_at: string;
 }
@@ -96,34 +50,27 @@ interface DbApp {
   id: number;
   name: string;
   url: string | null;
-  github_repo: string | null;
   repo: string | null;
   source_type: string | null;
   current_version: string;
   latest_version: string | null;
   has_update: number;
-  category: string | null;
-  docker_image: string | null;
-  k8s_namespace: string | null;
+  category: string;
+  docker_image: string;
+  k8s_namespace: string;
   created_at: string;
   updated_at: string;
 }
 
 const convertDbAppToApp = (dbApp: DbApp): App => {
-  // Migrate old 'github' to 'ghcr' if needed (backward compatibility)
-  let sourceType = dbApp.source_type || "github";
-  // If source_type is 'github' but we want to distinguish, we'll use 'github' for releases
-  // and 'ghcr' for container registry. For now, keep 'github' as default for releases.
-
   return {
     ...dbApp,
-    repo: dbApp.repo || dbApp.github_repo || "",
-    source_type: sourceType as SourceType,
-    github_repo: dbApp.github_repo || dbApp.repo || "", // Backward compatibility
+    repo: dbApp.repo || "",
+    source_type: (dbApp.source_type || "github") as SourceType,
     has_update: Boolean(dbApp.has_update),
-    category: dbApp.category || null,
-    docker_image: dbApp.docker_image || null,
-    k8s_namespace: dbApp.k8s_namespace || null,
+    category: dbApp.category,
+    docker_image: dbApp.docker_image,
+    k8s_namespace: dbApp.k8s_namespace,
   };
 };
 
@@ -148,20 +95,39 @@ export const dbOperations = {
       "id" | "created_at" | "updated_at" | "latest_version" | "has_update"
     >
   ) => {
+    // Validate required fields
+    if (typeof app.category !== "string" || app.category.trim() === "") {
+      throw new Error("category is required and must be a non-empty string");
+    }
+    if (
+      typeof app.docker_image !== "string" ||
+      app.docker_image.trim() === ""
+    ) {
+      throw new Error(
+        "docker_image is required and must be a non-empty string"
+      );
+    }
+    if (
+      typeof app.k8s_namespace !== "string" ||
+      app.k8s_namespace.trim() === ""
+    ) {
+      throw new Error(
+        "k8s_namespace is required and must be a non-empty string"
+      );
+    }
+
     const stmt = db.prepare(
-      "INSERT INTO apps (name, url, github_repo, repo, source_type, current_version, category, docker_image, k8s_namespace) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO apps (name, url, repo, source_type, current_version, category, docker_image, k8s_namespace) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
-    const repo = app.repo || app.github_repo || "";
     return stmt.run(
       app.name,
       app.url,
-      repo, // github_repo for backward compatibility
-      repo,
+      app.repo,
       app.source_type || "github",
       app.current_version,
-      app.category || null,
-      app.docker_image || null,
-      app.k8s_namespace || null
+      app.category,
+      app.docker_image,
+      app.k8s_namespace
     );
   },
 
@@ -169,6 +135,33 @@ export const dbOperations = {
     id: number,
     app: Partial<Omit<App, "id" | "created_at" | "updated_at">>
   ) => {
+    // Validate required fields if they are being updated
+    if (app.category !== undefined) {
+      if (typeof app.category !== "string" || app.category.trim() === "") {
+        throw new Error("category is required and must be a non-empty string");
+      }
+    }
+    if (app.docker_image !== undefined) {
+      if (
+        typeof app.docker_image !== "string" ||
+        app.docker_image.trim() === ""
+      ) {
+        throw new Error(
+          "docker_image is required and must be a non-empty string"
+        );
+      }
+    }
+    if (app.k8s_namespace !== undefined) {
+      if (
+        typeof app.k8s_namespace !== "string" ||
+        app.k8s_namespace.trim() === ""
+      ) {
+        throw new Error(
+          "k8s_namespace is required and must be a non-empty string"
+        );
+      }
+    }
+
     const updates: string[] = [];
     const values: any[] = [];
 
@@ -180,12 +173,9 @@ export const dbOperations = {
       updates.push("url = ?");
       values.push(app.url);
     }
-    if (app.repo !== undefined || app.github_repo !== undefined) {
-      const repo = app.repo || app.github_repo || "";
+    if (app.repo !== undefined) {
       updates.push("repo = ?");
-      values.push(repo);
-      updates.push("github_repo = ?");
-      values.push(repo);
+      values.push(app.repo);
     }
     if (app.source_type !== undefined) {
       updates.push("source_type = ?");
@@ -205,15 +195,15 @@ export const dbOperations = {
     }
     if (app.category !== undefined) {
       updates.push("category = ?");
-      values.push(app.category || null);
+      values.push(app.category);
     }
     if (app.docker_image !== undefined) {
       updates.push("docker_image = ?");
-      values.push(app.docker_image || null);
+      values.push(app.docker_image);
     }
     if (app.k8s_namespace !== undefined) {
       updates.push("k8s_namespace = ?");
-      values.push(app.k8s_namespace || null);
+      values.push(app.k8s_namespace);
     }
 
     updates.push("updated_at = CURRENT_TIMESTAMP");
@@ -232,7 +222,7 @@ export const dbOperations = {
   getCategories: () => {
     const categories = db
       .prepare(
-        "SELECT DISTINCT category FROM apps WHERE category IS NOT NULL AND category != '' ORDER BY category"
+        "SELECT DISTINCT category FROM apps WHERE category != '' ORDER BY category"
       )
       .all() as { category: string }[];
     return categories.map((c) => c.category);
