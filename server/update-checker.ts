@@ -1,22 +1,33 @@
 import { dbOperations, type App } from "./db.js";
-import { getLatestRelease } from "./github.js";
+import { getLatestTag as getGhcrLatestTag } from "./github.js";
+import { getLatestTag as getDockerHubLatestTag } from "./dockerhub.js";
+import { getLatestRelease } from "./github-releases.js";
 
 export async function checkForUpdates() {
   const apps = dbOperations.getAllApps();
 
   for (const app of apps) {
     try {
-      const latestVersion = await getLatestRelease(app.github_repo);
+      let latestVersion: string | null = null;
+
+      if (app.source_type === "dockerhub") {
+        latestVersion = await getDockerHubLatestTag(app.repo);
+      } else if (app.source_type === "ghcr") {
+        latestVersion = await getGhcrLatestTag(app.repo || app.github_repo);
+      } else {
+        // Default to GitHub Releases
+        latestVersion = await getLatestRelease(app.repo || app.github_repo);
+      }
 
       if (latestVersion && latestVersion !== app.current_version) {
         dbOperations.updateApp(app.id, {
           latest_version: latestVersion,
-          has_update: 1,
+          has_update: true,
         });
       } else {
         dbOperations.updateApp(app.id, {
           latest_version: null,
-          has_update: 0,
+          has_update: false,
         });
       }
     } catch (error) {

@@ -74,22 +74,12 @@ export default function HomePage() {
                 ) : null}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <a
-                  href={app.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-foreground"
-                >
-                  {app.url}
-                </a>
-                <Button size="sm" variant="outline" asChild>
-                  <a href={app.url} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
+            <CardContent className="flex justify-end">
+              <Link to={app.url} target="_blank" rel="noopener noreferrer">
+                <Button size="sm" variant="outline">
+                  <ExternalLink className="h-4 w-4" />
                 </Button>
-              </div>
+              </Link>
             </CardContent>
           </Card>
         ))}

@@ -1,13 +1,17 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
+
+export type SourceType = "github" | "ghcr" | "dockerhub";
 
 export interface App {
   id: number;
   name: string;
   url: string;
-  github_repo: string;
+  github_repo: string; // Keep for backward compatibility
+  repo: string;
+  source_type: SourceType;
   current_version: string;
   latest_version: string | null;
-  has_update: number;
+  has_update: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -18,6 +22,18 @@ export interface GitHubRelease {
   published_at: string;
   prerelease: boolean;
 }
+
+export interface GitHubTag {
+  name: string;
+  last_updated: string;
+}
+
+export interface DockerHubTag {
+  name: string;
+  last_updated: string;
+}
+
+export type Release = GitHubRelease | GitHubTag | DockerHubTag;
 
 export const api = {
   getApps: async (): Promise<App[]> => {
@@ -80,9 +96,12 @@ export const api = {
     }
   },
 
-  fetchReleases: async (repo: string): Promise<GitHubRelease[]> => {
+  fetchReleasesBySource: async (
+    source: SourceType,
+    repo: string
+  ): Promise<Release[]> => {
     const response = await fetch(
-      `${API_BASE}/github/releases?repo=${encodeURIComponent(repo)}`
+      `${API_BASE}/releases?source=${source}&repo=${encodeURIComponent(repo)}`
     );
     if (!response.ok) {
       throw new Error("Failed to fetch releases");

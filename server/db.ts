@@ -24,11 +24,47 @@ db.exec(`
   )
 `);
 
+// Add source_type column if it doesn't exist (migration)
+try {
+  db.exec(`ALTER TABLE apps ADD COLUMN source_type TEXT DEFAULT 'github'`);
+  // Migrate existing 'github' to 'ghcr' if they were using container registry
+  // We'll keep 'github' for releases and use 'ghcr' for container registry
+} catch (error) {
+  // Column already exists, ignore
+}
+
+// Add repo column if it doesn't exist (for backward compatibility)
+try {
+  db.exec(`ALTER TABLE apps ADD COLUMN repo TEXT`);
+  // Migrate existing github_repo to repo
+  db.exec(`UPDATE apps SET repo = github_repo WHERE repo IS NULL`);
+} catch (error) {
+  // Column already exists, ignore
+}
+
+export type SourceType = "github" | "ghcr" | "dockerhub";
+
 export interface App {
   id: number;
   name: string;
   url: string;
-  github_repo: string;
+  github_repo: string; // Keep for backward compatibility
+  repo: string;
+  source_type: SourceType;
+  current_version: string;
+  latest_version: string | null;
+  has_update: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DbApp {
+  id: number;
+  name: string;
+  url: string;
+  github_repo: string | null;
+  repo: string | null;
+  source_type: string | null;
   current_version: string;
   latest_version: string | null;
   has_update: number;
@@ -36,15 +72,34 @@ export interface App {
   updated_at: string;
 }
 
+const convertDbAppToApp = (dbApp: DbApp): App => {
+  // Migrate old 'github' to 'ghcr' if needed (backward compatibility)
+  let sourceType = dbApp.source_type || "github";
+  // If source_type is 'github' but we want to distinguish, we'll use 'github' for releases
+  // and 'ghcr' for container registry. For now, keep 'github' as default for releases.
+
+  return {
+    ...dbApp,
+    repo: dbApp.repo || dbApp.github_repo || "",
+    source_type: sourceType as SourceType,
+    github_repo: dbApp.github_repo || dbApp.repo || "", // Backward compatibility
+    has_update: Boolean(dbApp.has_update),
+  };
+};
+
 export const dbOperations = {
   getAllApps: () => {
-    return db.prepare("SELECT * FROM apps ORDER BY name").all() as App[];
+    const dbApps = db
+      .prepare("SELECT * FROM apps ORDER BY name")
+      .all() as DbApp[];
+    return dbApps.map(convertDbAppToApp);
   },
 
   getApp: (id: number) => {
-    return db.prepare("SELECT * FROM apps WHERE id = ?").get(id) as
-      | App
+    const dbApp = db.prepare("SELECT * FROM apps WHERE id = ?").get(id) as
+      | DbApp
       | undefined;
+    return dbApp ? convertDbAppToApp(dbApp) : undefined;
   },
 
   createApp: (
@@ -54,9 +109,17 @@ export const dbOperations = {
     >
   ) => {
     const stmt = db.prepare(
-      "INSERT INTO apps (name, url, github_repo, current_version) VALUES (?, ?, ?, ?)"
+      "INSERT INTO apps (name, url, github_repo, repo, source_type, current_version) VALUES (?, ?, ?, ?, ?, ?)"
     );
-    return stmt.run(app.name, app.url, app.github_repo, app.current_version);
+    const repo = app.repo || app.github_repo || "";
+    return stmt.run(
+      app.name,
+      app.url,
+      repo, // github_repo for backward compatibility
+      repo,
+      app.source_type || "github",
+      app.current_version
+    );
   },
 
   updateApp: (
@@ -74,9 +137,16 @@ export const dbOperations = {
       updates.push("url = ?");
       values.push(app.url);
     }
-    if (app.github_repo !== undefined) {
+    if (app.repo !== undefined || app.github_repo !== undefined) {
+      const repo = app.repo || app.github_repo || "";
+      updates.push("repo = ?");
+      values.push(repo);
       updates.push("github_repo = ?");
-      values.push(app.github_repo);
+      values.push(repo);
+    }
+    if (app.source_type !== undefined) {
+      updates.push("source_type = ?");
+      values.push(app.source_type);
     }
     if (app.current_version !== undefined) {
       updates.push("current_version = ?");
@@ -88,7 +158,7 @@ export const dbOperations = {
     }
     if (app.has_update !== undefined) {
       updates.push("has_update = ?");
-      values.push(app.has_update);
+      values.push(app.has_update ? 1 : 0);
     }
 
     updates.push("updated_at = CURRENT_TIMESTAMP");

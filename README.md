@@ -64,6 +64,25 @@ homepage/
 └── data/            # SQLite database (created automatically)
 ```
 
+## Environment Variables
+
+The app supports environment variables via a `.env` file. Copy `.env.example` to `.env` and configure as needed:
+
+```bash
+cp .env.example .env
+```
+
+Available environment variables:
+
+- `PORT`: Server port (default: 3001)
+- `GITHUB_TOKEN`: GitHub personal access token for accessing GitHub Container Registry (ghcr.io). **Required** for fetching tags.
+  - Create a token at: https://github.com/settings/tokens
+  - Click "Generate new token (classic)"
+  - Required scopes: `read:packages` (minimum) or `repo` (for private packages)
+  - Copy the token and add it to your `.env` file
+
+**Note:** The `.env` file is already included in `.gitignore` and will not be committed to version control.
+
 ## Database
 
 The app uses SQLite to store configurations. The database file is created automatically in the `data/` directory on first run.

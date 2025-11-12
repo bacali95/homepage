@@ -12,7 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit, Plus, Loader2 } from "lucide-react";
-import { api, type App, type GitHubRelease } from "@/lib/api";
+import { api, type App, type Release, type SourceType } from "@/lib/api";
+
+const formatVersion = (version: string): string => {
+  return version.startsWith("v") ? version : `v${version}`;
+};
 
 export default function ManageApps() {
   const [apps, setApps] = useState<App[]>([]);
@@ -20,10 +24,12 @@ export default function ManageApps() {
   const [formData, setFormData] = useState({
     name: "",
     url: "",
+    repo: "",
     github_repo: "",
+    source_type: "github" as SourceType,
     current_version: "",
   });
-  const [releases, setReleases] = useState<GitHubRelease[]>([]);
+  const [releases, setReleases] = useState<Release[]>([]);
   const [loadingReleases, setLoadingReleases] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +38,7 @@ export default function ManageApps() {
   }, []);
 
   useEffect(() => {
-    if (formData.github_repo) {
+    if (formData.repo || formData.github_repo) {
       const timeoutId = setTimeout(() => {
         loadReleases();
       }, 500);
@@ -40,7 +46,7 @@ export default function ManageApps() {
     } else {
       setReleases([]);
     }
-  }, [formData.github_repo]);
+  }, [formData.repo, formData.github_repo, formData.source_type]);
 
   const loadApps = async () => {
     try {
@@ -54,11 +60,15 @@ export default function ManageApps() {
   };
 
   const loadReleases = async () => {
-    if (!formData.github_repo) return;
+    const repo = formData.repo || formData.github_repo;
+    if (!repo) return;
 
     setLoadingReleases(true);
     try {
-      const fetchedReleases = await api.fetchReleases(formData.github_repo);
+      let fetchedReleases: Release[] = await api.fetchReleasesBySource(
+        formData.source_type,
+        repo
+      );
       setReleases(fetchedReleases);
     } catch (error) {
       console.error("Error loading releases:", error);
@@ -88,10 +98,14 @@ export default function ManageApps() {
 
   const handleEdit = (app: App) => {
     setEditingApp(app);
+    // Migrate old 'github' to 'ghcr' if needed, but default to 'github' for releases
+    const sourceType = app.source_type || "github";
     setFormData({
       name: app.name,
       url: app.url,
-      github_repo: app.github_repo,
+      repo: app.repo || app.github_repo,
+      github_repo: app.github_repo || app.repo,
+      source_type: sourceType,
       current_version: app.current_version,
     });
   };
@@ -113,7 +127,9 @@ export default function ManageApps() {
     setFormData({
       name: "",
       url: "",
+      repo: "",
       github_repo: "",
+      source_type: "github",
       current_version: "",
     });
     setReleases([]);
@@ -172,20 +188,61 @@ export default function ManageApps() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="github_repo">GitHub Repository</Label>
-              <Input
-                id="github_repo"
-                value={formData.github_repo}
-                onChange={(e) =>
-                  setFormData({ ...formData, github_repo: e.target.value })
-                }
+              <Label htmlFor="source_type">Source Type</Label>
+              <Select
+                id="source_type"
+                value={formData.source_type}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    source_type: e.target.value as SourceType,
+                    repo: "",
+                    github_repo: "",
+                    current_version: "",
+                  });
+                  setReleases([]);
+                }}
                 required
-                placeholder="owner/repo or https://github.com/owner/repo"
+              >
+                <option value="github">GitHub Releases</option>
+                <option value="ghcr">GitHub Container Registry</option>
+                <option value="dockerhub">Docker Hub</option>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="repo">
+                {formData.source_type === "dockerhub"
+                  ? "Docker Image"
+                  : formData.source_type === "ghcr"
+                  ? "GitHub Container Registry Image"
+                  : "GitHub Repository"}
+              </Label>
+              <Input
+                id="repo"
+                value={formData.repo || formData.github_repo}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({
+                    ...formData,
+                    repo: value,
+                    github_repo: value,
+                  });
+                }}
+                required
+                placeholder={
+                  formData.source_type === "dockerhub"
+                    ? "owner/image or library/image"
+                    : formData.source_type === "ghcr"
+                    ? "owner/repo or owner/repo/image"
+                    : "owner/repo or https://github.com/owner/repo"
+                }
               />
               {loadingReleases && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading releases...
+                  Loading{" "}
+                  {formData.source_type === "github" ? "releases" : "tags"}...
                 </div>
               )}
             </div>
@@ -205,11 +262,15 @@ export default function ManageApps() {
                   required
                 >
                   <option value="">Select a version</option>
-                  {releases.map((release) => (
-                    <option key={release.tag_name} value={release.tag_name}>
-                      {release.tag_name} - {release.name}
-                    </option>
-                  ))}
+                  {releases.map((release) => {
+                    const version =
+                      "tag_name" in release ? release.tag_name : release.name;
+                    return (
+                      <option key={version} value={version}>
+                        {formatVersion(version)}
+                      </option>
+                    );
+                  })}
                 </Select>
               ) : (
                 <Input
@@ -254,7 +315,13 @@ export default function ManageApps() {
                     <div>
                       <CardTitle>{app.name}</CardTitle>
                       <CardDescription>
-                        {app.url} • {app.github_repo}
+                        {app.url} • {app.repo || app.github_repo} (
+                        {app.source_type === "ghcr"
+                          ? "GHCR"
+                          : app.source_type === "dockerhub"
+                          ? "Docker Hub"
+                          : "GitHub Releases"}
+                        )
                       </CardDescription>
                     </div>
                     <div className="flex gap-2">
@@ -277,12 +344,14 @@ export default function ManageApps() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">v{app.current_version}</Badge>
+                    <Badge variant="outline">
+                      {formatVersion(app.current_version)}
+                    </Badge>
                     {app.has_update && app.latest_version && (
                       <>
                         <span className="text-muted-foreground">→</span>
                         <Badge variant="destructive">
-                          v{app.latest_version} available
+                          {formatVersion(app.latest_version)} available
                         </Badge>
                       </>
                     )}

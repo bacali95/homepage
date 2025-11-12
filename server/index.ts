@@ -1,7 +1,10 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { dbOperations } from "./db.js";
-import { fetchReleases } from "./github.js";
+import { fetchTags as fetchGhcrTags } from "./github.js";
+import { fetchTags as fetchDockerHubTags } from "./dockerhub.js";
+import { fetchReleases } from "./github-releases.js";
 import { startUpdateChecker } from "./update-checker.js";
 
 const app = express();
@@ -37,14 +40,17 @@ app.get("/api/apps/:id", (req, res) => {
 
 app.post("/api/apps", (req, res) => {
   try {
-    const { name, url, github_repo, current_version } = req.body;
-    if (!name || !url || !github_repo || !current_version) {
+    const { name, url, repo, github_repo, source_type, current_version } =
+      req.body;
+    if (!name || !url || (!repo && !github_repo) || !current_version) {
       return res.status(400).json({ error: "Missing required fields" });
     }
     const result = dbOperations.createApp({
       name,
       url,
-      github_repo,
+      repo: repo || github_repo,
+      github_repo: repo || github_repo,
+      source_type: source_type || "github",
       current_version,
     });
     res.status(201).json({ id: result.lastInsertRowid });
@@ -57,11 +63,14 @@ app.post("/api/apps", (req, res) => {
 app.put("/api/apps/:id", (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { name, url, github_repo, current_version } = req.body;
+    const { name, url, repo, github_repo, source_type, current_version } =
+      req.body;
     dbOperations.updateApp(id, {
       name,
       url,
-      github_repo,
+      repo: repo || github_repo,
+      github_repo: repo || github_repo,
+      source_type,
       current_version,
     });
     res.json({ success: true });
@@ -82,14 +91,29 @@ app.delete("/api/apps/:id", (req, res) => {
   }
 });
 
-app.get("/api/github/releases", async (req, res) => {
+app.get("/api/releases", async (req, res) => {
   try {
+    const source = req.query.source as string;
     const repo = req.query.repo as string;
-    if (!repo) {
-      return res.status(400).json({ error: "Repository parameter required" });
+
+    if (!source || !repo) {
+      return res
+        .status(400)
+        .json({ error: "Source and repo parameters required" });
     }
-    const releases = await fetchReleases(repo);
-    res.json(releases);
+
+    if (source === "github") {
+      const releases = await fetchReleases(repo);
+      res.json(releases);
+    } else if (source === "ghcr") {
+      const tags = await fetchGhcrTags(repo);
+      res.json(tags);
+    } else if (source === "dockerhub") {
+      const tags = await fetchDockerHubTags(repo);
+      res.json(tags);
+    } else {
+      return res.status(400).json({ error: "Invalid source type" });
+    }
   } catch (error) {
     console.error("Error fetching releases:", error);
     res.status(500).json({ error: "Failed to fetch releases" });
