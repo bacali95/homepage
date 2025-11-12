@@ -23,8 +23,7 @@ COPY . .
 RUN yarn build
 
 # Install production dependencies only (after build, replace node_modules)
-RUN yarn install --immutable --production && \
-    yarn cache clean
+RUN yarn workspaces focus --production
 
 # Production stage
 FROM node:24-alpine
