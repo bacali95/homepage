@@ -17,7 +17,7 @@ export function registerK8sPodVersionUpdaterJob() {
     execute: async () => {
       await updateVersionsFromPods();
     },
-    interval: 60 * 60 * 1000, // 1 hour
+    interval: 5 * 60 * 1000, // 5 minutes
     runOnStart: true,
     maxRetries: 3,
     retryDelay: 5000,

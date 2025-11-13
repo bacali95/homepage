@@ -3,6 +3,10 @@
  * Provides a unified interface for scheduling, executing, and managing background jobs
  */
 
+import { createLogger } from "../logger.js";
+
+const log = createLogger({ service: "JobScheduler" });
+
 export interface JobConfig {
   /** Unique identifier for the job */
   id: string;
@@ -97,17 +101,14 @@ export class JobScheduler {
     // Run immediately if configured
     if (job.runOnStart) {
       this.executeJob(jobId).catch((error) => {
-        console.error(`Error running job "${job.name}" on start:`, error);
+        log.error(`Error running job "${job.name}" on start:`, error);
       });
     }
 
     // Schedule recurring execution
     const interval = setInterval(() => {
       this.executeJob(jobId).catch((error) => {
-        console.error(
-          `Error in scheduled execution of job "${job.name}":`,
-          error
-        );
+        log.error(`Error in scheduled execution of job "${job.name}":`, error);
       });
     }, job.interval);
 
@@ -152,7 +153,7 @@ export class JobScheduler {
 
     // Prevent concurrent execution
     if (status.isRunning) {
-      console.warn(`Job "${job.name}" is already running, skipping execution`);
+      log.warn(`Job "${job.name}" is already running, skipping execution`);
       return;
     }
 
@@ -165,21 +166,19 @@ export class JobScheduler {
       status.errorCount = 0;
       status.lastError = null;
       status.nextRun = new Date(Date.now() + job.interval);
+      log.info(`Job "${job.name}" completed successfully`);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       status.lastError = err;
       status.errorCount++;
 
-      console.error(
-        `Job "${job.name}" failed (attempt ${retryCount + 1}):`,
-        err
-      );
+      log.error(`Job "${job.name}" failed (attempt ${retryCount + 1}):`, err);
 
       // Retry if we haven't exceeded max retries
       const maxRetries = job.maxRetries ?? 3;
       if (retryCount < maxRetries) {
         const retryDelay = job.retryDelay ?? 5000;
-        console.log(
+        log.info(
           `Retrying job "${job.name}" in ${retryDelay}ms (${
             retryCount + 1
           }/${maxRetries})`
@@ -187,7 +186,7 @@ export class JobScheduler {
         await new Promise((resolve) => setTimeout(resolve, retryDelay));
         return this.executeJob(jobId, retryCount + 1);
       } else {
-        console.error(
+        log.error(
           `Job "${job.name}" failed after ${maxRetries} retries. Will retry on next scheduled run.`
         );
       }
@@ -200,6 +199,11 @@ export class JobScheduler {
    * Manually trigger a job execution
    */
   async trigger(jobId: string): Promise<void> {
+    const job = this.jobs.get(jobId);
+    if (!job) {
+      throw new Error(`Job with id "${jobId}" not found`);
+    }
+    log.info(`Manually triggering job "${job.name}"`);
     await this.executeJob(jobId);
   }
 
@@ -217,6 +221,7 @@ export class JobScheduler {
       if (this.isRunning) {
         this.startJob(jobId);
       }
+      log.info(`Job "${job.name}" enabled`);
     }
   }
 
@@ -232,6 +237,7 @@ export class JobScheduler {
         status.enabled = false;
       }
       this.stopJob(jobId);
+      log.info(`Job "${job.name}" disabled`);
     }
   }
 
@@ -254,19 +260,24 @@ export class JobScheduler {
    */
   start(): void {
     if (this.isRunning) {
-      console.warn("JobScheduler is already running");
+      log.warn("JobScheduler is already running");
       return;
     }
 
     this.isRunning = true;
-    console.log(`Starting JobScheduler with ${this.jobs.size} registered jobs`);
+    log.info(`Starting JobScheduler with ${this.jobs.size} registered jobs`);
 
+    let enabledCount = 0;
     for (const jobId of this.jobs.keys()) {
       const job = this.jobs.get(jobId);
       if (job?.enabled) {
         this.startJob(jobId);
+        enabledCount++;
       }
     }
+    log.info(
+      `JobScheduler started successfully with ${enabledCount} enabled job(s)`
+    );
   }
 
   /**
@@ -278,7 +289,7 @@ export class JobScheduler {
     }
 
     this.isRunning = false;
-    console.log("Stopping JobScheduler");
+    log.info("Stopping JobScheduler");
 
     for (const jobId of this.intervals.keys()) {
       this.stopJob(jobId);
@@ -289,7 +300,7 @@ export class JobScheduler {
    * Shutdown gracefully (waits for running jobs to complete)
    */
   async shutdown(): Promise<void> {
-    console.log("Shutting down JobScheduler...");
+    log.info("Shutting down JobScheduler...");
     this.stop();
 
     // Wait for any running jobs to complete (with timeout)
@@ -298,7 +309,7 @@ export class JobScheduler {
     );
 
     if (runningJobs.length > 0) {
-      console.log(
+      log.info(
         `Waiting for ${runningJobs.length} running job(s) to complete...`
       );
       const timeout = 30000; // 30 seconds
@@ -313,13 +324,15 @@ export class JobScheduler {
 
       const stillRunning = runningJobs.filter((status) => status.isRunning);
       if (stillRunning.length > 0) {
-        console.warn(
+        log.warn(
           `Warning: ${stillRunning.length} job(s) did not complete within timeout`
         );
+      } else {
+        log.info("All running jobs completed successfully");
       }
     }
 
-    console.log("JobScheduler shutdown complete");
+    log.info("JobScheduler shutdown complete");
   }
 }
 

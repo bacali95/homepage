@@ -1,4 +1,7 @@
 import * as k8s from "@kubernetes/client-node";
+import { createLogger } from "./logger.js";
+
+const log = createLogger({ service: "K8sPod" });
 
 // Initialize Kubernetes client
 let k8sApi: k8s.CoreV1Api | null = null;
@@ -62,6 +65,9 @@ export async function getVersionFromPod(
 
         if (imageNameMatch) {
           // Return the tag from the running container
+          log.info(
+            `Successfully found version ${containerImageTag} for image ${dockerImage} in namespace ${namespace}`
+          );
           return containerImageTag;
         }
       }
@@ -69,7 +75,7 @@ export async function getVersionFromPod(
 
     return null;
   } catch (error) {
-    console.error(
+    log.error(
       `Error fetching version from pod for image ${dockerImage}:`,
       error
     );
@@ -84,8 +90,13 @@ export async function updateVersionsFromPods() {
   const { dbOperations } = await import("./db.js");
   const apps = dbOperations.getAllApps();
 
+  let processedCount = 0;
+  let updatedCount = 0;
+  let skippedCount = 0;
+
   for (const app of apps) {
     if (!app.docker_image || !app.k8s_namespace) {
+      skippedCount++;
       continue;
     }
 
@@ -98,12 +109,22 @@ export async function updateVersionsFromPods() {
         dbOperations.updateApp(app.id, {
           current_version: version,
         });
-        console.log(
+        log.info(
           `Updated ${app.name} version from ${app.current_version} to ${version}`
         );
+        updatedCount++;
+      } else if (version) {
+        log.info(
+          `App ${app.name} is already at version ${version}, no update needed`
+        );
       }
+      processedCount++;
     } catch (error) {
-      console.error(`Error updating version from pod for ${app.name}:`, error);
+      log.error(`Error updating version from pod for ${app.name}:`, error);
     }
   }
+
+  log.info(
+    `K8s pod version update completed: ${processedCount} processed, ${updatedCount} updated, ${skippedCount} skipped`
+  );
 }

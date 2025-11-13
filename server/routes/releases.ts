@@ -3,7 +3,9 @@ import { fetchTags as fetchGhcrTags } from "../tags-fetchers/ghcr-fetcher.js";
 import { fetchTags as fetchDockerHubTags } from "../tags-fetchers/dockerhub-fetcher.js";
 import { fetchTags as fetchK8sTags } from "../tags-fetchers/k8s-registry-fetcher.js";
 import { fetchReleases } from "../tags-fetchers/github-releases-fetcher.js";
+import { createLogger } from "../logger.js";
 
+const log = createLogger({ route: "/api/releases" });
 const router = Router();
 
 router.get("/", async (req, res) => {
@@ -33,7 +35,7 @@ router.get("/", async (req, res) => {
       return res.status(400).json({ error: "Invalid source type" });
     }
   } catch (error) {
-    console.error("Error fetching releases:", error);
+    log.error("Error fetching releases:", error);
     res.status(500).json({ error: "Failed to fetch releases" });
   }
 });

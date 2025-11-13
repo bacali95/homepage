@@ -1,4 +1,7 @@
 import { normalizePath, createGitHubHeaders } from "./common.js";
+import { createLogger } from "../logger.js";
+
+const log = createLogger({ service: "GitHubReleasesFetcher" });
 
 export interface GitHubRelease {
   tag_name: string;
@@ -26,7 +29,7 @@ export async function fetchReleases(repo: string): Promise<GitHubRelease[]> {
     const releases: GitHubRelease[] = await response.json();
     return releases.filter((r) => !r.prerelease).slice(0, 50); // Get latest 50 non-prerelease releases
   } catch (error) {
-    console.error("Error fetching GitHub releases:", error);
+    log.error("Error fetching GitHub releases:", error);
     return [];
   }
 }

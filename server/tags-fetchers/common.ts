@@ -2,6 +2,10 @@
  * Common utilities and types for tags fetchers
  */
 
+import { createLogger } from "../logger.js";
+
+const log = createLogger({ service: "TagsFetcher" });
+
 // Common tag interface used by all fetchers
 export interface Tag {
   name: string;
@@ -127,7 +131,7 @@ export async function safeFetch<T>(
 
     return await response.json();
   } catch (error) {
-    console.error(`Error ${errorContext.toLowerCase()}:`, error);
+    log.error(`Error ${errorContext.toLowerCase()}:`, error);
     return null;
   }
 }
@@ -205,7 +209,7 @@ export function createTagsFetcher<TResponse, TTag extends Tag = Tag>(
 
       return tags;
     } catch (error) {
-      console.error(`Error fetching ${name} tags:`, error);
+      log.error(`Error fetching ${name} tags:`, error);
       return [];
     }
   }

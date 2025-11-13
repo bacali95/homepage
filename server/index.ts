@@ -9,6 +9,10 @@ import {
   jobScheduler,
 } from "./jobs/index.js";
 import { registerRoutes } from "./routes/index.js";
+import { createLogger } from "./logger.js";
+import { httpLogger } from "./middleware/logger.js";
+
+const log = createLogger({ service: "Server" });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +23,9 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// HTTP request logging middleware
+app.use(httpLogger);
+
 // Health check endpoint
 app.get("/healthz", (_req: express.Request, res: express.Response) => {
   res.status(200).json({ status: "ok" });
@@ -26,6 +33,7 @@ app.get("/healthz", (_req: express.Request, res: express.Response) => {
 
 // Register API routes
 registerRoutes(app);
+log.info("API routes registered successfully");
 
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === "production") {
@@ -51,24 +59,26 @@ if (process.env.NODE_ENV === "production") {
 
 // Register background jobs
 registerUpdateCheckerJob();
+log.info("Update checker job registered");
 registerK8sPodVersionUpdaterJob();
+log.info("K8s pod version updater job registered");
 
 // Start the job scheduler
 jobScheduler.start();
 
 // Graceful shutdown
 process.on("SIGTERM", async () => {
-  console.log("SIGTERM received, shutting down gracefully...");
+  log.info("SIGTERM received, shutting down gracefully...");
   await jobScheduler.shutdown();
   process.exit(0);
 });
 
 process.on("SIGINT", async () => {
-  console.log("SIGINT received, shutting down gracefully...");
+  log.info("SIGINT received, shutting down gracefully...");
   await jobScheduler.shutdown();
   process.exit(0);
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  log.info(`Server running on http://localhost:${PORT}`);
 });

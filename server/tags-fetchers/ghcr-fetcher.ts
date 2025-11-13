@@ -4,6 +4,9 @@ import {
   createGitHubHeaders,
   isSemver,
 } from "./common.js";
+import { createLogger } from "../logger.js";
+
+const log = createLogger({ service: "GHCRFetcher" });
 
 interface GhcrVersion {
   id: number;
@@ -79,7 +82,7 @@ async function fetchGhcrTagsInternal(repo: string): Promise<Tag[]> {
       last_updated: "",
     }));
   } catch (error) {
-    console.error("Error fetching GitHub Container Registry tags:", error);
+    log.error("Error fetching GitHub Container Registry tags:", error);
     return [];
   }
 }

@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { dbOperations } from "../db.js";
 import { checkForUpdate } from "../update-checker.js";
+import { createLogger } from "../logger.js";
 
+const log = createLogger({ route: "/api/apps" });
 const router = Router();
 
 router.get("/", (_req, res) => {
@@ -9,7 +11,7 @@ router.get("/", (_req, res) => {
     const apps = dbOperations.getAllApps();
     res.json(apps);
   } catch (error) {
-    console.error("Error fetching apps:", error);
+    log.error("Error fetching apps:", error);
     res.status(500).json({ error: "Failed to fetch apps" });
   }
 });
@@ -23,7 +25,7 @@ router.get("/:id", (req, res) => {
     }
     res.json(app);
   } catch (error) {
-    console.error("Error fetching app:", error);
+    log.error("Error fetching app:", error);
     res.status(500).json({ error: "Failed to fetch app" });
   }
 });
@@ -70,9 +72,12 @@ router.post("/", (req, res) => {
       docker_image,
       k8s_namespace,
     });
+    log.info(
+      `Successfully created app: ${name} (id: ${result.lastInsertRowid})`
+    );
     res.status(201).json({ id: result.lastInsertRowid });
   } catch (error) {
-    console.error("Error creating app:", error);
+    log.error("Error creating app:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Failed to create app";
     res.status(500).json({ error: errorMessage });
@@ -135,7 +140,7 @@ router.post("/import", (req, res) => {
           continue;
         }
 
-        dbOperations.createApp({
+        const result = dbOperations.createApp({
           name,
           url: url || null,
           repo,
@@ -145,6 +150,9 @@ router.post("/import", (req, res) => {
           docker_image,
           k8s_namespace,
         });
+        log.info(
+          `Successfully imported app: ${name} (id: ${result.lastInsertRowid})`
+        );
         imported++;
       } catch (error) {
         const appName = app.name || "unknown";
@@ -156,13 +164,16 @@ router.post("/import", (req, res) => {
       }
     }
 
+    log.info(
+      `App import completed: ${imported} imported, ${errors.length} error(s)`
+    );
     res.json({
       success: true,
       imported,
       errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {
-    console.error("Error importing apps:", error);
+    log.error("Error importing apps:", error);
     res.status(500).json({ error: "Failed to import apps" });
   }
 });
@@ -229,13 +240,14 @@ router.put("/:id", async (req, res) => {
         await checkForUpdate(id);
       } catch (error) {
         // Log error but don't fail the update request
-        console.error("Error checking updates after version update:", error);
+        log.error("Error checking updates after version update:", error);
       }
     }
 
+    log.info(`Successfully updated app: ${app?.name || `id ${id}`}`);
     res.json({ success: true });
   } catch (error) {
-    console.error("Error updating app:", error);
+    log.error("Error updating app:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Failed to update app";
     res.status(500).json({ error: errorMessage });
@@ -245,10 +257,12 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    const app = dbOperations.getApp(id);
     dbOperations.deleteApp(id);
+    log.info(`Successfully deleted app: ${app?.name || `id ${id}`}`);
     res.json({ success: true });
   } catch (error) {
-    console.error("Error deleting app:", error);
+    log.error("Error deleting app:", error);
     res.status(500).json({ error: "Failed to delete app" });
   }
 });

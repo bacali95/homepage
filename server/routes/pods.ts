@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { getVersionFromPod } from "../k8s-pod.js";
+import { createLogger } from "../logger.js";
 
+const log = createLogger({ route: "/api/fetch-pod-version" });
 const router = Router();
 
 router.get("/", async (req, res) => {
@@ -17,9 +19,18 @@ router.get("/", async (req, res) => {
     }
 
     const version = await getVersionFromPod(dockerImage, namespace);
+    if (version) {
+      log.info(
+        `Successfully fetched pod version: ${version} for ${dockerImage} in namespace ${namespace}`
+      );
+    } else {
+      log.info(
+        `No pod version found for ${dockerImage} in namespace ${namespace}`
+      );
+    }
     res.json({ version });
   } catch (error) {
-    console.error("Error fetching version from pod:", error);
+    log.error("Error fetching version from pod:", error);
     res.status(500).json({ error: "Failed to fetch version from pod" });
   }
 });
