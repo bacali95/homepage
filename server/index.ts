@@ -74,7 +74,7 @@ registerK8sPodVersionUpdaterJob();
 log.info("K8s pod version updater job registered");
 
 // Start the job scheduler
-jobScheduler.start();
+// jobScheduler.start();
 
 // Graceful shutdown
 process.on("SIGTERM", async () => {

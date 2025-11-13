@@ -89,6 +89,13 @@ export const dbOperations = {
     return dbApp ? convertDbAppToApp(dbApp) : undefined;
   },
 
+  getAppByName: (name: string) => {
+    const dbApp = db.prepare("SELECT * FROM apps WHERE name = ?").get(name) as
+      | DbApp
+      | undefined;
+    return dbApp ? convertDbAppToApp(dbApp) : undefined;
+  },
+
   createApp: (
     app: Omit<
       App,

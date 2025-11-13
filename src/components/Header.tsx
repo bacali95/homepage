@@ -4,8 +4,6 @@ import { SettingsMenu } from "./SettingsMenu";
 
 interface HeaderProps {
   onAdd: () => void;
-  editMode: boolean;
-  onToggleEditMode: () => void;
   onExport: () => void;
   onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCheckUpdates: () => void;
@@ -15,8 +13,6 @@ interface HeaderProps {
 
 export function Header({
   onAdd,
-  editMode,
-  onToggleEditMode,
   onExport,
   onImport,
   onCheckUpdates,
@@ -44,8 +40,6 @@ export function Header({
             <span className="sm:hidden">Add</span>
           </Button>
           <SettingsMenu
-            editMode={editMode}
-            onToggleEditMode={onToggleEditMode}
             onExport={onExport}
             onImport={onImport}
             onCheckUpdates={onCheckUpdates}

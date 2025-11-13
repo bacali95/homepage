@@ -1,6 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { type SourceType } from "./api";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -8,20 +7,6 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatVersion(version: string): string {
   return version.startsWith("v") ? version : `v${version}`;
-}
-
-export function getSourceTypeLabel(sourceType: SourceType): string {
-  switch (sourceType) {
-    case "ghcr":
-      return "GHCR";
-    case "dockerhub":
-      return "Docker Hub";
-    case "k8s":
-      return "K8s Registry";
-    case "github":
-    default:
-      return "GitHub Releases";
-  }
 }
 
 export function groupAppsByCategory<T extends { category: string | null }>(
@@ -43,4 +28,9 @@ export function sortCategories(categories: string[]): string[] {
     if (b === "Uncategorized") return -1;
     return a.localeCompare(b);
   });
+}
+
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength - 3) + "...";
 }

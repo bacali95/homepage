@@ -91,6 +91,18 @@ export function useCheckUpdates() {
   });
 }
 
+export function useCheckAppUpdates() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => api.checkAppUpdates(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.apps });
+      queryClient.invalidateQueries({ queryKey: queryKeys.app(id) });
+    },
+  });
+}
+
 export function useImportApps() {
   const queryClient = useQueryClient();
 

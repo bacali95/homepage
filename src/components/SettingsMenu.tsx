@@ -2,7 +2,6 @@ import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, MenuItem, MenuTrigger } from "@/components/ui/menu";
 import {
-  Settings,
   RefreshCw,
   MoreVertical,
   Moon,
@@ -14,8 +13,6 @@ import {
 import { useTheme, type Theme } from "@/lib/use-theme";
 
 interface SettingsMenuProps {
-  editMode: boolean;
-  onToggleEditMode: () => void;
   onExport: () => void;
   onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCheckUpdates: () => void;
@@ -24,8 +21,6 @@ interface SettingsMenuProps {
 }
 
 export function SettingsMenu({
-  editMode,
-  onToggleEditMode,
   onExport,
   onImport,
   onCheckUpdates,
@@ -114,12 +109,6 @@ export function SettingsMenu({
               className={`h-4 w-4 ${isCheckingUpdates ? "animate-spin" : ""}`}
             />
             <span>{isCheckingUpdates ? "Checking..." : "Check Updates"}</span>
-          </div>
-        </MenuItem>
-        <MenuItem onClick={onToggleEditMode}>
-          <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span>{editMode ? "Exit Edit Mode" : "Edit Mode"}</span>
           </div>
         </MenuItem>
       </Menu>

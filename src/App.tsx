@@ -10,6 +10,7 @@ import {
   useUpdateApp,
   useDeleteApp,
   useCheckUpdates,
+  useCheckAppUpdates,
   useImportApps,
 } from "@/lib/use-apps";
 import { LoadingState } from "@/components/LoadingState";
@@ -40,9 +41,9 @@ export default function App() {
   const updateAppMutation = useUpdateApp();
   const deleteAppMutation = useDeleteApp();
   const checkUpdatesMutation = useCheckUpdates();
+  const checkAppUpdatesMutation = useCheckAppUpdates();
   const importAppsMutation = useImportApps();
 
-  const [editMode, setEditMode] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingApp, setEditingApp] = useState<App | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -59,8 +60,6 @@ export default function App() {
           setDrawerOpen(false);
           setEditingApp(null);
           setFormData(initialFormData);
-        } else if (editMode) {
-          setEditMode(false);
         }
       }
     };
@@ -69,7 +68,7 @@ export default function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [drawerOpen, editMode]);
+  }, [drawerOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,6 +133,22 @@ export default function App() {
           error instanceof Error ? error.message : "Please try again."
         );
       }
+    }
+  };
+
+  const handleCheckAppUpdates = async (app: App) => {
+    try {
+      await checkAppUpdatesMutation.mutateAsync(app.id);
+      toast.success(
+        "Update check completed",
+        `Checked for updates for ${app.name}`
+      );
+    } catch (error) {
+      console.error("Error checking updates:", error);
+      toast.error(
+        "Error checking updates",
+        error instanceof Error ? error.message : "Please try again."
+      );
     }
   };
 
@@ -217,8 +232,18 @@ export default function App() {
       const result = await importAppsMutation.mutateAsync(validApps);
 
       if (result.success) {
+        const details: string[] = [];
+        if (result.created > 0) {
+          details.push(`${result.created} created`);
+        }
+        if (result.updated > 0) {
+          details.push(`${result.updated} updated`);
+        }
+        const detailMessage =
+          details.length > 0 ? ` (${details.join(", ")})` : "";
+
         toast.success(
-          `Successfully imported ${result.imported} app(s)`,
+          `Successfully imported ${result.imported} app(s)${detailMessage}`,
           result.errors && result.errors.length > 0
             ? `Some errors occurred: ${result.errors.join(", ")}`
             : undefined
@@ -251,8 +276,6 @@ export default function App() {
         <div>
           <Header
             onAdd={handleAdd}
-            editMode={editMode}
-            onToggleEditMode={() => setEditMode(!editMode)}
             onExport={handleExport}
             onImport={handleImport}
             onCheckUpdates={handleCheckUpdates}
@@ -266,9 +289,9 @@ export default function App() {
             <AppsGrid
               groupedApps={groupedApps}
               sortedCategories={sortedCategories}
-              editMode={editMode}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onCheckUpdates={handleCheckAppUpdates}
             />
           )}
 

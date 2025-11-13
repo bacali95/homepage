@@ -151,6 +151,13 @@ export const api = {
   checkUpdates: (): Promise<void> =>
     http.post<void>("/check-updates", undefined, "Failed to check updates"),
 
+  checkAppUpdates: (id: number): Promise<void> =>
+    http.post<void>(
+      `/check-updates/${id}`,
+      undefined,
+      "Failed to check updates for app"
+    ),
+
   getCategories: (): Promise<string[]> =>
     http.get<string[]>("/categories", "Failed to fetch categories"),
 
@@ -173,10 +180,18 @@ export const api = {
       App,
       "id" | "created_at" | "updated_at" | "latest_version" | "has_update"
     >[]
-  ): Promise<{ success: boolean; imported: number; errors?: string[] }> =>
-    http.post<{ success: boolean; imported: number; errors?: string[] }>(
-      "/apps/import",
-      apps,
-      "Failed to import apps"
-    ),
+  ): Promise<{
+    success: boolean;
+    imported: number;
+    created: number;
+    updated: number;
+    errors?: string[];
+  }> =>
+    http.post<{
+      success: boolean;
+      imported: number;
+      created: number;
+      updated: number;
+      errors?: string[];
+    }>("/apps/import", apps, "Failed to import apps"),
 };

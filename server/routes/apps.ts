@@ -84,7 +84,7 @@ router.post("/", (req, res) => {
   }
 });
 
-router.post("/import", (req, res) => {
+router.post("/import", async (req, res) => {
   try {
     const apps = req.body;
     if (!Array.isArray(apps)) {
@@ -93,6 +93,8 @@ router.post("/import", (req, res) => {
 
     const errors: string[] = [];
     let imported = 0;
+    let created = 0;
+    let updated = 0;
 
     for (const app of apps) {
       try {
@@ -140,19 +142,57 @@ router.post("/import", (req, res) => {
           continue;
         }
 
-        const result = dbOperations.createApp({
-          name,
-          url: url || null,
-          repo,
-          source_type: source_type || "github",
-          current_version,
-          category,
-          docker_image,
-          k8s_namespace,
-        });
-        log.info(
-          `Successfully imported app: ${name} (id: ${result.lastInsertRowid})`
-        );
+        // Check if app with same name already exists
+        const existingApp = dbOperations.getAppByName(name);
+
+        if (existingApp) {
+          // Update existing app
+          const isVersionUpdate =
+            current_version && current_version !== existingApp.current_version;
+
+          dbOperations.updateApp(existingApp.id, {
+            name,
+            url: url || null,
+            repo,
+            source_type: source_type || "github",
+            current_version,
+            category,
+            docker_image,
+            k8s_namespace,
+          });
+
+          // If version was updated, check for updates for this app instantly
+          if (isVersionUpdate) {
+            try {
+              await checkForUpdate(existingApp.id);
+            } catch (error) {
+              // Log error but don't fail the import
+              log.error(
+                `Error checking updates after import for app ${name}:`,
+                error
+              );
+            }
+          }
+
+          log.info(`Successfully updated app: ${name} (id: ${existingApp.id})`);
+          updated++;
+        } else {
+          // Create new app
+          const result = dbOperations.createApp({
+            name,
+            url: url || null,
+            repo,
+            source_type: source_type || "github",
+            current_version,
+            category,
+            docker_image,
+            k8s_namespace,
+          });
+          log.info(
+            `Successfully created app: ${name} (id: ${result.lastInsertRowid})`
+          );
+          created++;
+        }
         imported++;
       } catch (error) {
         const appName = app.name || "unknown";
@@ -165,11 +205,13 @@ router.post("/import", (req, res) => {
     }
 
     log.info(
-      `App import completed: ${imported} imported, ${errors.length} error(s)`
+      `App import completed: ${imported} imported (${created} created, ${updated} updated), ${errors.length} error(s)`
     );
     res.json({
       success: true,
       imported,
+      created,
+      updated,
       errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {
