@@ -38,7 +38,13 @@ log.info("API routes registered successfully");
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === "production") {
   const distPath = path.join(__dirname, "../dist");
-  app.use(express.static(distPath));
+  app.use(
+    express.static(distPath, {
+      cacheControl: true,
+      maxAge: 31536000,
+      immutable: true,
+    })
+  );
 
   // Handle React routing - return all non-API requests to React app
   app.get(
@@ -52,6 +58,10 @@ if (process.env.NODE_ENV === "production") {
       if (req.path.startsWith("/api")) {
         return next();
       }
+      // Don't cache index.html to ensure users get the latest version
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
       res.sendFile(path.join(distPath, "index.html"));
     }
   );
