@@ -1,25 +1,37 @@
-/**
- * Kubernetes Pod Version Updater Job
- * Updates app versions from running Kubernetes pods periodically
- */
+import { Injectable, OnModuleInit, Logger } from "@nestjs/common";
+import { Cron } from "@nestjs/schedule";
+import { K8sPodUpdaterService } from "./k8s-pod-updater.service.js";
 
-import { jobScheduler } from "./scheduler.js";
-import { updateVersionsFromPods } from "../k8s-pod.js";
+@Injectable()
+export class K8sPodUpdaterJob implements OnModuleInit {
+  private readonly logger = new Logger(K8sPodUpdaterJob.name);
 
-/**
- * Register the Kubernetes pod version updater job with the scheduler
- * This function should be called during server initialization
- */
-export function registerK8sPodVersionUpdaterJob() {
-  jobScheduler.register({
-    id: "k8s-pod-version-updater",
-    name: "Kubernetes Pod Version Updater",
-    execute: async () => {
-      await updateVersionsFromPods();
-    },
-    interval: 5 * 60 * 1000, // 5 minutes
-    runOnStart: true,
-    maxRetries: 3,
-    retryDelay: 5000,
-  });
+  constructor(private readonly k8sPodUpdaterService: K8sPodUpdaterService) {}
+
+  // Run every 5 minutes
+  @Cron("*/5 * * * *", {
+    name: "k8s-pod-version-updater",
+  })
+  async handleCron() {
+    this.logger.log("Running scheduled K8s pod version update");
+    try {
+      await this.k8sPodUpdaterService.updateVersionsFromPods();
+      this.logger.log(
+        "Scheduled K8s pod version update completed successfully"
+      );
+    } catch (error) {
+      this.logger.error("Error in scheduled K8s pod version update:", error);
+    }
+  }
+
+  // Run on application start
+  async onModuleInit() {
+    this.logger.log("Running initial K8s pod version update on startup");
+    try {
+      await this.k8sPodUpdaterService.updateVersionsFromPods();
+      this.logger.log("Initial K8s pod version update completed successfully");
+    } catch (error) {
+      this.logger.error("Error in initial K8s pod version update:", error);
+    }
+  }
 }

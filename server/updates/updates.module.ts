@@ -1,0 +1,13 @@
+import { Module } from "@nestjs/common";
+import { UpdatesController } from "./updates.controller.js";
+import { UpdateCheckerService } from "./update-checker.service.js";
+import { DatabaseModule } from "../database/database.module.js";
+import { TagsFetchersModule } from "../tags-fetchers/tags-fetchers.module.js";
+
+@Module({
+  imports: [DatabaseModule, TagsFetchersModule],
+  controllers: [UpdatesController],
+  providers: [UpdateCheckerService],
+  exports: [UpdateCheckerService],
+})
+export class UpdatesModule {}

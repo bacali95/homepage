@@ -1,3 +1,4 @@
+import { Injectable, OnModuleInit } from "@nestjs/common";
 import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -5,28 +6,6 @@ import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-const dbPath = path.join(__dirname, "../data/apps.db");
-const db = new Database(dbPath);
-
-// Initialize database schema
-db.exec(`
-  CREATE TABLE IF NOT EXISTS apps (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    url TEXT,
-    repo TEXT NOT NULL,
-    source_type TEXT DEFAULT 'github',
-    current_version TEXT NOT NULL,
-    latest_version TEXT,
-    has_update INTEGER DEFAULT 0,
-    category TEXT NOT NULL,
-    docker_image TEXT NOT NULL,
-    k8s_namespace TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
 
 export type SourceType = "github" | "ghcr" | "dockerhub" | "k8s";
 
@@ -74,34 +53,61 @@ const convertDbAppToApp = (dbApp: DbApp): App => {
   };
 };
 
-export const dbOperations = {
-  getAllApps: () => {
-    const dbApps = db
+@Injectable()
+export class DatabaseService implements OnModuleInit {
+  private db: Database.Database;
+
+  onModuleInit() {
+    const dbPath = path.join(__dirname, "../../data/apps.db");
+    this.db = new Database(dbPath);
+
+    // Initialize database schema
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS apps (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        url TEXT,
+        repo TEXT NOT NULL,
+        source_type TEXT DEFAULT 'github',
+        current_version TEXT NOT NULL,
+        latest_version TEXT,
+        has_update INTEGER DEFAULT 0,
+        category TEXT NOT NULL,
+        docker_image TEXT NOT NULL,
+        k8s_namespace TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  }
+
+  getAllApps(): App[] {
+    const dbApps = this.db
       .prepare("SELECT * FROM apps ORDER BY category, name")
       .all() as DbApp[];
     return dbApps.map(convertDbAppToApp);
-  },
+  }
 
-  getApp: (id: number) => {
-    const dbApp = db.prepare("SELECT * FROM apps WHERE id = ?").get(id) as
+  getApp(id: number): App | undefined {
+    const dbApp = this.db.prepare("SELECT * FROM apps WHERE id = ?").get(id) as
       | DbApp
       | undefined;
     return dbApp ? convertDbAppToApp(dbApp) : undefined;
-  },
+  }
 
-  getAppByName: (name: string) => {
-    const dbApp = db.prepare("SELECT * FROM apps WHERE name = ?").get(name) as
-      | DbApp
-      | undefined;
+  getAppByName(name: string): App | undefined {
+    const dbApp = this.db
+      .prepare("SELECT * FROM apps WHERE name = ?")
+      .get(name) as DbApp | undefined;
     return dbApp ? convertDbAppToApp(dbApp) : undefined;
-  },
+  }
 
-  createApp: (
+  createApp(
     app: Omit<
       App,
       "id" | "created_at" | "updated_at" | "latest_version" | "has_update"
     >
-  ) => {
+  ) {
     // Validate required fields
     if (typeof app.category !== "string" || app.category.trim() === "") {
       throw new Error("category is required and must be a non-empty string");
@@ -123,7 +129,7 @@ export const dbOperations = {
       );
     }
 
-    const stmt = db.prepare(
+    const stmt = this.db.prepare(
       "INSERT INTO apps (name, url, repo, source_type, current_version, category, docker_image, k8s_namespace) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
     return stmt.run(
@@ -136,12 +142,12 @@ export const dbOperations = {
       app.docker_image,
       app.k8s_namespace
     );
-  },
+  }
 
-  updateApp: (
+  updateApp(
     id: number,
     app: Partial<Omit<App, "id" | "created_at" | "updated_at">>
-  ) => {
+  ) {
     // Validate required fields if they are being updated
     if (app.category !== undefined) {
       if (typeof app.category !== "string" || app.category.trim() === "") {
@@ -216,24 +222,22 @@ export const dbOperations = {
     updates.push("updated_at = CURRENT_TIMESTAMP");
     values.push(id);
 
-    const stmt = db.prepare(
+    const stmt = this.db.prepare(
       `UPDATE apps SET ${updates.join(", ")} WHERE id = ?`
     );
     return stmt.run(...values);
-  },
+  }
 
-  deleteApp: (id: number) => {
-    return db.prepare("DELETE FROM apps WHERE id = ?").run(id);
-  },
+  deleteApp(id: number) {
+    return this.db.prepare("DELETE FROM apps WHERE id = ?").run(id);
+  }
 
-  getCategories: () => {
-    const categories = db
+  getCategories(): string[] {
+    const categories = this.db
       .prepare(
         "SELECT DISTINCT category FROM apps WHERE category != '' ORDER BY category"
       )
       .all() as { category: string }[];
     return categories.map((c) => c.category);
-  },
-};
-
-export default db;
+  }
+}

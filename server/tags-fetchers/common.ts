@@ -2,9 +2,9 @@
  * Common utilities and types for tags fetchers
  */
 
-import { createLogger } from "../logger.js";
+import { Logger } from "@nestjs/common";
 
-const log = createLogger({ service: "TagsFetcher" });
+const log = new Logger("TagsFetcher");
 
 // Common tag interface used by all fetchers
 export interface Tag {
@@ -131,7 +131,11 @@ export async function safeFetch<T>(
 
     return await response.json();
   } catch (error) {
-    log.error(`Error ${errorContext.toLowerCase()}:`, error);
+    log.error(
+      `Error ${errorContext.toLowerCase()}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
     return null;
   }
 }
@@ -209,7 +213,11 @@ export function createTagsFetcher<TResponse, TTag extends Tag = Tag>(
 
       return tags;
     } catch (error) {
-      log.error(`Error fetching ${name} tags:`, error);
+      log.error(
+        `Error fetching ${name} tags: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
       return [];
     }
   }

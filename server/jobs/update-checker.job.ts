@@ -1,25 +1,35 @@
-/**
- * Update Checker Job
- * Checks for available updates for all apps periodically
- */
+import { Injectable, OnModuleInit, Logger } from "@nestjs/common";
+import { Cron } from "@nestjs/schedule";
+import { UpdateCheckerService } from "../updates/update-checker.service.js";
 
-import { jobScheduler } from "./scheduler.js";
-import { checkForUpdates } from "../update-checker.js";
+@Injectable()
+export class UpdateCheckerJob implements OnModuleInit {
+  private readonly logger = new Logger(UpdateCheckerJob.name);
 
-/**
- * Register the update checker job with the scheduler
- * This function should be called during server initialization
- */
-export function registerUpdateCheckerJob() {
-  jobScheduler.register({
-    id: "update-checker",
-    name: "Update Checker",
-    execute: async () => {
-      await checkForUpdates();
-    },
-    interval: 6 * 60 * 60 * 1000, // 6 hours
-    runOnStart: true,
-    maxRetries: 3,
-    retryDelay: 5000,
-  });
+  constructor(private readonly updateCheckerService: UpdateCheckerService) {}
+
+  // Run every 6 hours
+  @Cron("0 */6 * * *", {
+    name: "update-checker",
+  })
+  async handleCron() {
+    this.logger.log("Running scheduled update check");
+    try {
+      await this.updateCheckerService.checkForUpdates();
+      this.logger.log("Scheduled update check completed successfully");
+    } catch (error) {
+      this.logger.error("Error in scheduled update check:", error);
+    }
+  }
+
+  // Run on application start
+  async onModuleInit() {
+    this.logger.log("Running initial update check on startup");
+    try {
+      await this.updateCheckerService.checkForUpdates();
+      this.logger.log("Initial update check completed successfully");
+    } catch (error) {
+      this.logger.error("Error in initial update check:", error);
+    }
+  }
 }
