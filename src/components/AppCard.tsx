@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Menu, MenuItem, MenuTrigger } from "@/components/ui/menu";
 import {
   ExternalLink,
-  AlertCircle,
   Trash2,
   Edit,
   MoreVertical,
@@ -54,16 +53,6 @@ export function AppCard({
             </div>
           </div>
           <div className="flex-shrink-0 flex flex-col items-end gap-2">
-            {app.has_update && (
-              <Badge
-                variant="destructive"
-                className="flex items-center gap-1 text-xs animate-pulse"
-              >
-                <AlertCircle className="h-3 w-3" />
-                <span className="hidden sm:inline">Update Available</span>
-                <span className="sm:hidden">Update</span>
-              </Badge>
-            )}
             <Menu
               trigger={
                 <MenuTrigger>
