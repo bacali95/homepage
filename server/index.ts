@@ -19,6 +19,11 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Health check endpoint
+app.get("/healthz", (req: express.Request, res: express.Response) => {
+  res.status(200).json({ status: "ok" });
+});
+
 // Register API routes
 registerRoutes(app);
 
