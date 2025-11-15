@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.2](https://github.com/bacali95/homepage/compare/v1.5.1...v1.5.2) (2025-11-15)
+
+
+### Features
+
+* Add double-click functionality to open app URL in a new tab ([f06d8b4](https://github.com/bacali95/homepage/commit/f06d8b4c783b5d4c3e975b1149a5b311170eb35b))
+
 ### [1.5.1](https://github.com/bacali95/homepage/compare/v1.5.0...v1.5.1) (2025-11-15)
 
 
