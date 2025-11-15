@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.1](https://github.com/bacali95/homepage/compare/v1.4.0...v1.4.1) (2025-11-15)
+
+
+### Bug Fixes
+
+* Update Dockerfile to start server with main.js instead of index.js ([09d64a9](https://github.com/bacali95/homepage/commit/09d64a9542869c9a25d667a37951718d3520202b))
+
 ## [1.4.0](https://github.com/bacali95/homepage/compare/v1.3.0...v1.4.0) (2025-11-15)
 
 
