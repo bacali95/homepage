@@ -65,29 +65,9 @@ export function useImportApps() {
           errors.push(`App at index ${index}: Missing name`);
           return false;
         }
-        if (!app.current_version) {
-          errors.push(`App "${app.name}": Missing current_version`);
-          return false;
-        }
-        if (!app.repo) {
-          errors.push(`App "${app.name}": Missing repo`);
-          return false;
-        }
         if (!app.category || typeof app.category !== "string") {
           errors.push(
             `App "${app.name}": category is required and must be a string`
-          );
-          return false;
-        }
-        if (!app.docker_image || typeof app.docker_image !== "string") {
-          errors.push(
-            `App "${app.name}": docker_image is required and must be a string`
-          );
-          return false;
-        }
-        if (!app.k8s_namespace || typeof app.k8s_namespace !== "string") {
-          errors.push(
-            `App "${app.name}": k8s_namespace is required and must be a string`
           );
           return false;
         }
