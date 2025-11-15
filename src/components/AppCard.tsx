@@ -33,8 +33,17 @@ export function AppCard({
   onDelete,
   onCheckUpdates,
 }: AppCardProps) {
+  const handleDoubleClick = () => {
+    if (app.url) {
+      window.open(app.url, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
-    <Card className="group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 h-full flex flex-col border-border/50 hover:border-border bg-card/50 backdrop-blur-sm">
+    <Card
+      className="group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 h-full flex flex-col border-border/50 hover:border-border bg-card/50 backdrop-blur-sm cursor-pointer"
+      onDoubleClick={handleDoubleClick}
+    >
       <CardHeader className="shrink-0 pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
