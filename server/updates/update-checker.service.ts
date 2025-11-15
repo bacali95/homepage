@@ -40,15 +40,16 @@ export class UpdateCheckerService {
    */
   private updateAppWithLatestVersion(
     app: App,
-    latestVersion: string | null
+    latestVersion: string | null,
+    runningVersion: string | null
   ): void {
-    if (latestVersion && latestVersion !== app.current_version) {
+    if (latestVersion && latestVersion !== runningVersion) {
       this.databaseService.updateApp(app.id, {
         latest_version: latestVersion,
         has_update: true,
       });
       this.logger.log(
-        `App ${app.name}: Update available (current: ${app.current_version}, latest: ${latestVersion})`
+        `App ${app.name}: Update available (current: ${runningVersion}, latest: ${latestVersion})`
       );
     } else if (latestVersion) {
       this.databaseService.updateApp(app.id, {
@@ -81,7 +82,7 @@ export class UpdateCheckerService {
       });
     }
     const latestVersion = await this.getLatestVersionForApp(app);
-    this.updateAppWithLatestVersion(app, latestVersion);
+    this.updateAppWithLatestVersion(app, latestVersion, runningVersion);
   }
 
   async checkForUpdates() {
