@@ -51,5 +51,5 @@ ENV NODE_ENV=production
 ENV PORT=3001
 
 # Start the server using compiled JavaScript
-CMD ["node", "dist-server/index.js"]
+CMD ["node", "dist-server/main.js"]
 
