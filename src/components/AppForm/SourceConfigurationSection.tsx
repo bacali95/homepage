@@ -57,7 +57,7 @@ export function SourceConfigurationSection({
             id="source_type"
             value={formData.source_type}
             onChange={(e) => onSourceTypeChange(e.target.value as SourceType)}
-            required
+            required={formData.enableVersionChecking}
           >
             <option value="github">GitHub Releases</option>
             <option value="ghcr">GitHub Container Registry</option>
@@ -80,7 +80,7 @@ export function SourceConfigurationSection({
             onChange={(e) => {
               onFormDataChange({ repo: e.target.value });
             }}
-            required
+            required={formData.enableVersionChecking}
             placeholder={getRepoPlaceholder(formData.source_type)}
           />
           <p className="text-xs text-muted-foreground">

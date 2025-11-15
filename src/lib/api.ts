@@ -6,14 +6,14 @@ export interface App {
   id: number;
   name: string;
   url: string | null;
-  repo: string;
-  source_type: SourceType;
-  current_version: string;
+  repo: string | null;
+  source_type: SourceType | null;
+  current_version: string | null;
   latest_version: string | null;
   has_update: boolean;
   category: string;
-  docker_image: string;
-  k8s_namespace: string;
+  docker_image: string | null;
+  k8s_namespace: string | null;
   created_at: string;
   updated_at: string;
 }

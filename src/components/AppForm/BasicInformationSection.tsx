@@ -32,6 +32,7 @@ export function BasicInformationSection({
             required
             placeholder="My App"
           />
+          <p className="text-xs text-muted-foreground">The name of your app</p>
         </div>
 
         <div className="space-y-2">
@@ -68,6 +69,33 @@ export function BasicInformationSection({
           />
           <p className="text-xs text-muted-foreground">
             Optional: The web address where your service is accessible
+          </p>
+        </div>
+
+        <div className="space-y-3 pt-2 border-t border-border">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="enableVersionChecking"
+              checked={formData.enableVersionChecking}
+              onChange={(e) =>
+                onFormDataChange({
+                  enableVersionChecking: e.target.checked,
+                })
+              }
+              className="h-4 w-4 rounded border border-input bg-background text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
+            />
+            <Label
+              htmlFor="enableVersionChecking"
+              className="text-sm font-medium leading-none cursor-pointer"
+            >
+              Enable Version Checking
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground pl-6">
+            Enable this to configure version tracking and update checking (e.g.,
+            GitHub, Docker Hub, Kubernetes). Leave disabled for apps not managed
+            through version tracking (e.g., NAS, router).
           </p>
         </div>
       </div>

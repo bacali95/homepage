@@ -23,6 +23,10 @@ export class UpdateCheckerService {
    * Gets the latest version for an app based on its source type
    */
   private async getLatestVersionForApp(app: App): Promise<string | null> {
+    if (!app.repo || !app.source_type) {
+      return null;
+    }
+
     if (app.source_type === "dockerhub") {
       return await this.dockerhubFetcherService.getLatestTag(app.repo);
     } else if (app.source_type === "ghcr") {
@@ -72,6 +76,17 @@ export class UpdateCheckerService {
    * Checks for updates for a single app and updates the database
    */
   private async checkAndUpdateApp(app: App): Promise<void> {
+    // Skip apps without version checking enabled
+    if (
+      !app.repo ||
+      !app.source_type ||
+      !app.docker_image ||
+      !app.k8s_namespace
+    ) {
+      this.logger.log(`Skipping ${app.name}: No version checking enabled`);
+      return;
+    }
+
     const runningVersion = await this.podsService.getVersionFromPod(
       app.docker_image,
       app.k8s_namespace
@@ -81,6 +96,7 @@ export class UpdateCheckerService {
         current_version: runningVersion,
       });
     }
+
     const latestVersion = await this.getLatestVersionForApp(app);
     this.updateAppWithLatestVersion(app, latestVersion, runningVersion);
   }

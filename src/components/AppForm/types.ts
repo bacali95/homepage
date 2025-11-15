@@ -9,6 +9,7 @@ export interface FormData {
   category: string;
   docker_image: string;
   k8s_namespace: string;
+  enableVersionChecking: boolean;
 }
 
 export interface FormSectionProps {

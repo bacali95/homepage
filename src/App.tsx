@@ -32,6 +32,18 @@ const initialFormData: FormData = {
   category: "",
   docker_image: "",
   k8s_namespace: "",
+  enableVersionChecking: false,
+};
+
+// Helper function to determine if version checking should be enabled
+// Enable if any field in the version checking sections has a value
+const shouldEnableVersionChecking = (data: App): boolean => {
+  return !!(
+    (data.repo && data.repo.trim()) ||
+    (data.docker_image && data.docker_image.trim()) ||
+    (data.k8s_namespace && data.k8s_namespace.trim()) ||
+    (data.current_version && data.current_version.trim())
+  );
 };
 
 export default function App() {
@@ -106,12 +118,13 @@ export default function App() {
     setFormData({
       name: app.name,
       url: app.url || "",
-      repo: app.repo,
+      repo: app.repo || "",
       source_type: sourceType,
-      current_version: app.current_version,
+      current_version: app.current_version || "",
       category: app.category || "",
       docker_image: app.docker_image || "",
       k8s_namespace: app.k8s_namespace || "",
+      enableVersionChecking: shouldEnableVersionChecking(app),
     });
     setDrawerOpen(true);
   };
@@ -271,7 +284,7 @@ export default function App() {
   const sortedCategories = sortCategories(Object.keys(groupedApps));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/10">
       <main className="container mx-auto px-4 py-12 max-w-7xl">
         <div>
           <Header

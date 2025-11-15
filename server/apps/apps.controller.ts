@@ -60,24 +60,12 @@ export class AppsController {
         k8s_namespace,
       } = body;
 
-      if (!name || !repo || !current_version) {
-        throw new BadRequestException(
-          "Missing required fields (name, repo, current_version)"
-        );
+      if (!name) {
+        throw new BadRequestException("Missing required fields (name)");
       }
       if (typeof category !== "string" || category.trim() === "") {
         throw new BadRequestException(
           "category is required and must be a non-empty string"
-        );
-      }
-      if (typeof docker_image !== "string" || docker_image.trim() === "") {
-        throw new BadRequestException(
-          "docker_image is required and must be a non-empty string"
-        );
-      }
-      if (typeof k8s_namespace !== "string" || k8s_namespace.trim() === "") {
-        throw new BadRequestException(
-          "k8s_namespace is required and must be a non-empty string"
         );
       }
 

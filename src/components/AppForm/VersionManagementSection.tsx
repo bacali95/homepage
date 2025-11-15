@@ -69,7 +69,7 @@ export function VersionManagementSection({
             id="docker_image"
             value={formData.docker_image || ""}
             onChange={(e) => onFormDataChange({ docker_image: e.target.value })}
-            required
+            required={formData.enableVersionChecking}
             placeholder="nginx:1.21.0 or ghcr.io/owner/repo:v1.0.0"
           />
           <p className="text-xs text-muted-foreground">
@@ -88,7 +88,7 @@ export function VersionManagementSection({
             onChange={(e) =>
               onFormDataChange({ k8s_namespace: e.target.value })
             }
-            required
+            required={formData.enableVersionChecking}
             placeholder="default"
           />
           <p className="text-xs text-muted-foreground">
@@ -111,7 +111,7 @@ export function VersionManagementSection({
                   onFormDataChange({ current_version: e.target.value });
                 }
               }}
-              required
+              required={formData.enableVersionChecking}
               placeholder={
                 formData.docker_image && formData.k8s_namespace
                   ? "Will be filled by fetching from pod"

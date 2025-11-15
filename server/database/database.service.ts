@@ -13,14 +13,14 @@ export interface App {
   id: number;
   name: string;
   url: string | null;
-  repo: string;
-  source_type: SourceType;
-  current_version: string;
+  repo: string | null;
+  source_type: SourceType | null;
+  current_version: string | null;
   latest_version: string | null;
   has_update: boolean;
   category: string;
-  docker_image: string;
-  k8s_namespace: string;
+  docker_image: string | null;
+  k8s_namespace: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -31,12 +31,12 @@ interface DbApp {
   url: string | null;
   repo: string | null;
   source_type: string | null;
-  current_version: string;
+  current_version: string | null;
   latest_version: string | null;
   has_update: number;
   category: string;
-  docker_image: string;
-  k8s_namespace: string;
+  docker_image: string | null;
+  k8s_namespace: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,12 +44,13 @@ interface DbApp {
 const convertDbAppToApp = (dbApp: DbApp): App => {
   return {
     ...dbApp,
-    repo: dbApp.repo || "",
-    source_type: (dbApp.source_type || "github") as SourceType,
+    repo: dbApp.repo || null,
+    source_type: (dbApp.source_type || null) as SourceType | null,
     has_update: Boolean(dbApp.has_update),
     category: dbApp.category,
-    docker_image: dbApp.docker_image,
-    k8s_namespace: dbApp.k8s_namespace,
+    docker_image: dbApp.docker_image || null,
+    k8s_namespace: dbApp.k8s_namespace || null,
+    current_version: dbApp.current_version || null,
   };
 };
 
@@ -67,14 +68,14 @@ export class DatabaseService implements OnModuleInit {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         url TEXT,
-        repo TEXT NOT NULL,
-        source_type TEXT DEFAULT 'github',
-        current_version TEXT NOT NULL,
+        repo TEXT,
+        source_type TEXT,
+        current_version TEXT,
         latest_version TEXT,
         has_update INTEGER DEFAULT 0,
         category TEXT NOT NULL,
-        docker_image TEXT NOT NULL,
-        k8s_namespace TEXT NOT NULL,
+        docker_image TEXT,
+        k8s_namespace TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -112,35 +113,19 @@ export class DatabaseService implements OnModuleInit {
     if (typeof app.category !== "string" || app.category.trim() === "") {
       throw new Error("category is required and must be a non-empty string");
     }
-    if (
-      typeof app.docker_image !== "string" ||
-      app.docker_image.trim() === ""
-    ) {
-      throw new Error(
-        "docker_image is required and must be a non-empty string"
-      );
-    }
-    if (
-      typeof app.k8s_namespace !== "string" ||
-      app.k8s_namespace.trim() === ""
-    ) {
-      throw new Error(
-        "k8s_namespace is required and must be a non-empty string"
-      );
-    }
 
     const stmt = this.db.prepare(
       "INSERT INTO apps (name, url, repo, source_type, current_version, category, docker_image, k8s_namespace) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
     return stmt.run(
       app.name,
-      app.url,
-      app.repo,
-      app.source_type || "github",
-      app.current_version,
+      app.url || null,
+      app.repo || null,
+      app.source_type || null,
+      app.current_version || null,
       app.category,
-      app.docker_image,
-      app.k8s_namespace
+      app.docker_image || null,
+      app.k8s_namespace || null
     );
   }
 
@@ -154,26 +139,6 @@ export class DatabaseService implements OnModuleInit {
         throw new Error("category is required and must be a non-empty string");
       }
     }
-    if (app.docker_image !== undefined) {
-      if (
-        typeof app.docker_image !== "string" ||
-        app.docker_image.trim() === ""
-      ) {
-        throw new Error(
-          "docker_image is required and must be a non-empty string"
-        );
-      }
-    }
-    if (app.k8s_namespace !== undefined) {
-      if (
-        typeof app.k8s_namespace !== "string" ||
-        app.k8s_namespace.trim() === ""
-      ) {
-        throw new Error(
-          "k8s_namespace is required and must be a non-empty string"
-        );
-      }
-    }
 
     const updates: string[] = [];
     const values: any[] = [];
@@ -184,23 +149,23 @@ export class DatabaseService implements OnModuleInit {
     }
     if (app.url !== undefined) {
       updates.push("url = ?");
-      values.push(app.url);
+      values.push(app.url || null);
     }
     if (app.repo !== undefined) {
       updates.push("repo = ?");
-      values.push(app.repo);
+      values.push(app.repo || null);
     }
     if (app.source_type !== undefined) {
       updates.push("source_type = ?");
-      values.push(app.source_type);
+      values.push(app.source_type || null);
     }
     if (app.current_version !== undefined) {
       updates.push("current_version = ?");
-      values.push(app.current_version);
+      values.push(app.current_version || null);
     }
     if (app.latest_version !== undefined) {
       updates.push("latest_version = ?");
-      values.push(app.latest_version);
+      values.push(app.latest_version || null);
     }
     if (app.has_update !== undefined) {
       updates.push("has_update = ?");
@@ -212,11 +177,11 @@ export class DatabaseService implements OnModuleInit {
     }
     if (app.docker_image !== undefined) {
       updates.push("docker_image = ?");
-      values.push(app.docker_image);
+      values.push(app.docker_image || null);
     }
     if (app.k8s_namespace !== undefined) {
       updates.push("k8s_namespace = ?");
-      values.push(app.k8s_namespace);
+      values.push(app.k8s_namespace || null);
     }
 
     updates.push("updated_at = CURRENT_TIMESTAMP");

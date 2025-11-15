@@ -86,12 +86,8 @@ export class AppsService {
           k8s_namespace,
         } = app;
 
-        if (!name || !repo || !current_version) {
-          errors.push(
-            `App "${
-              name || "unknown"
-            }": Missing required fields (name, repo, or current_version)`
-          );
+        if (!name) {
+          errors.push(`App "unknown": Missing required field (name)`);
           continue;
         }
         if (typeof category !== "string" || category.trim() === "") {
@@ -99,22 +95,6 @@ export class AppsService {
             `App "${
               name || "unknown"
             }": category is required and must be a non-empty string`
-          );
-          continue;
-        }
-        if (typeof docker_image !== "string" || docker_image.trim() === "") {
-          errors.push(
-            `App "${
-              name || "unknown"
-            }": docker_image is required and must be a non-empty string`
-          );
-          continue;
-        }
-        if (typeof k8s_namespace !== "string" || k8s_namespace.trim() === "") {
-          errors.push(
-            `App "${
-              name || "unknown"
-            }": k8s_namespace is required and must be a non-empty string`
           );
           continue;
         }
@@ -130,12 +110,12 @@ export class AppsService {
           this.databaseService.updateApp(existingApp.id, {
             name,
             url: url || null,
-            repo,
-            source_type: source_type || "github",
-            current_version,
+            repo: repo || null,
+            source_type: source_type || null,
+            current_version: current_version || null,
             category,
-            docker_image,
-            k8s_namespace,
+            docker_image: docker_image || null,
+            k8s_namespace: k8s_namespace || null,
           });
 
           // If version was updated, check for updates for this app instantly
@@ -154,12 +134,12 @@ export class AppsService {
           this.databaseService.createApp({
             name,
             url: url || null,
-            repo,
-            source_type: source_type || "github",
-            current_version,
+            repo: repo || null,
+            source_type: source_type || null,
+            current_version: current_version || null,
             category,
-            docker_image,
-            k8s_namespace,
+            docker_image: docker_image || null,
+            k8s_namespace: k8s_namespace || null,
           });
           created++;
         }

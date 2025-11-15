@@ -35,7 +35,7 @@ export function AppCard({
 }: AppCardProps) {
   return (
     <Card className="group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 h-full flex flex-col border-border/50 hover:border-border bg-card/50 backdrop-blur-sm">
-      <CardHeader className="flex-shrink-0 pb-3">
+      <CardHeader className="shrink-0 pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -45,14 +45,14 @@ export function AppCard({
               {app.category && (
                 <Badge
                   variant="outline"
-                  className="text-xs font-normal flex-shrink-0"
+                  className="text-xs font-normal shrink-0"
                 >
                   {app.category}
                 </Badge>
               )}
             </div>
           </div>
-          <div className="flex-shrink-0 flex flex-col items-end gap-2">
+          <div className="shrink-0 flex flex-col items-end gap-2">
             <Menu
               trigger={
                 <MenuTrigger>
@@ -73,12 +73,14 @@ export function AppCard({
                   <span>Edit</span>
                 </div>
               </MenuItem>
-              <MenuItem onClick={() => onCheckUpdates(app)}>
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  <span>Check for Updates</span>
-                </div>
-              </MenuItem>
+              {app.current_version && (
+                <MenuItem onClick={() => onCheckUpdates(app)}>
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    <span>Check for Updates</span>
+                  </div>
+                </MenuItem>
+              )}
               <MenuItem
                 onClick={() => onDelete(app.id)}
                 className="text-destructive focus:text-destructive"
@@ -96,43 +98,49 @@ export function AppCard({
         <div className="space-y-2 text-xs text-muted-foreground/80">
           {app.url && (
             <div className="flex items-center gap-1.5 truncate">
-              <ExternalLink className="h-3 w-3 flex-shrink-0 text-muted-foreground/60" />
+              <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground/60" />
               <span className="truncate">{truncateText(app.url, 50)}</span>
             </div>
           )}
-          <div className="flex items-center gap-1.5 truncate">
-            <Box className="h-3 w-3 flex-shrink-0 text-muted-foreground/60" />
-            <span className="truncate">
-              {truncateText(app.docker_image, 40)}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 truncate">
-            <Layers className="h-3 w-3 flex-shrink-0 text-muted-foreground/60" />
-            <span className="truncate">Namespace: {app.k8s_namespace}</span>
-          </div>
+          {app.docker_image && (
+            <div className="flex items-center gap-1.5 truncate">
+              <Box className="h-3 w-3 shrink-0 text-muted-foreground/60" />
+              <span className="truncate">
+                {truncateText(app.docker_image, 40)}
+              </span>
+            </div>
+          )}
+          {app.k8s_namespace && (
+            <div className="flex items-center gap-1.5 truncate">
+              <Layers className="h-3 w-3 shrink-0 text-muted-foreground/60" />
+              <span className="truncate">Namespace: {app.k8s_namespace}</span>
+            </div>
+          )}
         </div>
       </CardContent>
       <CardFooter>
         <div className="flex items-center justify-between gap-2 w-full">
-          <div className="flex items-center gap-2 flex-wrap h-8">
-            <Badge variant="outline" className="text-xs font-mono">
-              {formatVersion(app.current_version)}
-            </Badge>
-            {app.has_update && app.latest_version && (
-              <>
-                <span className="text-muted-foreground/60 text-xs">→</span>
-                <Badge variant="destructive" className="text-xs font-mono">
-                  {formatVersion(app.latest_version)}
-                </Badge>
-              </>
-            )}
-          </div>
+          {app.current_version && (
+            <div className="flex items-center gap-2 flex-wrap h-8">
+              <Badge variant="outline" className="text-xs font-mono">
+                {formatVersion(app.current_version)}
+              </Badge>
+              {app.has_update && app.latest_version && (
+                <>
+                  <span className="text-muted-foreground/60 text-xs">→</span>
+                  <Badge variant="destructive" className="text-xs font-mono">
+                    {formatVersion(app.latest_version)}
+                  </Badge>
+                </>
+              )}
+            </div>
+          )}
           {app.url && (
             <a
               href={app.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="transition-transform hover:scale-110 flex-shrink-0"
+              className="transition-transform hover:scale-110 shrink-0 ml-auto"
             >
               <Button
                 size="sm"

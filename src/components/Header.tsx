@@ -26,10 +26,10 @@ export function Header({
           <img
             src="/favicon.svg"
             alt="Homepage"
-            className="h-16 w-16 flex-shrink-0 mt-1"
+            className="h-16 w-16 shrink-0 mt-1"
           />
           <div>
-            <h1 className="text-4xl sm:text-5xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/50 bg-clip-text text-transparent">
+            <h1 className="text-4xl sm:text-5xl font-bold mb-2 bg-linear-to-r from-foreground to-foreground/50 bg-clip-text text-transparent">
               Homepage
             </h1>
             <p className="text-muted-foreground text-sm sm:text-base">

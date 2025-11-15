@@ -32,16 +32,20 @@ export function AppForm({
         onFormDataChange={onFormDataChange}
       />
 
-      <SourceConfigurationSection
-        formData={formData}
-        onFormDataChange={onFormDataChange}
-        onSourceTypeChange={onSourceTypeChange}
-      />
+      {formData.enableVersionChecking && (
+        <>
+          <SourceConfigurationSection
+            formData={formData}
+            onFormDataChange={onFormDataChange}
+            onSourceTypeChange={onSourceTypeChange}
+          />
 
-      <VersionManagementSection
-        formData={formData}
-        onFormDataChange={onFormDataChange}
-      />
+          <VersionManagementSection
+            formData={formData}
+            onFormDataChange={onFormDataChange}
+          />
+        </>
+      )}
 
       <div className="flex gap-2 pt-4 border-t">
         <Button type="submit">{editingApp ? "Update App" : "Add App"}</Button>
