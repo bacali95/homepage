@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/bacali95/homepage/compare/v1.4.3...v1.5.0) (2025-11-15)
+
+
+### Code Refactoring
+
+* Simplify app validation and update handling ([02ed0ad](https://github.com/bacali95/homepage/commit/02ed0ad345307f8dc325ed5665368b84f191a5ff))
+
 ### [1.4.3](https://github.com/bacali95/homepage/compare/v1.4.2...v1.4.3) (2025-11-15)
 
 ### [1.4.2](https://github.com/bacali95/homepage/compare/v1.4.1...v1.4.2) (2025-11-15)
