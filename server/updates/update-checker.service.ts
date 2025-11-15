@@ -4,12 +4,14 @@ import { GhcrFetcherService } from "../tags-fetchers/ghcr-fetcher.service.js";
 import { DockerhubFetcherService } from "../tags-fetchers/dockerhub-fetcher.service.js";
 import { K8sRegistryFetcherService } from "../tags-fetchers/k8s-registry-fetcher.service.js";
 import { GithubReleasesFetcherService } from "../tags-fetchers/github-releases-fetcher.service.js";
+import { PodsService } from "../pods/pods.service.js";
 
 @Injectable()
 export class UpdateCheckerService {
   private readonly logger = new Logger(UpdateCheckerService.name);
 
   constructor(
+    private readonly podsService: PodsService,
     private readonly databaseService: DatabaseService,
     private readonly ghcrFetcherService: GhcrFetcherService,
     private readonly dockerhubFetcherService: DockerhubFetcherService,
@@ -69,6 +71,15 @@ export class UpdateCheckerService {
    * Checks for updates for a single app and updates the database
    */
   private async checkAndUpdateApp(app: App): Promise<void> {
+    const runningVersion = await this.podsService.getVersionFromPod(
+      app.docker_image,
+      app.k8s_namespace
+    );
+    if (runningVersion && runningVersion !== app.current_version) {
+      this.databaseService.updateApp(app.id, {
+        current_version: runningVersion,
+      });
+    }
     const latestVersion = await this.getLatestVersionForApp(app);
     this.updateAppWithLatestVersion(app, latestVersion);
   }

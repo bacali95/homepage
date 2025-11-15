@@ -3,9 +3,10 @@ import { UpdatesController } from "./updates.controller.js";
 import { UpdateCheckerService } from "./update-checker.service.js";
 import { DatabaseModule } from "../database/database.module.js";
 import { TagsFetchersModule } from "../tags-fetchers/tags-fetchers.module.js";
+import { PodsModule } from "../pods/pods.module.js";
 
 @Module({
-  imports: [DatabaseModule, TagsFetchersModule],
+  imports: [DatabaseModule, TagsFetchersModule, PodsModule],
   controllers: [UpdatesController],
   providers: [UpdateCheckerService],
   exports: [UpdateCheckerService],
