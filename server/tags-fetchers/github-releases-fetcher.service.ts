@@ -1,5 +1,9 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { normalizePath, createGitHubHeaders } from "./common.js";
+import { Injectable } from "@nestjs/common";
+import {
+  createGitHubHeaders,
+  compareVersions,
+  createTagsFetcher,
+} from "./common.js";
 
 export interface GitHubRelease {
   tag_name: string;
@@ -10,38 +14,27 @@ export interface GitHubRelease {
 
 @Injectable()
 export class GithubReleasesFetcherService {
-  private readonly logger = new Logger(GithubReleasesFetcherService.name);
+  private readonly fetcher = createTagsFetcher<GitHubRelease[]>({
+    name: "GitHub Releases",
+    pathReplacements: [
+      { pattern: /^https?:\/\/github\.com\//, replacement: "" },
+    ],
+    buildUrl: (normalizedPath) =>
+      `https://api.github.com/repos/${normalizedPath}/releases`,
+    getHeaders: () => createGitHubHeaders(),
+    transformResponse: (releases, originalPath) => {
+      // Filter out prereleases and limit to 50
+      return releases
+        .filter((r) => !r.prerelease)
+        .slice(0, 50)
+        .map((release) => ({
+          name: release.tag_name,
+          last_updated: release.published_at,
+        }));
+    },
+  });
 
-  async fetchReleases(repo: string): Promise<GitHubRelease[]> {
-    try {
-      // Remove 'https://github.com/' if present
-      const repoPath = normalizePath(repo, [
-        { pattern: /^https?:\/\/github\.com\//, replacement: "" },
-      ]);
-      const url = `https://api.github.com/repos/${repoPath}/releases`;
-
-      const headers = createGitHubHeaders();
-
-      const response = await fetch(url, { headers });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch releases: ${response.statusText}`);
-      }
-
-      const releases: GitHubRelease[] = await response.json();
-      return releases.filter((r) => !r.prerelease).slice(0, 50); // Get latest 50 non-prerelease releases
-    } catch (error) {
-      this.logger.error(
-        `Error fetching GitHub releases: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-      return [];
-    }
-  }
-
-  async getLatestRelease(repo: string): Promise<string | null> {
-    const releases = await this.fetchReleases(repo);
-    return releases.length > 0 ? releases[0].tag_name : null;
+  getLatestTag(repo: string): Promise<string | null> {
+    return this.fetcher(repo);
   }
 }

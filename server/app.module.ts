@@ -6,7 +6,6 @@ import { fileURLToPath } from "url";
 import { DatabaseModule } from "./database/database.module.js";
 import { AppsModule } from "./apps/apps.module.js";
 import { CategoriesModule } from "./categories/categories.module.js";
-import { ReleasesModule } from "./releases/releases.module.js";
 import { UpdatesModule } from "./updates/updates.module.js";
 import { PodsModule } from "./pods/pods.module.js";
 import { JobsModule } from "./jobs/jobs.module.js";
@@ -24,7 +23,6 @@ const __dirname = dirname(__filename);
     DatabaseModule,
     AppsModule,
     CategoriesModule,
-    ReleasesModule,
     UpdatesModule,
     PodsModule,
     JobsModule,

@@ -17,8 +17,7 @@ export interface Tag {
  * Matches: 1.0.0, v1.0.0, 1.2.3-beta, 2.0.0-rc.1, 1.0.0+build.1, etc.
  */
 export function isSemver(tag: string): boolean {
-  const semverPattern =
-    /^v?(\d+)\.(\d+)\.(\d+)(?:-([\w\-]+(?:\.[\w\-]+)*))?(?:\+([\w\-]+(?:\.[\w\-]+)*))?$/i;
+  const semverPattern = /^v?(\d+)\.(\d+)\.(\d+)$/i;
   return semverPattern.test(tag);
 }
 
@@ -154,10 +153,6 @@ export interface FetcherConfig<TResponse, TTag extends Tag = Tag> {
   getHeaders?: () => HeadersInit;
   /** Function to transform API response to Tag array */
   transformResponse: (response: TResponse, originalPath: string) => TTag[];
-  /** Optional function to sort tags (default: no sorting) */
-  sortTags?: (tags: TTag[]) => TTag[];
-  /** Optional function to filter tags (default: filterSemverTags) */
-  filterTags?: (tags: TTag[]) => TTag[];
 }
 
 /**
@@ -165,9 +160,7 @@ export interface FetcherConfig<TResponse, TTag extends Tag = Tag> {
  */
 export interface TagsFetcher {
   /** Fetch all tags */
-  fetchTags(source: string): Promise<Tag[]>;
-  /** Get the latest tag */
-  getLatestTag(source: string): Promise<string | null>;
+  (source: string): Promise<string | null>;
 }
 
 /**
@@ -182,8 +175,6 @@ export function createTagsFetcher<TResponse, TTag extends Tag = Tag>(
     buildUrl,
     getHeaders,
     transformResponse,
-    sortTags,
-    filterTags = filterSemverTags,
   } = config;
 
   async function fetchTags(source: string): Promise<Tag[]> {
@@ -204,12 +195,10 @@ export function createTagsFetcher<TResponse, TTag extends Tag = Tag>(
       let tags = transformResponse(data, source);
 
       // Apply filtering
-      tags = filterTags(tags);
+      tags = filterSemverTags(tags);
 
-      // Apply sorting if provided
-      if (sortTags) {
-        tags = sortTags(tags);
-      }
+      // Sort tags by name
+      tags = tags.sort((a, b) => compareVersions(a.name, b.name));
 
       return tags;
     } catch (error) {
@@ -222,13 +211,8 @@ export function createTagsFetcher<TResponse, TTag extends Tag = Tag>(
     }
   }
 
-  async function getLatestTag(source: string): Promise<string | null> {
+  return async function getLatestTag(source: string): Promise<string | null> {
     const tags = await fetchTags(source);
     return tags.length > 0 ? tags[0].name : null;
-  }
-
-  return {
-    fetchTags,
-    getLatestTag,
   };
 }
