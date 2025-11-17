@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.3](https://github.com/bacali95/homepage/compare/v1.5.2...v1.5.3) (2025-11-17)
+
+
+### Code Refactoring
+
+* Remove Releases module and related components ([ac4c9ee](https://github.com/bacali95/homepage/commit/ac4c9eec9eff1ed23d3c46a371b88adc4682ef88))
+
 ### [1.5.2](https://github.com/bacali95/homepage/compare/v1.5.1...v1.5.2) (2025-11-15)
 
 
