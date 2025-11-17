@@ -35,7 +35,7 @@ export class UpdateCheckerService {
       return await this.k8sRegistryFetcherService.getLatestTag(app.repo);
     } else {
       // Default to GitHub Releases
-      return await this.githubReleasesFetcherService.getLatestRelease(app.repo);
+      return await this.githubReleasesFetcherService.getLatestTag(app.repo);
     }
   }
 

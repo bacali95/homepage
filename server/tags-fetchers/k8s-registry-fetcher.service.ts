@@ -18,14 +18,9 @@ export class K8sRegistryFetcherService {
       `https://registry.k8s.io/v2/${normalizedPath}/tags/list`,
     transformResponse: (data) =>
       data.tags.map((name) => ({ name, last_updated: "" })),
-    sortTags: (tags) => tags.sort((a, b) => compareVersions(a.name, b.name)),
   });
 
-  async fetchTags(repo: string): Promise<Tag[]> {
-    return this.fetcher.fetchTags(repo);
-  }
-
-  async getLatestTag(repo: string): Promise<string | null> {
-    return this.fetcher.getLatestTag(repo);
+  getLatestTag(repo: string): Promise<string | null> {
+    return this.fetcher(repo);
   }
 }
