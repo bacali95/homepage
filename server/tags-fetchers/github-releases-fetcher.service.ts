@@ -23,10 +23,9 @@ export class GithubReleasesFetcherService {
       `https://api.github.com/repos/${normalizedPath}/releases`,
     getHeaders: () => createGitHubHeaders(),
     transformResponse: (releases, originalPath) => {
-      // Filter out prereleases and limit to 50
+      // Filter out prereleases
       return releases
         .filter((r) => !r.prerelease)
-        .slice(0, 50)
         .map((release) => ({
           name: release.tag_name,
           last_updated: release.published_at,
