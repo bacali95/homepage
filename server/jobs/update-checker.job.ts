@@ -8,8 +8,8 @@ export class UpdateCheckerJob implements OnModuleInit {
 
   constructor(private readonly updateCheckerService: UpdateCheckerService) {}
 
-  // Run every 6 hours
-  @Cron("0 */6 * * *", {
+  // Run every 1 hour
+  @Cron("0 */1 * * *", {
     name: "update-checker",
   })
   async handleCron() {
