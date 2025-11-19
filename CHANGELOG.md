@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.4](https://github.com/bacali95/homepage/compare/v1.5.2...v1.5.4) (2025-11-19)
+
+
+### Bug Fixes
+
+* Update cron schedule for UpdateCheckerJob to run every hour ([ff5842b](https://github.com/bacali95/homepage/commit/ff5842bc2fb9229d261bff7aef6f13a3c7c18579))
+
+
+### Code Refactoring
+
+* Remove Releases module and related components ([278f588](https://github.com/bacali95/homepage/commit/278f588822c25fcaba094bc7eda6978852063bec))
+* Remove Releases module and related components ([41a68ec](https://github.com/bacali95/homepage/commit/41a68ecfa89edd2d020e02b0add7a1f2b14d48da))
+
 ### [1.5.3](https://github.com/bacali95/homepage/compare/v1.5.2...v1.5.3) (2025-11-17)
 
 
