@@ -14,6 +14,7 @@ export interface App {
   category: string;
   docker_image: string | null;
   k8s_namespace: string | null;
+  icon: string | null;
   created_at: string;
   updated_at: string;
 }

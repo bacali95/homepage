@@ -72,6 +72,20 @@ export function BasicInformationSection({
           </p>
         </div>
 
+        <div className="space-y-2">
+          <Label htmlFor="icon">Icon URL</Label>
+          <Input
+            id="icon"
+            type="url"
+            value={formData.icon}
+            onChange={(e) => onFormDataChange({ icon: e.target.value })}
+            placeholder="https://example.com/icon.png"
+          />
+          <p className="text-xs text-muted-foreground">
+            Optional: URL to an icon image for this app
+          </p>
+        </div>
+
         <div className="space-y-3 pt-2 border-t border-border">
           <div className="flex items-center space-x-2">
             <input

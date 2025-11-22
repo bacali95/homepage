@@ -21,6 +21,7 @@ export interface App {
   category: string;
   docker_image: string | null;
   k8s_namespace: string | null;
+  icon: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -37,6 +38,7 @@ interface DbApp {
   category: string;
   docker_image: string | null;
   k8s_namespace: string | null;
+  icon: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -50,6 +52,7 @@ const convertDbAppToApp = (dbApp: DbApp): App => {
     category: dbApp.category,
     docker_image: dbApp.docker_image || null,
     k8s_namespace: dbApp.k8s_namespace || null,
+    icon: dbApp.icon || null,
     current_version: dbApp.current_version || null,
   };
 };
@@ -76,10 +79,18 @@ export class DatabaseService implements OnModuleInit {
         category TEXT NOT NULL,
         docker_image TEXT,
         k8s_namespace TEXT,
+        icon TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add icon column if it doesn't exist
+    try {
+      this.db.exec("ALTER TABLE apps ADD COLUMN icon TEXT");
+    } catch (error) {
+      // Column likely already exists
+    }
   }
 
   getAllApps(): App[] {
@@ -115,7 +126,7 @@ export class DatabaseService implements OnModuleInit {
     }
 
     const stmt = this.db.prepare(
-      "INSERT INTO apps (name, url, repo, source_type, current_version, category, docker_image, k8s_namespace) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO apps (name, url, repo, source_type, current_version, category, docker_image, k8s_namespace, icon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     return stmt.run(
       app.name,
@@ -125,7 +136,8 @@ export class DatabaseService implements OnModuleInit {
       app.current_version || null,
       app.category,
       app.docker_image || null,
-      app.k8s_namespace || null
+      app.k8s_namespace || null,
+      app.icon || null
     );
   }
 
@@ -182,6 +194,10 @@ export class DatabaseService implements OnModuleInit {
     if (app.k8s_namespace !== undefined) {
       updates.push("k8s_namespace = ?");
       values.push(app.k8s_namespace || null);
+    }
+    if (app.icon !== undefined) {
+      updates.push("icon = ?");
+      values.push(app.icon || null);
     }
 
     updates.push("updated_at = CURRENT_TIMESTAMP");

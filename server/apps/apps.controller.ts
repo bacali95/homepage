@@ -58,6 +58,7 @@ export class AppsController {
         category,
         docker_image,
         k8s_namespace,
+        icon,
       } = body;
 
       if (!name) {
@@ -78,6 +79,7 @@ export class AppsController {
         category,
         docker_image,
         k8s_namespace,
+        icon,
       });
 
       this.logger.log(
@@ -127,31 +129,24 @@ export class AppsController {
         category,
         docker_image,
         k8s_namespace,
+        icon,
       } = body;
 
       // Validate required fields if they are being updated
+      if (
+        name !== undefined &&
+        (typeof name !== "string" || name.trim() === "")
+      ) {
+        throw new BadRequestException(
+          "name is required and must be a non-empty string"
+        );
+      }
       if (
         category !== undefined &&
         (typeof category !== "string" || category.trim() === "")
       ) {
         throw new BadRequestException(
           "category is required and must be a non-empty string"
-        );
-      }
-      if (
-        docker_image !== undefined &&
-        (typeof docker_image !== "string" || docker_image.trim() === "")
-      ) {
-        throw new BadRequestException(
-          "docker_image is required and must be a non-empty string"
-        );
-      }
-      if (
-        k8s_namespace !== undefined &&
-        (typeof k8s_namespace !== "string" || k8s_namespace.trim() === "")
-      ) {
-        throw new BadRequestException(
-          "k8s_namespace is required and must be a non-empty string"
         );
       }
 
@@ -164,6 +159,7 @@ export class AppsController {
         category,
         docker_image,
         k8s_namespace,
+        icon,
       });
 
       const app = this.appsService.getApp(id);

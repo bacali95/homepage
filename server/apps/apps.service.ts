@@ -84,6 +84,7 @@ export class AppsService {
           category,
           docker_image,
           k8s_namespace,
+          icon,
         } = app;
 
         if (!name) {
@@ -116,6 +117,7 @@ export class AppsService {
             category,
             docker_image: docker_image || null,
             k8s_namespace: k8s_namespace || null,
+            icon: icon || null,
           });
 
           // If version was updated, check for updates for this app instantly
@@ -140,6 +142,7 @@ export class AppsService {
             category,
             docker_image: docker_image || null,
             k8s_namespace: k8s_namespace || null,
+            icon: icon || null,
           });
           created++;
         }

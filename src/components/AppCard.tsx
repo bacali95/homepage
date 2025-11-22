@@ -48,17 +48,26 @@ export function AppCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-lg sm:text-xl font-semibold truncate group-hover:text-primary transition-colors">
-                {app.name}
-              </CardTitle>
-              {app.category && (
-                <Badge
-                  variant="outline"
-                  className="text-xs font-normal shrink-0"
-                >
-                  {app.category}
-                </Badge>
+              {app.icon && (
+                <img
+                  src={app.icon}
+                  alt={`${app.name} icon`}
+                  className="w-14 h-14 rounded-lg object-contain bg-background/50 p-1 border border-border/50"
+                />
               )}
+              <div className="flex flex-col gap-1">
+                <CardTitle className="text-lg sm:text-xl font-semibold truncate group-hover:text-primary transition-colors">
+                  {app.name}
+                </CardTitle>
+                {app.category && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-normal w-fit"
+                  >
+                    {app.category}
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
           <div className="shrink-0 flex flex-col items-end gap-2">
