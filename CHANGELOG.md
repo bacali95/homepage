@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/bacali95/homepage/compare/v1.5.4...v1.6.0) (2025-11-22)
+
+
+### Features
+
+* Add icon support for apps ([71d619e](https://github.com/bacali95/homepage/commit/71d619ebe3c1bded69b4f150aeebee8fa94f28eb))
+
 ### [1.5.4](https://github.com/bacali95/homepage/compare/v1.5.2...v1.5.4) (2025-11-19)
 
 
