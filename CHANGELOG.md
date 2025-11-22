@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.6.1](https://github.com/bacali95/homepage/compare/v1.6.0...v1.6.1) (2025-11-22)
+
+
+### Features
+
+* Integrate icon field into app form ([72db97c](https://github.com/bacali95/homepage/commit/72db97c3b30fc42cfc84a213ae2ba46b72d783db))
+
 ## [1.6.0](https://github.com/bacali95/homepage/compare/v1.5.4...v1.6.0) (2025-11-22)
 
 
