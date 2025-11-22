@@ -32,6 +32,7 @@ const initialFormData: FormData = {
   category: "",
   docker_image: "",
   k8s_namespace: "",
+  icon: "",
   enableVersionChecking: false,
 };
 
@@ -124,6 +125,7 @@ export default function App() {
       category: app.category || "",
       docker_image: app.docker_image || "",
       k8s_namespace: app.k8s_namespace || "",
+      icon: app.icon || "",
       enableVersionChecking: shouldEnableVersionChecking(app),
     });
     setDrawerOpen(true);
