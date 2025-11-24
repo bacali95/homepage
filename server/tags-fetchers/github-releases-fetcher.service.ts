@@ -3,6 +3,7 @@ import {
   createGitHubHeaders,
   compareVersions,
   createTagsFetcher,
+  extractSemverFromTag,
 } from "./common.js";
 
 export interface GitHubRelease {
@@ -27,7 +28,7 @@ export class GithubReleasesFetcherService {
       return releases
         .filter((r) => !r.prerelease)
         .map((release) => ({
-          name: release.tag_name,
+          name: extractSemverFromTag(release.tag_name),
           last_updated: release.published_at,
         }));
     },

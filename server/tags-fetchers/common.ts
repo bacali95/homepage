@@ -22,6 +22,15 @@ export function isSemver(tag: string): boolean {
 }
 
 /**
+ * Extract the semantic version from a tag
+ */
+export function extractSemverFromTag(tag: string): string {
+  const semverPattern = /v?(\d+)\.(\d+)\.(\d+)/i;
+  const match = tag.match(semverPattern);
+  return match ? match[0] : tag;
+}
+
+/**
  * Normalize a URL/repository path by removing protocols, trailing slashes, and .git suffix
  */
 export function normalizePath(
