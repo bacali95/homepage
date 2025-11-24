@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/bacali95/homepage/compare/v1.6.1...v1.7.0) (2025-11-24)
+
+
+### Features
+
+* Add function to extract semantic version from tag ([6c22327](https://github.com/bacali95/homepage/commit/6c223274c5bee22903478f7b499a1feb620f6062))
+
 ### [1.6.1](https://github.com/bacali95/homepage/compare/v1.6.0...v1.6.1) (2025-11-22)
 
 
