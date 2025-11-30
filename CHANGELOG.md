@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.8.0](https://github.com/bacali95/homepage/compare/v1.7.0...v1.8.0) (2025-11-30)
+
+
+### Features
+
+* Implement notification system for app updates ([5281db1](https://github.com/bacali95/homepage/commit/5281db191267aad7a0c975c3c0f23c035640b2ea))
+
 ## [1.7.0](https://github.com/bacali95/homepage/compare/v1.6.1...v1.7.0) (2025-11-24)
 
 
