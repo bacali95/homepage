@@ -41,7 +41,7 @@ export function AppCard({
 
   return (
     <Card
-      className="group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 h-full flex flex-col border-border/50 hover:border-border bg-card/50 backdrop-blur-sm cursor-pointer"
+      className="group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 h-full flex flex-col hover:border-border cursor-pointer"
       onDoubleClick={handleDoubleClick}
     >
       <CardHeader className="shrink-0 pb-3">
