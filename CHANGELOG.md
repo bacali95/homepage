@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.9.0](https://github.com/bacali95/homepage/compare/v1.8.0...v1.9.0) (2025-11-30)
+
+
+### Features
+
+* Refactor app structure and enhance routing ([a27fc53](https://github.com/bacali95/homepage/commit/a27fc53ff4f163c64a346dd3b2b791a5c040980d))
+
 ## [1.8.0](https://github.com/bacali95/homepage/compare/v1.7.0...v1.8.0) (2025-11-30)
 
 
