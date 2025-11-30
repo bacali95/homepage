@@ -195,4 +195,60 @@ export const api = {
       updated: number;
       errors?: string[];
     }>("/apps/import", apps, "Failed to import apps"),
+
+  // Notification APIs
+  getNotificationChannels: (): Promise<
+    Array<{
+      channel_type: string;
+      enabled: boolean;
+      configured: boolean;
+      config: Record<string, any>;
+    }>
+  > =>
+    http.get<
+      Array<{
+        channel_type: string;
+        enabled: boolean;
+        configured: boolean;
+        config: Record<string, any>;
+      }>
+    >("/notifications/channels", "Failed to fetch notification channels"),
+
+  updateNotificationChannel: (
+    channelType: string,
+    data: { enabled: boolean; config: Record<string, any> }
+  ): Promise<{ success: boolean }> =>
+    http.put<{ success: boolean }>(
+      `/notifications/channels/${channelType}`,
+      data,
+      "Failed to update notification channel"
+    ),
+
+  getAppNotificationPreferences: (
+    appId: number
+  ): Promise<Array<{ channel_type: string; enabled: boolean }>> =>
+    http.get<Array<{ channel_type: string; enabled: boolean }>>(
+      `/notifications/apps/${appId}/preferences`,
+      "Failed to fetch app notification preferences"
+    ),
+
+  setAppNotificationPreference: (
+    appId: number,
+    data: { channel_type: string; enabled: boolean }
+  ): Promise<{ success: boolean }> =>
+    http.post<{ success: boolean }>(
+      `/notifications/apps/${appId}/preferences`,
+      data,
+      "Failed to set app notification preference"
+    ),
+
+  testNotificationChannel: (
+    channelType: string,
+    config: Record<string, any>
+  ): Promise<{ success: boolean; message: string }> =>
+    http.post<{ success: boolean; message: string }>(
+      `/notifications/channels/${channelType}/test`,
+      { config },
+      "Failed to send test notification"
+    ),
 };

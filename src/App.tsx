@@ -17,6 +17,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { EmptyState } from "@/components/EmptyState";
 import { AppsGrid } from "@/components/AppsGrid";
 import { Header } from "@/components/Header";
+import { SettingsPage } from "@/components/SettingsPage";
 import {
   useExportApps,
   useImportApps as useImportAppsHelper,
@@ -60,6 +61,7 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingApp, setEditingApp] = useState<App | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [showSettings, setShowSettings] = useState(false);
   const exportApps = useExportApps();
   const importAppsHelper = useImportAppsHelper();
 
@@ -282,6 +284,10 @@ export default function App() {
     return <LoadingState />;
   }
 
+  if (showSettings) {
+    return <SettingsPage onBack={() => setShowSettings(false)} />;
+  }
+
   const groupedApps = groupAppsByCategory(apps);
   const sortedCategories = sortCategories(Object.keys(groupedApps));
 
@@ -294,6 +300,7 @@ export default function App() {
             onExport={handleExport}
             onImport={handleImport}
             onCheckUpdates={handleCheckUpdates}
+            onSettings={() => setShowSettings(true)}
             isImporting={importAppsMutation.isPending}
             isCheckingUpdates={checkUpdatesMutation.isPending}
           />
@@ -321,6 +328,7 @@ export default function App() {
               formData={formData}
               categories={categories}
               editingApp={!!editingApp}
+              editingAppId={editingApp?.id || null}
               onFormDataChange={handleFormDataChange}
               onSourceTypeChange={handleSourceTypeChange}
               onSubmit={handleSubmit}

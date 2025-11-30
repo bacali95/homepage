@@ -7,6 +7,7 @@ interface HeaderProps {
   onExport: () => void;
   onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCheckUpdates: () => void;
+  onSettings: () => void;
   isImporting: boolean;
   isCheckingUpdates: boolean;
 }
@@ -16,6 +17,7 @@ export function Header({
   onExport,
   onImport,
   onCheckUpdates,
+  onSettings,
   isImporting,
   isCheckingUpdates,
 }: HeaderProps) {
@@ -50,6 +52,7 @@ export function Header({
             onExport={onExport}
             onImport={onImport}
             onCheckUpdates={onCheckUpdates}
+            onSettings={onSettings}
             isImporting={isImporting}
             isCheckingUpdates={isCheckingUpdates}
           />

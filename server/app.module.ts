@@ -10,6 +10,7 @@ import { UpdatesModule } from "./updates/updates.module.js";
 import { PodsModule } from "./pods/pods.module.js";
 import { JobsModule } from "./jobs/jobs.module.js";
 import { HealthModule } from "./health/health.module.js";
+import { NotificationsModule } from "./notifications/notifications.module.js";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { HttpLoggingInterceptor } from "./logger/http-logging.interceptor.js";
 
@@ -26,6 +27,7 @@ const __dirname = dirname(__filename);
     UpdatesModule,
     PodsModule,
     JobsModule,
+    NotificationsModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "../dist"),
       exclude: ["/api*"],

@@ -5,6 +5,7 @@ import { DockerhubFetcherService } from "../tags-fetchers/dockerhub-fetcher.serv
 import { K8sRegistryFetcherService } from "../tags-fetchers/k8s-registry-fetcher.service.js";
 import { GithubReleasesFetcherService } from "../tags-fetchers/github-releases-fetcher.service.js";
 import { PodsService } from "../pods/pods.service.js";
+import { NotificationsService } from "../notifications/notifications.service.js";
 
 @Injectable()
 export class UpdateCheckerService {
@@ -16,7 +17,8 @@ export class UpdateCheckerService {
     private readonly ghcrFetcherService: GhcrFetcherService,
     private readonly dockerhubFetcherService: DockerhubFetcherService,
     private readonly k8sRegistryFetcherService: K8sRegistryFetcherService,
-    private readonly githubReleasesFetcherService: GithubReleasesFetcherService
+    private readonly githubReleasesFetcherService: GithubReleasesFetcherService,
+    private readonly notificationsService: NotificationsService
   ) {}
 
   /**
@@ -42,11 +44,13 @@ export class UpdateCheckerService {
   /**
    * Updates an app with the latest version information
    */
-  private updateAppWithLatestVersion(
+  private async updateAppWithLatestVersion(
     app: App,
     latestVersion: string | null,
     runningVersion: string | null
-  ): void {
+  ): Promise<void> {
+    const hadUpdate = app.has_update;
+
     if (latestVersion && latestVersion !== runningVersion) {
       this.databaseService.updateApp(app.id, {
         latest_version: latestVersion,
@@ -55,6 +59,23 @@ export class UpdateCheckerService {
       this.logger.log(
         `App ${app.name}: Update available (current: ${runningVersion}, latest: ${latestVersion})`
       );
+
+      // Send notification if this is a newly detected update (wasn't already marked as having update)
+      if (!hadUpdate) {
+        try {
+          // Get the updated app to send notification
+          const updatedApp = this.databaseService.getApp(app.id);
+          if (updatedApp) {
+            await this.notificationsService.notifyAppUpdate(updatedApp);
+          }
+        } catch (error) {
+          // Log error but don't fail the update check
+          this.logger.error(
+            `Failed to send notification for ${app.name}:`,
+            error
+          );
+        }
+      }
     } else if (latestVersion) {
       this.databaseService.updateApp(app.id, {
         latest_version: latestVersion,
@@ -98,7 +119,7 @@ export class UpdateCheckerService {
     }
 
     const latestVersion = await this.getLatestVersionForApp(app);
-    this.updateAppWithLatestVersion(app, latestVersion, runningVersion);
+    await this.updateAppWithLatestVersion(app, latestVersion, runningVersion);
   }
 
   async checkForUpdates() {

@@ -9,6 +9,7 @@ import {
   Monitor,
   Download,
   Upload,
+  Bell,
 } from "lucide-react";
 import { useTheme, type Theme } from "@/lib/use-theme";
 
@@ -16,6 +17,7 @@ interface SettingsMenuProps {
   onExport: () => void;
   onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCheckUpdates: () => void;
+  onSettings: () => void;
   isImporting: boolean;
   isCheckingUpdates: boolean;
 }
@@ -24,6 +26,7 @@ export function SettingsMenu({
   onExport,
   onImport,
   onCheckUpdates,
+  onSettings,
   isImporting,
   isCheckingUpdates,
 }: SettingsMenuProps) {
@@ -84,6 +87,12 @@ export function SettingsMenu({
           <div className="flex items-center gap-2">
             {getThemeIcon()}
             <span>Theme: {getThemeLabel()}</span>
+          </div>
+        </MenuItem>
+        <MenuItem onClick={onSettings}>
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            <span>Notifications</span>
           </div>
         </MenuItem>
         <MenuItem onClick={onExport}>

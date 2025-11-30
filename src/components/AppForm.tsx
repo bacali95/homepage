@@ -3,12 +3,14 @@ import { type SourceType } from "@/lib/api";
 import { BasicInformationSection } from "./AppForm/BasicInformationSection";
 import { SourceConfigurationSection } from "./AppForm/SourceConfigurationSection";
 import { VersionManagementSection } from "./AppForm/VersionManagementSection";
+import { NotificationPreferencesSection } from "./AppForm/NotificationPreferencesSection";
 import { type FormData } from "./AppForm/types";
 
 interface AppFormProps {
   formData: FormData;
   categories: string[];
   editingApp: boolean;
+  editingAppId?: number | null;
   onFormDataChange: (data: Partial<FormData>) => void;
   onSourceTypeChange: (sourceType: SourceType) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -19,6 +21,7 @@ export function AppForm({
   formData,
   categories,
   editingApp,
+  editingAppId,
   onFormDataChange,
   onSourceTypeChange,
   onSubmit,
@@ -45,6 +48,10 @@ export function AppForm({
             onFormDataChange={onFormDataChange}
           />
         </>
+      )}
+
+      {editingApp && editingAppId && (
+        <NotificationPreferencesSection appId={editingAppId} />
       )}
 
       <div className="flex gap-2 pt-4 border-t">
