@@ -1,13 +1,14 @@
 import { useRef } from "react";
+import { Download, Upload } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useApps, useImportApps } from "@/lib/use-apps";
 import {
   useExportApps,
   useImportApps as useImportAppsHelper,
 } from "@/lib/use-export-import";
-import { useApps, useImportApps } from "@/lib/use-apps";
 import { toast } from "@/lib/use-toast";
-import { Download, Upload } from "lucide-react";
 
 export function BackupSettingsContent() {
   const { data: apps = [] } = useApps();

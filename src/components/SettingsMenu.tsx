@@ -1,6 +1,7 @@
+import { MoreVertical, Plus, RefreshCw } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Menu, MenuItem, MenuTrigger } from "@/components/ui/menu";
-import { RefreshCw, MoreVertical, Plus } from "lucide-react";
 
 interface SettingsMenuProps {
   onAdd: () => void;

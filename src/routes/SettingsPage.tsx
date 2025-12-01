@@ -1,9 +1,10 @@
-import { useLocation, useNavigate, Routes, Route } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Settings, Bell, Database } from "lucide-react";
+import { Bell, Database, Settings } from "lucide-react";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+
+import { BackupSettingsContent } from "@/components/BackupSettingsContent";
 import { GeneralSettingsContent } from "@/components/GeneralSettingsContent";
 import { NotificationsSettingsContent } from "@/components/NotificationsSettingsContent";
-import { BackupSettingsContent } from "@/components/BackupSettingsContent";
+import { Button } from "@/components/ui/button";
 
 export function SettingsPage() {
   const location = useLocation();

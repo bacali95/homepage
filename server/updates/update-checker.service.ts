@@ -1,11 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { DatabaseService, App } from "../database/database.service.js";
-import { GhcrFetcherService } from "../tags-fetchers/ghcr-fetcher.service.js";
-import { DockerhubFetcherService } from "../tags-fetchers/dockerhub-fetcher.service.js";
-import { K8sRegistryFetcherService } from "../tags-fetchers/k8s-registry-fetcher.service.js";
-import { GithubReleasesFetcherService } from "../tags-fetchers/github-releases-fetcher.service.js";
-import { PodsService } from "../pods/pods.service.js";
+
+import { App, DatabaseService } from "../database/database.service.js";
 import { NotificationsService } from "../notifications/notifications.service.js";
+import { PodsService } from "../pods/pods.service.js";
+import { DockerhubFetcherService } from "../tags-fetchers/dockerhub-fetcher.service.js";
+import { GhcrFetcherService } from "../tags-fetchers/ghcr-fetcher.service.js";
+import { GithubReleasesFetcherService } from "../tags-fetchers/github-releases-fetcher.service.js";
+import { K8sRegistryFetcherService } from "../tags-fetchers/k8s-registry-fetcher.service.js";
 
 @Injectable()
 export class UpdateCheckerService {

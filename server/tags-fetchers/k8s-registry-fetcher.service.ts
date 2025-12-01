@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { type Tag, createTagsFetcher, compareVersions } from "./common.js";
+
+import { createTagsFetcher } from "./common.js";
 
 export interface K8sRegistryResponse {
   name: string;

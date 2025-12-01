@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
+
 import {
   createGitHubHeaders,
-  compareVersions,
   createTagsFetcher,
   extractSemverFromTag,
 } from "./common.js";
@@ -23,7 +23,7 @@ export class GithubReleasesFetcherService {
     buildUrl: (normalizedPath) =>
       `https://api.github.com/repos/${normalizedPath}/releases`,
     getHeaders: () => createGitHubHeaders(),
-    transformResponse: (releases, originalPath) => {
+    transformResponse: (releases) => {
       // Filter out prereleases
       return releases
         .filter((r) => !r.prerelease)

@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+
 import { cn } from "@/lib/utils";
 
 interface MenuProps {
@@ -32,7 +32,13 @@ export function Menu({ trigger, children, align = "right" }: MenuProps) {
 
   return (
     <div className="relative" ref={menuRef}>
-      <div onClick={() => setOpen(!open)} className="cursor-pointer">
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
+        className="cursor-pointer"
+      >
         {trigger}
       </div>
       {open && (
@@ -48,16 +54,16 @@ export function Menu({ trigger, children, align = "right" }: MenuProps) {
           >
             {React.Children.map(children, (child) => {
               if (React.isValidElement(child)) {
-                const originalOnClick = child.props.onClick;
+                const originalOnClick = (child.props as MenuItemProps).onClick;
                 return React.cloneElement(child, {
-                  ...child.props,
+                  ...(child.props as MenuItemProps),
                   onClick: (e?: React.MouseEvent) => {
                     if (originalOnClick) {
                       originalOnClick(e);
                     }
                     closeMenu();
                   },
-                } as any);
+                } as MenuItemProps);
               }
               return child;
             })}
@@ -70,7 +76,7 @@ export function Menu({ trigger, children, align = "right" }: MenuProps) {
 
 interface MenuItemProps {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
   disabled?: boolean;
   className?: string;
 }

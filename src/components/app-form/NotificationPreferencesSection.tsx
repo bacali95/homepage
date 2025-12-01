@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Label } from "@/components/ui/label";
+import { Bell } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
-  useNotificationChannels,
   useAppNotificationPreferences,
+  useNotificationChannels,
   useSetAppNotificationPreference,
 } from "@/lib/use-notifications";
-import { Bell } from "lucide-react";
 
 interface NotificationPreferencesSectionProps {
   appId: number | null;
@@ -30,6 +31,7 @@ export function NotificationPreferencesSection({
       preferences.forEach((pref) => {
         prefs[pref.channel_type] = pref.enabled;
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocalPreferences(prefs);
     } else {
       // Default to enabled for all channels if no preferences exist
@@ -93,7 +95,8 @@ export function NotificationPreferencesSection({
         <h3 className="text-lg font-semibold">Notification Preferences</h3>
       </div>
       <p className="text-sm text-muted-foreground">
-        Choose which notification channels to use for this app's update alerts.
+        Choose which notification channels to use for this app&apos;s update
+        alerts.
       </p>
       <div className="space-y-2">
         {enabledChannels.map((channel) => (
@@ -121,7 +124,7 @@ export function NotificationPreferencesSection({
                   className="w-4 h-4"
                 />
                 <span className="text-sm">
-                  {localPreferences[channel.channel_type] ?? true
+                  {(localPreferences[channel.channel_type] ?? true)
                     ? "Enabled"
                     : "Disabled"}
                 </span>

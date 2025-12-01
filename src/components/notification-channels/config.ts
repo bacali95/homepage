@@ -1,4 +1,5 @@
 import { Mail, MessageSquare } from "lucide-react";
+
 import { ChannelConfig } from "./types";
 
 export const CHANNEL_CONFIGS: Record<string, ChannelConfig> = {

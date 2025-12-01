@@ -1,8 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { DatabaseService, App } from "../database/database.service.js";
+
+import { App, DatabaseService } from "../database/database.service.js";
 import { EmailChannelService } from "./channels/email-channel.service.js";
-import { TelegramChannelService } from "./channels/telegram-channel.service.js";
 import { NotificationChannel } from "./channels/notification-channel.interface.js";
+import { TelegramChannelService } from "./channels/telegram-channel.service.js";
 
 @Injectable()
 export class NotificationsService {

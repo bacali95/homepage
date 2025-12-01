@@ -1,8 +1,10 @@
+import type { Theme } from "@/lib/use-theme";
+import { Monitor, Moon, Sun } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { useTheme, type Theme } from "@/lib/use-theme";
-import { Moon, Sun, Monitor } from "lucide-react";
+import { useTheme } from "@/lib/use-theme";
 
 export function GeneralSettingsContent() {
   const { theme, setTheme } = useTheme();

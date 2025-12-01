@@ -1,18 +1,19 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
+  BadRequestException,
   Body,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
-  ParseIntPipe,
-  NotFoundException,
-  BadRequestException,
   Logger,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
 } from "@nestjs/common";
+
 import { AppsService } from "./apps.service.js";
 
 @Controller("api/apps")

@@ -44,6 +44,7 @@ export function useTheme() {
       return () =>
         mediaQuery.removeEventListener("change", updateResolvedTheme);
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResolvedTheme(theme);
     }
   }, [theme]);

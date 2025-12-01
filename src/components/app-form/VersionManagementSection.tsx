@@ -1,10 +1,12 @@
+import { Download, Loader2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
 import { useFetchVersionFromPod } from "@/lib/use-apps";
-import { type FormSectionProps } from "./types";
 import { toast } from "@/lib/use-toast";
+
+import { type FormSectionProps } from "./types";
 
 export function VersionManagementSection({
   formData,
@@ -142,7 +144,8 @@ export function VersionManagementSection({
           </div>
           {formData.docker_image && formData.k8s_namespace ? (
             <p className="text-xs text-muted-foreground">
-              Use "Fetch from Pod" button to automatically fill this field
+              Use &quot;Fetch from Pod&quot; button to automatically fill this
+              field
             </p>
           ) : (
             <p className="text-xs text-muted-foreground">

@@ -1,16 +1,17 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
   Get,
-  Put,
-  Post,
-  Body,
+  Logger,
   Param,
   ParseIntPipe,
-  BadRequestException,
-  Logger,
+  Post,
+  Put,
 } from "@nestjs/common";
-import { NotificationsService } from "./notifications.service.js";
+
 import { DatabaseService } from "../database/database.service.js";
+import { NotificationsService } from "./notifications.service.js";
 
 @Controller("api/notifications")
 export class NotificationsController {

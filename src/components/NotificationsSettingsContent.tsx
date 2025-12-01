@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
+import { LoadingState } from "@/components/LoadingState";
 import {
   useNotificationChannels,
-  useUpdateNotificationChannel,
   useTestNotificationChannel,
+  useUpdateNotificationChannel,
 } from "@/lib/use-notifications";
 import { toast } from "@/lib/use-toast";
-import { LoadingState } from "@/components/LoadingState";
+
 import { ChannelCard } from "./notification-channels/ChannelCard";
 
 export function NotificationsSettingsContent() {

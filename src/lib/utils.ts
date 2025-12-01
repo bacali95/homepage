@@ -1,4 +1,5 @@
-import { type ClassValue, clsx } from "clsx";
+import type { ClassValue } from "clsx";
+import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -12,14 +13,17 @@ export function formatVersion(version: string): string {
 export function groupAppsByCategory<T extends { category: string | null }>(
   apps: T[]
 ): Record<string, T[]> {
-  return apps.reduce((acc, app) => {
-    const category = app.category || "Uncategorized";
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(app);
-    return acc;
-  }, {} as Record<string, T[]>);
+  return apps.reduce(
+    (acc, app) => {
+      const category = app.category || "Uncategorized";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(app);
+      return acc;
+    },
+    {} as Record<string, T[]>
+  );
 }
 
 export function sortCategories(categories: string[]): string[] {

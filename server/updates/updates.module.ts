@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common";
-import { UpdatesController } from "./updates.controller.js";
-import { UpdateCheckerService } from "./update-checker.service.js";
+
 import { DatabaseModule } from "../database/database.module.js";
-import { TagsFetchersModule } from "../tags-fetchers/tags-fetchers.module.js";
-import { PodsModule } from "../pods/pods.module.js";
 import { NotificationsModule } from "../notifications/notifications.module.js";
+import { PodsModule } from "../pods/pods.module.js";
+import { TagsFetchersModule } from "../tags-fetchers/tags-fetchers.module.js";
+import { UpdateCheckerService } from "./update-checker.service.js";
+import { UpdatesController } from "./updates.controller.js";
 
 @Module({
   imports: [

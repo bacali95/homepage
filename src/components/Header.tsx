@@ -1,9 +1,11 @@
-import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Home, Settings } from "lucide-react";
-import { SettingsMenu } from "./SettingsMenu";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
 import { useCheckUpdates } from "@/lib/use-apps";
 import { toast } from "@/lib/use-toast";
+
+import { SettingsMenu } from "./SettingsMenu";
 
 export function Header() {
   const location = useLocation();

@@ -1,22 +1,23 @@
 import {
+  Box,
+  Edit,
+  ExternalLink,
+  Layers,
+  MoreVertical,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Menu, MenuItem, MenuTrigger } from "@/components/ui/menu";
-import {
-  ExternalLink,
-  Trash2,
-  Edit,
-  MoreVertical,
-  RefreshCw,
-  Layers,
-  Box,
-} from "lucide-react";
 import { type App } from "@/lib/api";
 import { formatVersion, truncateText } from "@/lib/utils";
 
@@ -33,7 +34,7 @@ export function AppCard({
   onDelete,
   onCheckUpdates,
 }: AppCardProps) {
-  const handleDoubleClick = () => {
+  const handleClick = () => {
     if (app.url) {
       window.open(app.url, "_blank", "noopener,noreferrer");
     }
@@ -42,7 +43,7 @@ export function AppCard({
   return (
     <Card
       className="group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 h-full flex flex-col hover:border-border cursor-pointer"
-      onDoubleClick={handleDoubleClick}
+      onClick={handleClick}
     >
       <CardHeader className="shrink-0 pb-3">
         <div className="flex items-start justify-between gap-3">

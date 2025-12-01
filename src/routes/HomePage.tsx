@@ -1,11 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { type App } from "@/lib/api";
-import { groupAppsByCategory, sortCategories } from "@/lib/utils";
-import { useApps, useDeleteApp, useCheckAppUpdates } from "@/lib/use-apps";
-import { LoadingState } from "@/components/LoadingState";
-import { EmptyState } from "@/components/EmptyState";
+
 import { AppsGrid } from "@/components/AppsGrid";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingState } from "@/components/LoadingState";
+import { type App } from "@/lib/api";
+import { useApps, useCheckAppUpdates, useDeleteApp } from "@/lib/use-apps";
 import { toast } from "@/lib/use-toast";
+import { groupAppsByCategory, sortCategories } from "@/lib/utils";
 
 export function HomePage() {
   const navigate = useNavigate();

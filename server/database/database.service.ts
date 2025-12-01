@@ -1,8 +1,7 @@
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import Database from "better-sqlite3";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -88,7 +87,7 @@ export class DatabaseService implements OnModuleInit {
     // Add icon column if it doesn't exist
     try {
       this.db.exec("ALTER TABLE apps ADD COLUMN icon TEXT");
-    } catch (error) {
+    } catch {
       // Column likely already exists
     }
 

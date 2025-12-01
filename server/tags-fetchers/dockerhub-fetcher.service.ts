@@ -1,5 +1,7 @@
+import type { Tag } from "./common.js";
 import { Injectable } from "@nestjs/common";
-import { type Tag, compareVersions, createTagsFetcher } from "./common.js";
+
+import { createTagsFetcher } from "./common.js";
 
 export interface DockerHubResponse {
   count: number;

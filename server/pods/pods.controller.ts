@@ -1,10 +1,11 @@
 import {
+  BadRequestException,
   Controller,
   Get,
-  Query,
-  BadRequestException,
   Logger,
+  Query,
 } from "@nestjs/common";
+
 import { PodsService } from "./pods.service.js";
 
 @Controller("api/fetch-pod-version")

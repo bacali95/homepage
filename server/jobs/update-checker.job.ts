@@ -1,5 +1,6 @@
-import { Injectable, OnModuleInit, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
+
 import { UpdateCheckerService } from "../updates/update-checker.service.js";
 
 @Injectable()

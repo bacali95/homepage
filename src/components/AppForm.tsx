@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { type SourceType } from "@/lib/api";
+
 import { BasicInformationSection } from "./app-form/BasicInformationSection";
-import { SourceConfigurationSection } from "./app-form/SourceConfigurationSection";
-import { VersionManagementSection } from "./app-form/VersionManagementSection";
 import { NotificationPreferencesSection } from "./app-form/NotificationPreferencesSection";
+import { SourceConfigurationSection } from "./app-form/SourceConfigurationSection";
 import { type FormData } from "./app-form/types";
+import { VersionManagementSection } from "./app-form/VersionManagementSection";
 
 interface AppFormProps {
   formData: FormData;

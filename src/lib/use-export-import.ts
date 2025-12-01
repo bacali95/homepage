@@ -6,11 +6,11 @@ export function useExportApps() {
       // Remove database-specific fields for export
       const exportData = apps.map((app) => {
         const {
-          id,
-          created_at,
-          updated_at,
-          latest_version,
-          has_update,
+          id: _id,
+          created_at: _created_at,
+          updated_at: _updated_at,
+          latest_version: _latest_version,
+          has_update: _has_update,
           ...exportApp
         } = app;
         return exportApp;

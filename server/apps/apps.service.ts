@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+
 import { DatabaseService } from "../database/database.service.js";
 import { UpdateCheckerService } from "../updates/update-checker.service.js";
 
@@ -52,7 +53,7 @@ export class AppsService {
     if (isVersionUpdate) {
       try {
         await this.updateCheckerService.checkForUpdate(id);
-      } catch (error) {
+      } catch {
         // Log error but don't fail the update request
         // Error will be logged by the update checker service
       }
@@ -124,7 +125,7 @@ export class AppsService {
           if (isVersionUpdate) {
             try {
               await this.updateCheckerService.checkForUpdate(existingApp.id);
-            } catch (error) {
+            } catch {
               // Log error but don't fail the import
               // Error will be logged by the update checker service
             }

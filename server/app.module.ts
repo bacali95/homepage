@@ -1,18 +1,19 @@
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 import { Module } from "@nestjs/common";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ServeStaticModule } from "@nestjs/serve-static";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { DatabaseModule } from "./database/database.module.js";
+
 import { AppsModule } from "./apps/apps.module.js";
 import { CategoriesModule } from "./categories/categories.module.js";
-import { UpdatesModule } from "./updates/updates.module.js";
-import { PodsModule } from "./pods/pods.module.js";
-import { JobsModule } from "./jobs/jobs.module.js";
+import { DatabaseModule } from "./database/database.module.js";
 import { HealthModule } from "./health/health.module.js";
-import { NotificationsModule } from "./notifications/notifications.module.js";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { JobsModule } from "./jobs/jobs.module.js";
 import { HttpLoggingInterceptor } from "./logger/http-logging.interceptor.js";
+import { NotificationsModule } from "./notifications/notifications.module.js";
+import { PodsModule } from "./pods/pods.module.js";
+import { UpdatesModule } from "./updates/updates.module.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

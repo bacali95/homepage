@@ -1,9 +1,13 @@
+import type { FormData } from "@/components/AppForm";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+
+import { AppForm } from "@/components/AppForm";
+import { LoadingState } from "@/components/LoadingState";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { type App, type SourceType } from "@/lib/api";
-import { AppForm, type FormData } from "@/components/AppForm";
 import {
   useApps,
   useCategories,
@@ -11,8 +15,6 @@ import {
   useUpdateApp,
 } from "@/lib/use-apps";
 import { toast } from "@/lib/use-toast";
-import { LoadingState } from "@/components/LoadingState";
-import { Card } from "@/components/ui/card";
 
 const initialFormData: FormData = {
   name: "",
@@ -56,6 +58,7 @@ export function AppFormPage() {
     if (appId && !isNewApp && apps.length > 0) {
       const app = apps.find((a) => a.id === appId);
       if (app) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setEditingApp(app);
         const sourceType = app.source_type || "github";
         setFormData({

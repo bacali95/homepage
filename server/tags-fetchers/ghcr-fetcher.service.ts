@@ -1,9 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import {
-  createGitHubHeaders,
-  compareVersions,
-  createTagsFetcher,
-} from "./common.js";
+
+import { createGitHubHeaders, createTagsFetcher } from "./common.js";
 
 interface GhcrVersion {
   id: number;
@@ -50,7 +47,7 @@ export class GhcrFetcherService {
 
       return createGitHubHeaders();
     },
-    transformResponse: (versions, originalPath) => {
+    transformResponse: (versions) => {
       // Extract all unique tags from all versions
       const allTags = new Set<string>();
       versions.forEach((version) => {

@@ -1,9 +1,10 @@
 import { Module, OnModuleInit } from "@nestjs/common";
+
 import { DatabaseModule } from "../database/database.module.js";
-import { NotificationsService } from "./notifications.service.js";
-import { NotificationsController } from "./notifications.controller.js";
 import { EmailChannelService } from "./channels/email-channel.service.js";
 import { TelegramChannelService } from "./channels/telegram-channel.service.js";
+import { NotificationsController } from "./notifications.controller.js";
+import { NotificationsService } from "./notifications.service.js";
 
 @Module({
   imports: [DatabaseModule],

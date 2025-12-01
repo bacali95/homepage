@@ -1,4 +1,5 @@
 import { Controller, Get, Logger } from "@nestjs/common";
+
 import { CategoriesService } from "./categories.service.js";
 
 @Controller("api/categories")

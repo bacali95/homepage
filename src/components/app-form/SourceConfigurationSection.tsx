@@ -2,6 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { type SourceType } from "@/lib/api";
+
 import { type FormSectionProps } from "./types";
 
 interface SourceConfigurationSectionProps extends FormSectionProps {

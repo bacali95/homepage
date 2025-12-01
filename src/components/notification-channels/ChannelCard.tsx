@@ -1,9 +1,11 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Save, Send } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
-import { FormField } from "./FormField";
+
 import { CHANNEL_CONFIGS } from "./config";
+import { FormField } from "./FormField";
 import { FieldConfig } from "./types";
 
 interface ChannelCardProps {

@@ -66,11 +66,11 @@ export function compareVersions(a: string, b: string): number {
   const aClean = a.replace(/^v/i, "");
   const bClean = b.replace(/^v/i, "");
 
-  const aParts = aClean.split(/[\.-]/).map((part) => {
+  const aParts = aClean.split(/[.-]/).map((part) => {
     const num = parseInt(part, 10);
     return isNaN(num) ? part : num;
   });
-  const bParts = bClean.split(/[\.-]/).map((part) => {
+  const bParts = bClean.split(/[.-]/).map((part) => {
     const num = parseInt(part, 10);
     return isNaN(num) ? part : num;
   });

@@ -1,5 +1,7 @@
+import type { ConnectionOptions } from "tls";
 import { Injectable, Logger } from "@nestjs/common";
 import nodemailer from "nodemailer";
+
 import {
   NotificationChannel,
   NotificationChannelConfig,
@@ -43,7 +45,7 @@ export class EmailChannelService implements NotificationChannel {
 
       let secure = false;
       let requireTLS = false;
-      let tls: any = undefined;
+      let tls: ConnectionOptions | undefined = undefined;
 
       if (security === "tls" || (security === "auto" && port === 465)) {
         // SSL/TLS connection (port 465)

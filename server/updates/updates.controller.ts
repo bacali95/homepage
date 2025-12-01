@@ -1,4 +1,5 @@
-import { Controller, Post, Param, ParseIntPipe, Logger } from "@nestjs/common";
+import { Controller, Logger, Param, ParseIntPipe, Post } from "@nestjs/common";
+
 import { UpdateCheckerService } from "./update-checker.service.js";
 
 @Controller("api/check-updates")

@@ -1,5 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type App, type SourceType } from "./api";
+import type { App, SourceType } from "./api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { api } from "./api";
 
 // Query keys
 export const queryKeys = {

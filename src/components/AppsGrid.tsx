@@ -1,5 +1,5 @@
-import { type App } from "@/lib/api";
 import { AppCard } from "@/components/AppCard";
+import { type App } from "@/lib/api";
 
 interface AppsGridProps {
   groupedApps: Record<string, App[]>;
