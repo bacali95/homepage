@@ -31,7 +31,6 @@ const __dirname = dirname(__filename);
     NotificationsModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "../dist"),
-      exclude: ["/api*"],
       serveStaticOptions: {
         cacheControl: true,
         maxAge: 31536000,
