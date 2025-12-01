@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.1](https://github.com/bacali95/homepage/compare/v1.10.0...v1.10.1) (2025-12-01)
+
+
+### Bug Fixes
+
+* Remove exclusion of API routes from static file serving ([d78a549](https://github.com/bacali95/homepage/commit/d78a549cfc2b82d94f6b41e2fa9b71ba78a2ded2))
+
 ## [1.10.0](https://github.com/bacali95/homepage/compare/v1.9.0...v1.10.0) (2025-12-01)
 
 
