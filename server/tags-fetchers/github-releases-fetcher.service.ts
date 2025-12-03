@@ -15,23 +15,20 @@ export interface GitHubRelease {
 
 @Injectable()
 export class GithubReleasesFetcherService {
-  private readonly fetcher = createTagsFetcher<GitHubRelease[]>({
+  private readonly fetcher = createTagsFetcher<GitHubRelease>({
     name: "GitHub Releases",
     pathReplacements: [
       { pattern: /^https?:\/\/github\.com\//, replacement: "" },
     ],
     buildUrl: (normalizedPath) =>
-      `https://api.github.com/repos/${normalizedPath}/releases`,
+      `https://api.github.com/repos/${normalizedPath}/releases/latest`,
     getHeaders: () => createGitHubHeaders(),
-    transformResponse: (releases) => {
-      // Filter out prereleases
-      return releases
-        .filter((r) => !r.prerelease)
-        .map((release) => ({
-          name: extractSemverFromTag(release.tag_name),
-          last_updated: release.published_at,
-        }));
-    },
+    transformResponse: (release) => [
+      {
+        name: extractSemverFromTag(release.tag_name),
+        last_updated: release.published_at,
+      },
+    ],
   });
 
   getLatestTag(repo: string): Promise<string | null> {
