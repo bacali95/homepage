@@ -89,6 +89,14 @@ export function compareVersions(a: string, b: string): number {
 }
 
 /**
+ * Check if two semantic version strings are different
+ * Returns: true if a > b or a < b, false if equal
+ */
+export function isVersionsDifferent(a: string, b: string): boolean {
+  return compareVersions(a, b) !== 0;
+}
+
+/**
  * Get the latest tag from a list of tags
  */
 export function getLatestTag(tags: string[]): string | null {

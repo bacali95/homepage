@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 
 import { DatabaseService } from "../database/database.service.js";
+import { isVersionsDifferent } from "../tags-fetchers/common.js";
 import { UpdateCheckerService } from "../updates/update-checker.service.js";
 
 @Injectable()
@@ -43,9 +44,9 @@ export class AppsService {
     // Check if current_version is being updated
     const existingApp = this.databaseService.getApp(id);
     const isVersionUpdate =
-      existingApp &&
+      existingApp?.current_version &&
       app.current_version &&
-      app.current_version !== existingApp.current_version;
+      isVersionsDifferent(app.current_version, existingApp.current_version);
 
     this.databaseService.updateApp(id, app);
 
@@ -107,7 +108,9 @@ export class AppsService {
         if (existingApp) {
           // Update existing app
           const isVersionUpdate =
-            current_version && current_version !== existingApp.current_version;
+            current_version &&
+            existingApp.current_version &&
+            isVersionsDifferent(current_version, existingApp.current_version);
 
           this.databaseService.updateApp(existingApp.id, {
             name,

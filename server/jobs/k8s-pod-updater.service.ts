@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 
 import { DatabaseService } from "../database/database.service.js";
 import { PodsService } from "../pods/pods.service.js";
+import { isVersionsDifferent } from "../tags-fetchers/common.js";
 
 @Injectable()
 export class K8sPodUpdaterService {
@@ -33,7 +34,11 @@ export class K8sPodUpdaterService {
           app.docker_image,
           app.k8s_namespace
         );
-        if (version && version !== app.current_version) {
+        if (
+          version &&
+          app.current_version &&
+          isVersionsDifferent(version, app.current_version)
+        ) {
           this.databaseService.updateApp(app.id, {
             current_version: version,
           });

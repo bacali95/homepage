@@ -3,6 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { App, DatabaseService } from "../database/database.service.js";
 import { NotificationsService } from "../notifications/notifications.service.js";
 import { PodsService } from "../pods/pods.service.js";
+import { isVersionsDifferent } from "../tags-fetchers/common.js";
 import { DockerhubFetcherService } from "../tags-fetchers/dockerhub-fetcher.service.js";
 import { GhcrFetcherService } from "../tags-fetchers/ghcr-fetcher.service.js";
 import { GithubReleasesFetcherService } from "../tags-fetchers/github-releases-fetcher.service.js";
@@ -52,7 +53,11 @@ export class UpdateCheckerService {
   ): Promise<void> {
     const hadUpdate = app.has_update;
 
-    if (latestVersion && latestVersion !== runningVersion) {
+    if (
+      latestVersion &&
+      runningVersion &&
+      isVersionsDifferent(latestVersion, runningVersion)
+    ) {
       this.databaseService.updateApp(app.id, {
         latest_version: latestVersion,
         has_update: true,
@@ -113,7 +118,11 @@ export class UpdateCheckerService {
       app.docker_image,
       app.k8s_namespace
     );
-    if (runningVersion && runningVersion !== app.current_version) {
+    if (
+      runningVersion &&
+      app.current_version &&
+      isVersionsDifferent(runningVersion, app.current_version)
+    ) {
       this.databaseService.updateApp(app.id, {
         current_version: runningVersion,
       });
