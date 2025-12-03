@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.2](https://github.com/bacali95/homepage/compare/v1.10.1...v1.10.2) (2025-12-03)
+
+
+### Code Refactoring
+
+* **GithubReleasesFetcherService:** Simplify release fetching logic ([df85439](https://github.com/bacali95/homepage/commit/df85439e35097adea8468610bed73b2e10883213))
+
 ### [1.10.1](https://github.com/bacali95/homepage/compare/v1.10.0...v1.10.1) (2025-12-01)
 
 
