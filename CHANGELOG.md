@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.3](https://github.com/bacali95/homepage/compare/v1.10.2...v1.10.3) (2025-12-03)
+
+
+### Code Refactoring
+
+* **tags-fetchers:** Simplify tag handling and response transformation ([b505c71](https://github.com/bacali95/homepage/commit/b505c71595bb82373712c07a865d44e53e213372))
+
 ### [1.10.2](https://github.com/bacali95/homepage/compare/v1.10.1...v1.10.2) (2025-12-03)
 
 
