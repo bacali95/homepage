@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.4](https://github.com/bacali95/homepage/compare/v1.10.3...v1.10.4) (2025-12-03)
+
+
+### Code Refactoring
+
+* Introduce isVersionsDifferent utility for version comparison ([78fe7a5](https://github.com/bacali95/homepage/commit/78fe7a52a95d8d65a2b4bdb87664a9d8b2c28426))
+
 ### [1.10.3](https://github.com/bacali95/homepage/compare/v1.10.2...v1.10.3) (2025-12-03)
 
 

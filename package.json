@@ -1,6 +1,6 @@
 {
   "name": "homelab-homepage",
-  "version": "1.10.3",
+  "version": "1.10.4",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"yarn dev:server\" \"yarn dev:client\"",
