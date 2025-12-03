@@ -17,8 +17,7 @@ export class K8sRegistryFetcherService {
     ],
     buildUrl: (normalizedPath) =>
       `https://registry.k8s.io/v2/${normalizedPath}/tags/list`,
-    transformResponse: (data) =>
-      data.tags.map((name) => ({ name, last_updated: "" })),
+    transformResponse: (data) => data.tags,
   });
 
   getLatestTag(repo: string): Promise<string | null> {

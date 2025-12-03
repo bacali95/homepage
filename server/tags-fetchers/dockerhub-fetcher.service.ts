@@ -1,4 +1,3 @@
-import type { Tag } from "./common.js";
 import { Injectable } from "@nestjs/common";
 
 import { createTagsFetcher } from "./common.js";
@@ -7,7 +6,7 @@ export interface DockerHubResponse {
   count: number;
   next: string | null;
   previous: string | null;
-  results: Tag[];
+  results: { name: string }[];
 }
 
 @Injectable()
@@ -27,11 +26,7 @@ export class DockerhubFetcherService {
       "Accept-Language": "en-US,en;q=0.9",
       "Accept-Encoding": "gzip, deflate, br",
     }),
-    transformResponse: (data) =>
-      data.results.map((result) => ({
-        name: result.name,
-        last_updated: result.last_updated,
-      })),
+    transformResponse: (data) => data.results.map((result) => result.name),
   });
 
   getLatestTag(repo: string): Promise<string | null> {

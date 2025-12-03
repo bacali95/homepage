@@ -6,12 +6,6 @@ import { Logger } from "@nestjs/common";
 
 const log = new Logger("TagsFetcher");
 
-// Common tag interface used by all fetchers
-export interface Tag {
-  name: string;
-  last_updated: string;
-}
-
 /**
  * Check if a tag matches semantic versioning format
  * Matches: 1.0.0, v1.0.0, 1.2.3-beta, 2.0.0-rc.1, 1.0.0+build.1, etc.
@@ -53,8 +47,8 @@ export function normalizePath(
 /**
  * Filter tags to exclude 'latest' and only keep semver-formatted tags
  */
-export function filterSemverTags<T extends { name: string }>(tags: T[]): T[] {
-  return tags.filter((tag) => tag.name !== "latest" && isSemver(tag.name));
+export function filterSemverTags(tags: string[]): string[] {
+  return tags.filter((tag) => tag !== "latest" && isSemver(tag));
 }
 
 /**
@@ -97,10 +91,8 @@ export function compareVersions(a: string, b: string): number {
 /**
  * Get the latest tag from a list of tags
  */
-export function getLatestTag<T extends { name: string }>(
-  tags: T[]
-): string | null {
-  return tags.length > 0 ? tags[0].name : null;
+export function getLatestTag(tags: string[]): string | null {
+  return tags.length > 0 ? tags[0] : null;
 }
 
 /**
@@ -151,7 +143,7 @@ export async function safeFetch<T>(
 /**
  * Configuration for creating a generic tags fetcher
  */
-export interface FetcherConfig<TResponse, TTag extends Tag = Tag> {
+export interface FetcherConfig<TResponse> {
   /** Name of the fetcher for error messages */
   name: string;
   /** Path normalization replacements */
@@ -161,7 +153,7 @@ export interface FetcherConfig<TResponse, TTag extends Tag = Tag> {
   /** Function to create request headers */
   getHeaders?: () => HeadersInit;
   /** Function to transform API response to Tag array */
-  transformResponse: (response: TResponse, originalPath: string) => TTag[];
+  transformResponse: (response: TResponse, originalPath: string) => string[];
 }
 
 /**
@@ -175,8 +167,8 @@ export interface TagsFetcher {
 /**
  * Create a generic tags fetcher from configuration
  */
-export function createTagsFetcher<TResponse, TTag extends Tag = Tag>(
-  config: FetcherConfig<TResponse, TTag>
+export function createTagsFetcher<TResponse>(
+  config: FetcherConfig<TResponse>
 ): TagsFetcher {
   const {
     name,
@@ -186,7 +178,7 @@ export function createTagsFetcher<TResponse, TTag extends Tag = Tag>(
     transformResponse,
   } = config;
 
-  async function fetchTags(source: string): Promise<Tag[]> {
+  async function fetchTags(source: string): Promise<string[]> {
     try {
       const normalizedPath = normalizePath(source, pathReplacements);
       const url = buildUrl(normalizedPath);
@@ -207,7 +199,7 @@ export function createTagsFetcher<TResponse, TTag extends Tag = Tag>(
       tags = filterSemverTags(tags);
 
       // Sort tags by name
-      tags = tags.sort((a, b) => compareVersions(a.name, b.name));
+      tags = tags.sort((a, b) => compareVersions(a, b));
 
       return tags;
     } catch (error) {
@@ -222,6 +214,6 @@ export function createTagsFetcher<TResponse, TTag extends Tag = Tag>(
 
   return async function getLatestTag(source: string): Promise<string | null> {
     const tags = await fetchTags(source);
-    return tags.length > 0 ? tags[0].name : null;
+    return tags.length > 0 ? tags[0] : null;
   };
 }

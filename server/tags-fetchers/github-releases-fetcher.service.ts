@@ -23,12 +23,7 @@ export class GithubReleasesFetcherService {
     buildUrl: (normalizedPath) =>
       `https://api.github.com/repos/${normalizedPath}/releases/latest`,
     getHeaders: () => createGitHubHeaders(),
-    transformResponse: (release) => [
-      {
-        name: extractSemverFromTag(release.tag_name),
-        last_updated: release.published_at,
-      },
-    ],
+    transformResponse: (release) => [extractSemverFromTag(release.tag_name)],
   });
 
   getLatestTag(repo: string): Promise<string | null> {

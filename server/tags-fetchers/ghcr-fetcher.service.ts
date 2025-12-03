@@ -47,20 +47,12 @@ export class GhcrFetcherService {
 
       return createGitHubHeaders();
     },
-    transformResponse: (versions) => {
-      // Extract all unique tags from all versions
-      const allTags = new Set<string>();
-      versions.forEach((version) => {
-        version.metadata?.container?.tags?.forEach((tag) => {
-          allTags.add(tag);
-        });
-      });
-
-      return Array.from(allTags).map((name) => ({
-        name,
-        last_updated: "",
-      }));
-    },
+    transformResponse: (versions) =>
+      versions
+        .filter((version) =>
+          version.metadata?.container?.tags?.includes("latest")
+        )
+        .flatMap((version) => version.metadata?.container?.tags ?? []),
   });
 
   getLatestTag(repo: string): Promise<string | null> {
