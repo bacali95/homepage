@@ -13,8 +13,8 @@ export default function App() {
           <Header />
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/new" element={<AppFormPage />} />
-            <Route path="/:app" element={<AppFormPage />} />
+            <Route path="/new/*" element={<AppFormPage />} />
+            <Route path="/:app/*" element={<AppFormPage />} />
             <Route path="/settings/*" element={<SettingsPage />} />
           </Routes>
         </main>

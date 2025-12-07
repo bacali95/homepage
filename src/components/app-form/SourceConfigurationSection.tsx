@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -41,54 +42,56 @@ export function SourceConfigurationSection({
   onSourceTypeChange,
 }: SourceConfigurationSectionProps) {
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold mb-1">Source Configuration</h3>
-        <p className="text-sm text-muted-foreground">
-          Where to check for updates and version information
-        </p>
-      </div>
-      <div className="space-y-4 pl-4 border-l-2 border-border">
-        <div className="space-y-2">
-          <Label htmlFor="source_type" className="flex items-center gap-1">
-            Source Type
-            <span className="text-destructive">*</span>
-          </Label>
-          <Select
-            id="source_type"
-            value={formData.source_type}
-            onChange={(e) => onSourceTypeChange(e.target.value as SourceType)}
-            required={formData.enableVersionChecking}
-          >
-            <option value="github">GitHub Releases</option>
-            <option value="ghcr">GitHub Container Registry</option>
-            <option value="dockerhub">Docker Hub</option>
-            <option value="k8s">Kubernetes Registry (registry.k8s.io)</option>
-          </Select>
-          <p className="text-xs text-muted-foreground">
-            Choose where your application releases are published
+    <Card className="p-6">
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-xl font-semibold mb-1">Source Configuration</h3>
+          <p className="text-sm text-muted-foreground">
+            Where to check for updates and version information
           </p>
         </div>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="source_type" className="flex items-center gap-1">
+              Source Type
+              <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              id="source_type"
+              value={formData.source_type}
+              onChange={(e) => onSourceTypeChange(e.target.value as SourceType)}
+              required={formData.enableVersionChecking}
+            >
+              <option value="github">GitHub Releases</option>
+              <option value="ghcr">GitHub Container Registry</option>
+              <option value="dockerhub">Docker Hub</option>
+              <option value="k8s">Kubernetes Registry (registry.k8s.io)</option>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Choose where your application releases are published
+            </p>
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="repo" className="flex items-center gap-1">
-            {getRepoLabel(formData.source_type)}
-            <span className="text-destructive">*</span>
-          </Label>
-          <Input
-            id="repo"
-            value={formData.repo}
-            onChange={(e) => {
-              onFormDataChange({ repo: e.target.value });
-            }}
-            required={formData.enableVersionChecking}
-            placeholder={getRepoPlaceholder(formData.source_type)}
-          />
-          <p className="text-xs text-muted-foreground">
-            Repository or image identifier based on the selected source type
-          </p>
+          <div className="space-y-2">
+            <Label htmlFor="repo" className="flex items-center gap-1">
+              {getRepoLabel(formData.source_type)}
+              <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="repo"
+              value={formData.repo}
+              onChange={(e) => {
+                onFormDataChange({ repo: e.target.value });
+              }}
+              required={formData.enableVersionChecking}
+              placeholder={getRepoPlaceholder(formData.source_type)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Repository or image identifier based on the selected source type
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

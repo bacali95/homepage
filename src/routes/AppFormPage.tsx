@@ -1,12 +1,20 @@
-import type { FormData } from "@/components/AppForm";
+import type { FormData } from "@/components/app-form/types";
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Activity, ArrowLeft, Bell, Info, Package } from "lucide-react";
+import {
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
-import { AppForm } from "@/components/AppForm";
+import { BasicInformationSection } from "@/components/app-form/BasicInformationSection";
+import { NotificationPreferencesSection } from "@/components/app-form/NotificationPreferencesSection";
+import { PingConfigurationSection } from "@/components/app-form/PingConfigurationSection";
+import { VersionCheckingSection } from "@/components/app-form/VersionCheckingSection";
 import { LoadingState } from "@/components/LoadingState";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { type App, type SourceType } from "@/lib/api";
 import {
   useApps,
@@ -44,6 +52,7 @@ const shouldEnableVersionChecking = (data: App): boolean => {
 
 export function AppFormPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { app: appIdParam } = useParams<{ app: string }>();
   const { data: apps = [], isLoading: loadingApps } = useApps();
   const { data: categories = [] } = useCategories();
@@ -147,33 +156,141 @@ export function AppFormPage() {
     return <LoadingState />;
   }
 
+  const basePath = isNewApp ? "/new" : `/${appIdParam}`;
+  const isBasic =
+    location.pathname === basePath || location.pathname === `${basePath}/basic`;
+  const isVersion = location.pathname === `${basePath}/version`;
+  const isPing = location.pathname === `${basePath}/ping`;
+  const isNotifications =
+    !isNewApp && location.pathname === `${basePath}/notifications`;
+
+  const getBasePath = () => {
+    if (isNewApp) return "/new";
+    return `/${appIdParam}`;
+  };
+
   return (
-    <div className="max-w-4xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="mb-8">
-        <Button variant="outline" onClick={handleCancel} className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Apps
-        </Button>
-        <h1 className="text-4xl font-bold mb-2">
-          {editingApp ? "Edit App" : "Add New App"}
-        </h1>
-        <p className="text-muted-foreground">
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            {editingApp ? "Edit App" : "Add New App"}
+          </h1>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleCancel} type="button">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Apps
+            </Button>
+            <Button type="submit">
+              {editingApp ? "Update App" : "Add App"}
+            </Button>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">
           Configure your homelab service details
         </p>
       </div>
 
-      <Card className="p-6">
-        <AppForm
-          formData={formData}
-          categories={categories}
-          editingApp={!!editingApp}
-          editingAppId={editingApp?.id || null}
-          onFormDataChange={handleFormDataChange}
-          onSourceTypeChange={handleSourceTypeChange}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-        />
-      </Card>
-    </div>
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Sidebar */}
+        <aside className="w-full lg:w-64 shrink-0">
+          <div className="lg:sticky lg:top-4">
+            <nav className="flex flex-row lg:flex-col gap-2 lg:gap-1 overflow-x-auto lg:overflow-x-visible">
+              <Button
+                variant={isBasic ? "secondary" : "ghost"}
+                className="sm:w-full justify-start shrink-0 lg:shrink"
+                type="button"
+                onClick={() => navigate(getBasePath())}
+              >
+                <Info className="mr-2 h-4 w-4" />
+                <span className="whitespace-nowrap">Basic Information</span>
+              </Button>
+              <Button
+                variant={isVersion ? "secondary" : "ghost"}
+                className="sm:w-full justify-start shrink-0 lg:shrink"
+                type="button"
+                onClick={() => navigate(`${getBasePath()}/version`)}
+              >
+                <Package className="mr-2 h-4 w-4" />
+                <span className="whitespace-nowrap">Version Checking</span>
+              </Button>
+              <Button
+                variant={isPing ? "secondary" : "ghost"}
+                className="sm:w-full justify-start shrink-0 lg:shrink"
+                type="button"
+                onClick={() => navigate(`${getBasePath()}/ping`)}
+              >
+                <Activity className="mr-2 h-4 w-4" />
+                <span className="whitespace-nowrap">Ping Monitoring</span>
+              </Button>
+              {editingApp && editingApp?.id && (
+                <Button
+                  variant={isNotifications ? "secondary" : "ghost"}
+                  className="sm:w-full justify-start shrink-0 lg:shrink"
+                  type="button"
+                  onClick={() => navigate(`/${editingApp.id}/notifications`)}
+                >
+                  <Bell className="mr-2 h-4 w-4" />
+                  <span className="whitespace-nowrap">Notifications</span>
+                </Button>
+              )}
+            </nav>
+          </div>
+        </aside>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0 w-full">
+          <Routes>
+            <Route
+              index
+              element={
+                <BasicInformationSection
+                  formData={formData}
+                  categories={categories}
+                  onFormDataChange={handleFormDataChange}
+                />
+              }
+            />
+            <Route
+              path="basic"
+              element={
+                <BasicInformationSection
+                  formData={formData}
+                  categories={categories}
+                  onFormDataChange={handleFormDataChange}
+                />
+              }
+            />
+            <Route
+              path="version"
+              element={
+                <VersionCheckingSection
+                  formData={formData}
+                  onFormDataChange={handleFormDataChange}
+                  onSourceTypeChange={handleSourceTypeChange}
+                />
+              }
+            />
+            <Route
+              path="ping"
+              element={
+                <PingConfigurationSection
+                  formData={formData}
+                  onFormDataChange={handleFormDataChange}
+                />
+              }
+            />
+            {editingApp && editingApp.id && (
+              <Route
+                path="notifications"
+                element={
+                  <NotificationPreferencesSection appId={editingApp.id} />
+                }
+              />
+            )}
+          </Routes>
+        </div>
+      </div>
+    </form>
   );
 }
