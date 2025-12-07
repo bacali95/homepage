@@ -15,8 +15,38 @@ export interface App {
   docker_image: string | null;
   k8s_namespace: string | null;
   icon: string | null;
+  ping_enabled: boolean;
+  ping_url: string | null;
+  ping_frequency: number | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface PingStatus {
+  status: boolean | null;
+  latest: {
+    status: boolean;
+    response_time: number | null;
+    status_code: number | null;
+    error_message: string | null;
+    created_at: string;
+  } | null;
+}
+
+export interface PingHistoryEntry {
+  id: number;
+  status: boolean;
+  response_time: number | null;
+  status_code: number | null;
+  error_message: string | null;
+  created_at: string;
+}
+
+export interface PingHistoryResponse {
+  data: PingHistoryEntry[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 export interface GitHubRelease {
@@ -251,4 +281,23 @@ export const api = {
       { config },
       "Failed to send test notification"
     ),
+
+  // Ping APIs
+  getPingStatus: (id: number): Promise<PingStatus> =>
+    http.get<PingStatus>(`/ping/${id}/status`, "Failed to fetch ping status"),
+
+  getPingHistory: (
+    id: number,
+    limit?: number,
+    offset?: number
+  ): Promise<PingHistoryResponse> => {
+    const params = new URLSearchParams();
+    if (limit) params.append("limit", limit.toString());
+    if (offset) params.append("offset", offset.toString());
+    const queryString = params.toString();
+    return http.get<PingHistoryResponse>(
+      `/ping/${id}/history${queryString ? `?${queryString}` : ""}`,
+      "Failed to fetch ping history"
+    );
+  },
 };

@@ -114,6 +114,101 @@ ${app.url ? `App URL: ${app.url}` : ""}`.trim();
   }
 
   /**
+   * Send a notification about ping status change
+   */
+  async notifyPingStatusChange(
+    app: App,
+    isUp: boolean,
+    responseTime: number | null,
+    statusCode: number | null,
+    errorMessage: string | null
+  ): Promise<void> {
+    const channels = this.databaseService.getNotificationChannels();
+    const appPreferences = this.databaseService.getAppNotificationPreferences(
+      app.id
+    );
+
+    // Create a map of app preferences for quick lookup
+    const appPrefsMap = new Map(
+      appPreferences.map((pref) => [pref.channel_type, pref.enabled === 1])
+    );
+
+    const message = this.formatPingStatusMessage(
+      app,
+      isUp,
+      responseTime,
+      statusCode,
+      errorMessage
+    );
+    const subject = `${app.name} is ${isUp ? "UP" : "DOWN"}`;
+
+    const notifications: Promise<void>[] = [];
+
+    for (const dbChannel of channels) {
+      // Check if channel is globally enabled
+      if (dbChannel.enabled !== 1) {
+        continue;
+      }
+
+      // Check app-specific preference (default to enabled if not set)
+      const appEnabled = appPrefsMap.get(dbChannel.channel_type) ?? true;
+      if (!appEnabled) {
+        this.logger.debug(
+          `Skipping ${dbChannel.channel_type} for app ${app.name} (disabled for this app)`
+        );
+        continue;
+      }
+
+      const channel = this.channels.get(dbChannel.channel_type);
+      if (channel && channel.isConfigured()) {
+        notifications.push(
+          channel.send(message, subject).catch((error) => {
+            this.logger.error(
+              `Failed to send ${dbChannel.channel_type} notification:`,
+              error
+            );
+          })
+        );
+      }
+    }
+
+    await Promise.allSettled(notifications);
+  }
+
+  /**
+   * Format the ping status notification message
+   */
+  private formatPingStatusMessage(
+    app: App,
+    isUp: boolean,
+    responseTime: number | null,
+    statusCode: number | null,
+    errorMessage: string | null
+  ): string {
+    const status = isUp ? "UP" : "DOWN";
+    const pingUrl = app.ping_url || app.url || "N/A";
+
+    let message = `${app.name} is now ${status}!\n\n`;
+    message += `Ping URL: ${pingUrl}\n`;
+
+    if (isUp) {
+      message += `Response Time: ${responseTime ? `${responseTime}ms` : "N/A"}\n`;
+      if (statusCode) {
+        message += `Status Code: ${statusCode}\n`;
+      }
+    } else {
+      if (statusCode) {
+        message += `Status Code: ${statusCode}\n`;
+      }
+      if (errorMessage) {
+        message += `Error: ${errorMessage}\n`;
+      }
+    }
+
+    return message.trim();
+  }
+
+  /**
    * Get all notification channels with their status
    */
   getChannels() {

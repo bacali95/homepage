@@ -60,6 +60,9 @@ export class AppsController {
         docker_image,
         k8s_namespace,
         icon,
+        ping_enabled,
+        ping_url,
+        ping_frequency,
       } = body;
 
       if (!name) {
@@ -81,6 +84,9 @@ export class AppsController {
         docker_image,
         k8s_namespace,
         icon,
+        ping_enabled: ping_enabled || false,
+        ping_url: ping_url || null,
+        ping_frequency: ping_frequency || null,
       });
 
       this.logger.log(
@@ -131,6 +137,9 @@ export class AppsController {
         docker_image,
         k8s_namespace,
         icon,
+        ping_enabled,
+        ping_url,
+        ping_frequency,
       } = body;
 
       // Validate required fields if they are being updated
@@ -161,6 +170,9 @@ export class AppsController {
         docker_image,
         k8s_namespace,
         icon,
+        ping_enabled,
+        ping_url,
+        ping_frequency,
       });
 
       const app = this.appsService.getApp(id);

@@ -11,6 +11,9 @@ export interface FormData {
   k8s_namespace: string;
   icon: string;
   enableVersionChecking: boolean;
+  ping_enabled: boolean;
+  ping_url: string;
+  ping_frequency: string;
 }
 
 export interface FormSectionProps {

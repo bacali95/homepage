@@ -27,6 +27,9 @@ const initialFormData: FormData = {
   k8s_namespace: "",
   icon: "",
   enableVersionChecking: false,
+  ping_enabled: false,
+  ping_url: "",
+  ping_frequency: "5",
 };
 
 // Helper function to determine if version checking should be enabled
@@ -72,6 +75,9 @@ export function AppFormPage() {
           k8s_namespace: app.k8s_namespace || "",
           icon: app.icon || "",
           enableVersionChecking: shouldEnableVersionChecking(app),
+          ping_enabled: app.ping_enabled || false,
+          ping_url: app.ping_url || "",
+          ping_frequency: app.ping_frequency?.toString() || "5",
         });
       } else {
         // App not found, redirect to home
@@ -92,6 +98,11 @@ export function AppFormPage() {
       const submitData = {
         ...formData,
         url: formData.url.trim(),
+        ping_url: formData.ping_url.trim(),
+        ping_frequency:
+          formData.ping_enabled && formData.ping_frequency
+            ? parseInt(formData.ping_frequency, 10)
+            : null,
       };
       if (editingApp && appId) {
         await updateAppMutation.mutateAsync({

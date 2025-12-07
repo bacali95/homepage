@@ -12,6 +12,7 @@ import { HealthModule } from "./health/health.module.js";
 import { JobsModule } from "./jobs/jobs.module.js";
 import { HttpLoggingInterceptor } from "./logger/http-logging.interceptor.js";
 import { NotificationsModule } from "./notifications/notifications.module.js";
+import { PingModule } from "./ping/ping.module.js";
 import { PodsModule } from "./pods/pods.module.js";
 import { UpdatesModule } from "./updates/updates.module.js";
 
@@ -29,6 +30,7 @@ const __dirname = dirname(__filename);
     PodsModule,
     JobsModule,
     NotificationsModule,
+    PingModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "../dist"),
       serveStaticOptions: {

@@ -21,6 +21,9 @@ export interface App {
   docker_image: string | null;
   k8s_namespace: string | null;
   icon: string | null;
+  ping_enabled: boolean;
+  ping_url: string | null;
+  ping_frequency: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -38,6 +41,9 @@ interface DbApp {
   docker_image: string | null;
   k8s_namespace: string | null;
   icon: string | null;
+  ping_enabled: number;
+  ping_url: string | null;
+  ping_frequency: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -53,6 +59,9 @@ const convertDbAppToApp = (dbApp: DbApp): App => {
     k8s_namespace: dbApp.k8s_namespace || null,
     icon: dbApp.icon || null,
     current_version: dbApp.current_version || null,
+    ping_enabled: Boolean(dbApp.ping_enabled),
+    ping_url: dbApp.ping_url || null,
+    ping_frequency: dbApp.ping_frequency || null,
   };
 };
 
@@ -89,6 +98,51 @@ export class DatabaseService implements OnModuleInit {
       this.db.exec("ALTER TABLE apps ADD COLUMN icon TEXT");
     } catch {
       // Column likely already exists
+    }
+
+    // Add ping columns if they don't exist
+    try {
+      this.db.exec(
+        "ALTER TABLE apps ADD COLUMN ping_enabled INTEGER DEFAULT 0"
+      );
+    } catch {
+      // Column likely already exists
+    }
+    try {
+      this.db.exec("ALTER TABLE apps ADD COLUMN ping_url TEXT");
+    } catch {
+      // Column likely already exists
+    }
+    try {
+      this.db.exec("ALTER TABLE apps ADD COLUMN ping_frequency INTEGER");
+    } catch {
+      // Column likely already exists
+    }
+
+    // Ping history table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS ping_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        app_id INTEGER NOT NULL,
+        status INTEGER NOT NULL,
+        response_time INTEGER,
+        status_code INTEGER,
+        error_message TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (app_id) REFERENCES apps(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create index for faster queries
+    try {
+      this.db.exec(
+        "CREATE INDEX IF NOT EXISTS idx_ping_history_app_id ON ping_history(app_id)"
+      );
+      this.db.exec(
+        "CREATE INDEX IF NOT EXISTS idx_ping_history_created_at ON ping_history(created_at DESC)"
+      );
+    } catch {
+      // Indexes might already exist
     }
 
     // Notification channels table
@@ -170,7 +224,7 @@ export class DatabaseService implements OnModuleInit {
     }
 
     const stmt = this.db.prepare(
-      "INSERT INTO apps (name, url, repo, source_type, current_version, category, docker_image, k8s_namespace, icon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO apps (name, url, repo, source_type, current_version, category, docker_image, k8s_namespace, icon, ping_enabled, ping_url, ping_frequency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     return stmt.run(
       app.name,
@@ -181,7 +235,10 @@ export class DatabaseService implements OnModuleInit {
       app.category,
       app.docker_image || null,
       app.k8s_namespace || null,
-      app.icon || null
+      app.icon || null,
+      app.ping_enabled ? 1 : 0,
+      app.ping_url || null,
+      app.ping_frequency || null
     );
   }
 
@@ -242,6 +299,18 @@ export class DatabaseService implements OnModuleInit {
     if (app.icon !== undefined) {
       updates.push("icon = ?");
       values.push(app.icon || null);
+    }
+    if (app.ping_enabled !== undefined) {
+      updates.push("ping_enabled = ?");
+      values.push(app.ping_enabled ? 1 : 0);
+    }
+    if (app.ping_url !== undefined) {
+      updates.push("ping_url = ?");
+      values.push(app.ping_url || null);
+    }
+    if (app.ping_frequency !== undefined) {
+      updates.push("ping_frequency = ?");
+      values.push(app.ping_frequency || null);
     }
 
     updates.push("updated_at = CURRENT_TIMESTAMP");
@@ -373,5 +442,93 @@ export class DatabaseService implements OnModuleInit {
     return this.db
       .prepare("DELETE FROM app_notification_preferences WHERE app_id = ?")
       .run(appId);
+  }
+
+  // Ping history methods
+  addPingHistory(
+    appId: number,
+    status: boolean,
+    responseTime: number | null,
+    statusCode: number | null,
+    errorMessage: string | null
+  ) {
+    const stmt = this.db.prepare(
+      "INSERT INTO ping_history (app_id, status, response_time, status_code, error_message) VALUES (?, ?, ?, ?, ?)"
+    );
+    return stmt.run(
+      appId,
+      status ? 1 : 0,
+      responseTime,
+      statusCode,
+      errorMessage
+    );
+  }
+
+  getPingHistory(appId: number, limit: number = 100, offset: number = 0) {
+    return this.db
+      .prepare(
+        "SELECT * FROM ping_history WHERE app_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+      )
+      .all(appId, limit, offset) as Array<{
+      id: number;
+      app_id: number;
+      status: number;
+      response_time: number | null;
+      status_code: number | null;
+      error_message: string | null;
+      created_at: string;
+    }>;
+  }
+
+  getPingHistoryCount(appId: number): number {
+    const result = this.db
+      .prepare("SELECT COUNT(*) as count FROM ping_history WHERE app_id = ?")
+      .get(appId) as { count: number };
+    return result.count;
+  }
+
+  getLatestPingStatus(appId: number) {
+    return this.db
+      .prepare(
+        "SELECT * FROM ping_history WHERE app_id = ? ORDER BY created_at DESC LIMIT 1"
+      )
+      .get(appId) as
+      | {
+          id: number;
+          app_id: number;
+          status: number;
+          response_time: number | null;
+          status_code: number | null;
+          error_message: string | null;
+          created_at: string;
+        }
+      | undefined;
+  }
+
+  getAppsWithPingEnabled(): App[] {
+    const dbApps = this.db
+      .prepare("SELECT * FROM apps WHERE ping_enabled = 1")
+      .all() as DbApp[];
+    return dbApps.map(convertDbAppToApp);
+  }
+
+  /**
+   * Delete ping history entries older than the specified number of days
+   * @param daysToKeep Number of days of history to keep (default: 7)
+   * @returns Number of deleted rows
+   */
+  cleanupOldPingHistory(daysToKeep: number = 7): number {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+    const cutoffDateString = cutoffDate
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
+
+    const stmt = this.db.prepare(
+      "DELETE FROM ping_history WHERE created_at < ?"
+    );
+    const result = stmt.run(cutoffDateString);
+    return result.changes || 0;
   }
 }

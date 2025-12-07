@@ -3,6 +3,7 @@ import { type SourceType } from "@/lib/api";
 
 import { BasicInformationSection } from "./app-form/BasicInformationSection";
 import { NotificationPreferencesSection } from "./app-form/NotificationPreferencesSection";
+import { PingConfigurationSection } from "./app-form/PingConfigurationSection";
 import { SourceConfigurationSection } from "./app-form/SourceConfigurationSection";
 import { type FormData } from "./app-form/types";
 import { VersionManagementSection } from "./app-form/VersionManagementSection";
@@ -50,6 +51,11 @@ export function AppForm({
           />
         </>
       )}
+
+      <PingConfigurationSection
+        formData={formData}
+        onFormDataChange={onFormDataChange}
+      />
 
       {editingApp && editingAppId && (
         <NotificationPreferencesSection appId={editingAppId} />

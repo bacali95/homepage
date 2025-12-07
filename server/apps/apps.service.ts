@@ -87,6 +87,9 @@ export class AppsService {
           docker_image,
           k8s_namespace,
           icon,
+          ping_enabled,
+          ping_url,
+          ping_frequency,
         } = app;
 
         if (!name) {
@@ -122,6 +125,9 @@ export class AppsService {
             docker_image: docker_image || null,
             k8s_namespace: k8s_namespace || null,
             icon: icon || null,
+            ping_enabled: ping_enabled || false,
+            ping_url: ping_url || null,
+            ping_frequency: ping_frequency || null,
           });
 
           // If version was updated, check for updates for this app instantly
@@ -147,6 +153,9 @@ export class AppsService {
             docker_image: docker_image || null,
             k8s_namespace: k8s_namespace || null,
             icon: icon || null,
+            ping_enabled: ping_enabled || false,
+            ping_url: ping_url || null,
+            ping_frequency: ping_frequency || null,
           });
           created++;
         }
