@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.0](https://github.com/bacali95/homepage/compare/v1.10.4...v1.11.0) (2025-12-07)
+
+
+### Features
+
+* **ping:** Implement ping monitoring feature for applications ([ae101ac](https://github.com/bacali95/homepage/commit/ae101ac00fabd7f4560dc555c5afc72af0355843))
+
+
+### Code Refactoring
+
+* **app-form:** Restructure AppForm components and enhance routing ([3258e50](https://github.com/bacali95/homepage/commit/3258e505d0ac7ce9d8eab19b6b93c95130d3456e))
+
 ### [1.10.4](https://github.com/bacali95/homepage/compare/v1.10.3...v1.10.4) (2025-12-03)
 
 
