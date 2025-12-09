@@ -24,6 +24,7 @@ export interface App {
   ping_enabled: boolean;
   ping_url: string | null;
   ping_frequency: number | null;
+  ping_ignore_ssl: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -44,6 +45,7 @@ interface DbApp {
   ping_enabled: number;
   ping_url: string | null;
   ping_frequency: number | null;
+  ping_ignore_ssl: number;
   created_at: string;
   updated_at: string;
 }
@@ -62,6 +64,7 @@ const convertDbAppToApp = (dbApp: DbApp): App => {
     ping_enabled: Boolean(dbApp.ping_enabled),
     ping_url: dbApp.ping_url || null,
     ping_frequency: dbApp.ping_frequency || null,
+    ping_ignore_ssl: Boolean(dbApp.ping_ignore_ssl || 0),
   };
 };
 
@@ -115,6 +118,13 @@ export class DatabaseService implements OnModuleInit {
     }
     try {
       this.db.exec("ALTER TABLE apps ADD COLUMN ping_frequency INTEGER");
+    } catch {
+      // Column likely already exists
+    }
+    try {
+      this.db.exec(
+        "ALTER TABLE apps ADD COLUMN ping_ignore_ssl INTEGER DEFAULT 0"
+      );
     } catch {
       // Column likely already exists
     }
@@ -224,7 +234,7 @@ export class DatabaseService implements OnModuleInit {
     }
 
     const stmt = this.db.prepare(
-      "INSERT INTO apps (name, url, repo, source_type, current_version, category, docker_image, k8s_namespace, icon, ping_enabled, ping_url, ping_frequency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO apps (name, url, repo, source_type, current_version, category, docker_image, k8s_namespace, icon, ping_enabled, ping_url, ping_frequency, ping_ignore_ssl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     return stmt.run(
       app.name,
@@ -238,7 +248,8 @@ export class DatabaseService implements OnModuleInit {
       app.icon || null,
       app.ping_enabled ? 1 : 0,
       app.ping_url || null,
-      app.ping_frequency || null
+      app.ping_frequency || null,
+      app.ping_ignore_ssl ? 1 : 0
     );
   }
 
@@ -311,6 +322,10 @@ export class DatabaseService implements OnModuleInit {
     if (app.ping_frequency !== undefined) {
       updates.push("ping_frequency = ?");
       values.push(app.ping_frequency || null);
+    }
+    if (app.ping_ignore_ssl !== undefined) {
+      updates.push("ping_ignore_ssl = ?");
+      values.push(app.ping_ignore_ssl ? 1 : 0);
     }
 
     updates.push("updated_at = CURRENT_TIMESTAMP");

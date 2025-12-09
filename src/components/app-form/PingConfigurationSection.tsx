@@ -94,6 +94,31 @@ export function PingConfigurationSection({
                   Maximum: 1440 minutes (24 hours)
                 </p>
               </div>
+
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="ping_ignore_ssl"
+                  checked={formData.ping_ignore_ssl}
+                  onChange={(e) =>
+                    onFormDataChange({
+                      ping_ignore_ssl: e.target.checked,
+                    })
+                  }
+                  className="h-4 w-4 rounded border border-input bg-background text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
+                />
+                <Label
+                  htmlFor="ping_ignore_ssl"
+                  className="text-sm font-medium leading-none cursor-pointer"
+                >
+                  Ignore SSL Certificate Errors
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground pl-6">
+                Enable this option to ignore SSL certificate validation errors
+                when pinging HTTPS URLs. Use with caution in production
+                environments.
+              </p>
             </div>
           </Card>
         )}

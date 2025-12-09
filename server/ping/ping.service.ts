@@ -1,3 +1,5 @@
+import https from "https";
+import { URL } from "url";
 import { Injectable, Logger } from "@nestjs/common";
 
 import { App, DatabaseService } from "../database/database.service.js";
@@ -12,6 +14,99 @@ export class PingService {
     private readonly databaseService: DatabaseService,
     private readonly notificationsService: NotificationsService
   ) {}
+
+  /**
+   * Make an HTTP request using standard fetch
+   */
+  private async makeFetchRequest(
+    url: string,
+    signal: AbortSignal
+  ): Promise<{ statusCode: number; ok: boolean }> {
+    const response = await fetch(url, {
+      method: "GET",
+      signal,
+      headers: {
+        "User-Agent": "Homepage-Ping/1.0",
+      },
+    });
+
+    return {
+      statusCode: response.status,
+      ok: response.ok,
+    };
+  }
+
+  /**
+   * Make an HTTPS request with SSL verification disabled
+   */
+  private async makeHttpsRequestWithoutSslVerification(
+    url: URL,
+    signal: AbortSignal
+  ): Promise<{ statusCode: number; ok: boolean }> {
+    return new Promise<{ statusCode: number; ok: boolean }>(
+      (resolve, reject) => {
+        const options = {
+          hostname: url.hostname,
+          port: url.port || 443,
+          path: url.pathname + url.search,
+          method: "GET",
+          headers: {
+            "User-Agent": "Homepage-Ping/1.0",
+          },
+          rejectUnauthorized: false, // Ignore SSL errors
+        };
+
+        const req = https.request(options, (res) => {
+          // Consume response to free up connection
+          res.on("data", () => {});
+          res.on("end", () => {
+            const statusCode = res.statusCode || 0;
+            resolve({
+              statusCode,
+              ok: statusCode >= 200 && statusCode < 300,
+            });
+          });
+        });
+
+        req.on("error", reject);
+
+        // Handle abort signal
+        if (signal.aborted) {
+          req.destroy();
+          reject(new Error("Request aborted"));
+          return;
+        }
+
+        signal.addEventListener("abort", () => {
+          req.destroy();
+          reject(new Error("Request aborted"));
+        });
+
+        req.end();
+      }
+    );
+  }
+
+  /**
+   * Execute a ping request and return the result
+   */
+  private async executePingRequest(
+    url: string,
+    ignoreSsl: boolean,
+    signal: AbortSignal
+  ): Promise<{ statusCode: number; ok: boolean }> {
+    console.log("ignoreSsl", ignoreSsl);
+
+    if (ignoreSsl) {
+      const urlObj = new URL(url);
+      if (urlObj.protocol === "https:") {
+        return this.makeHttpsRequestWithoutSslVerification(urlObj, signal);
+      }
+      // For non-HTTPS URLs, use regular fetch even if ignoreSsl is true
+    }
+
+    return this.makeFetchRequest(url, signal);
+  }
 
   /**
    * Ping a single app
@@ -31,18 +126,16 @@ export class PingService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const response = await fetch(app.ping_url, {
-        method: "GET",
-        signal: controller.signal,
-        headers: {
-          "User-Agent": "Homepage-Ping/1.0",
-        },
-      });
+      const response = await this.executePingRequest(
+        app.ping_url,
+        app.ping_ignore_ssl,
+        controller.signal
+      );
 
       clearTimeout(timeoutId);
       responseTime = Date.now() - startTime;
-      statusCode = response.status;
-      status = response.ok; // 200-299 status codes
+      statusCode = response.statusCode;
+      status = response.ok;
     } catch (error) {
       responseTime = Date.now() - startTime;
       status = false;

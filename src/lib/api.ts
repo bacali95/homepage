@@ -18,6 +18,7 @@ export interface App {
   ping_enabled: boolean;
   ping_url: string | null;
   ping_frequency: number | null;
+  ping_ignore_ssl: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -90,6 +90,7 @@ export class AppsService {
           ping_enabled,
           ping_url,
           ping_frequency,
+          ping_ignore_ssl,
         } = app;
 
         if (!name) {
@@ -128,6 +129,7 @@ export class AppsService {
             ping_enabled: ping_enabled || false,
             ping_url: ping_url || null,
             ping_frequency: ping_frequency || null,
+            ping_ignore_ssl: ping_ignore_ssl || false,
           });
 
           // If version was updated, check for updates for this app instantly
@@ -156,6 +158,7 @@ export class AppsService {
             ping_enabled: ping_enabled || false,
             ping_url: ping_url || null,
             ping_frequency: ping_frequency || null,
+            ping_ignore_ssl: ping_ignore_ssl || false,
           });
           created++;
         }

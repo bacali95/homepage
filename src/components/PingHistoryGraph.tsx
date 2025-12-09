@@ -81,9 +81,14 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
           Latency: {data.latency}ms
         </p>
         <p className="text-xs text-muted-foreground">Time: {time}</p>
-        {data.statusCode && (
+        {!data.status && data.statusCode && (
           <p className="text-xs text-muted-foreground">
-            HTTP {data.statusCode}
+            Status Code: {data.statusCode}
+          </p>
+        )}
+        {!data.status && data.errorMessage && (
+          <p className="text-xs text-muted-foreground">
+            Error: {data.errorMessage}
           </p>
         )}
       </div>

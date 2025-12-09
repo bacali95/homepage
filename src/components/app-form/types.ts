@@ -14,6 +14,7 @@ export interface FormData {
   ping_enabled: boolean;
   ping_url: string;
   ping_frequency: string;
+  ping_ignore_ssl: boolean;
 }
 
 export interface FormSectionProps {

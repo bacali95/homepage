@@ -38,6 +38,7 @@ const initialFormData: FormData = {
   ping_enabled: false,
   ping_url: "",
   ping_frequency: "5",
+  ping_ignore_ssl: false,
 };
 
 // Helper function to determine if version checking should be enabled
@@ -87,6 +88,7 @@ export function AppFormPage() {
           ping_enabled: app.ping_enabled || false,
           ping_url: app.ping_url || "",
           ping_frequency: app.ping_frequency?.toString() || "5",
+          ping_ignore_ssl: app.ping_ignore_ssl || false,
         });
       } else {
         // App not found, redirect to home
@@ -123,8 +125,6 @@ export function AppFormPage() {
         await createAppMutation.mutateAsync(submitData);
         toast.success("App created successfully");
       }
-
-      navigate("/");
     } catch (error) {
       console.error("Error saving app:", error);
       toast.error(

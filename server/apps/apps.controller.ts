@@ -63,6 +63,7 @@ export class AppsController {
         ping_enabled,
         ping_url,
         ping_frequency,
+        ping_ignore_ssl,
       } = body;
 
       if (!name) {
@@ -87,6 +88,7 @@ export class AppsController {
         ping_enabled: ping_enabled || false,
         ping_url: ping_url || null,
         ping_frequency: ping_frequency || null,
+        ping_ignore_ssl: ping_ignore_ssl || false,
       });
 
       this.logger.log(
@@ -140,6 +142,7 @@ export class AppsController {
         ping_enabled,
         ping_url,
         ping_frequency,
+        ping_ignore_ssl,
       } = body;
 
       // Validate required fields if they are being updated
@@ -173,6 +176,7 @@ export class AppsController {
         ping_enabled,
         ping_url,
         ping_frequency,
+        ping_ignore_ssl,
       });
 
       const app = this.appsService.getApp(id);
