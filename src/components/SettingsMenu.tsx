@@ -3,6 +3,8 @@ import { MoreVertical, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Menu, MenuItem, MenuTrigger } from "@/components/ui/menu";
 
+import packageJson from "../../package.json";
+
 interface SettingsMenuProps {
   onAdd: () => void;
   onCheckUpdates: () => void;
@@ -40,6 +42,13 @@ export function SettingsMenu({
               className={`h-4 w-4 ${isCheckingUpdates ? "animate-spin" : ""}`}
             />
             <span>{isCheckingUpdates ? "Checking..." : "Check Updates"}</span>
+          </div>
+        </MenuItem>
+        <MenuItem disabled>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">
+              Version {packageJson.version}
+            </span>
           </div>
         </MenuItem>
       </Menu>

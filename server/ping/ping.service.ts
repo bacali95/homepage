@@ -95,8 +95,6 @@ export class PingService {
     ignoreSsl: boolean,
     signal: AbortSignal
   ): Promise<{ statusCode: number; ok: boolean }> {
-    console.log("ignoreSsl", ignoreSsl);
-
     if (ignoreSsl) {
       const urlObj = new URL(url);
       if (urlObj.protocol === "https:") {
