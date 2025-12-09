@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.1](https://github.com/bacali95/homepage/compare/v1.12.0...v1.12.1) (2025-12-09)
+
+
+### Code Refactoring
+
+* **ping:** Remove debug log from PingService and enhance SettingsMenu with version display ([6bbb63c](https://github.com/bacali95/homepage/commit/6bbb63caab4a1eade77aa562bd1c33bee42fc1e4))
+
 ## [1.12.0](https://github.com/bacali95/homepage/compare/v1.11.1...v1.12.0) (2025-12-09)
 
 
