@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.12.0](https://github.com/bacali95/homepage/compare/v1.11.1...v1.12.0) (2025-12-09)
+
+
+### Features
+
+* **ping:** Add ping_ignore_ssl option for SSL certificate error handling ([d663c15](https://github.com/bacali95/homepage/commit/d663c153144cfe432a7e52f1bbf383456ebd5ec3))
+
 ### [1.11.1](https://github.com/bacali95/homepage/compare/v1.11.0...v1.11.1) (2025-12-09)
 
 ## [1.11.0](https://github.com/bacali95/homepage/compare/v1.10.4...v1.11.0) (2025-12-07)
