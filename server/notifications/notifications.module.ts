@@ -1,14 +1,12 @@
-import { Module, OnModuleInit } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 
 import { DatabaseModule } from "../database/database.module.js";
 import { EmailChannelService } from "./channels/email-channel.service.js";
 import { TelegramChannelService } from "./channels/telegram-channel.service.js";
-import { NotificationsController } from "./notifications.controller.js";
 import { NotificationsService } from "./notifications.service.js";
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [NotificationsController],
   providers: [
     NotificationsService,
     EmailChannelService,
@@ -16,10 +14,4 @@ import { NotificationsService } from "./notifications.service.js";
   ],
   exports: [NotificationsService],
 })
-export class NotificationsModule implements OnModuleInit {
-  constructor(private readonly notificationsService: NotificationsService) {}
-
-  async onModuleInit() {
-    await this.notificationsService.initializeChannels();
-  }
-}
+export class NotificationsModule {}

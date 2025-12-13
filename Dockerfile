@@ -40,6 +40,9 @@ COPY --from=builder /app/dist-server ./dist-server
 # Copy node_modules from builder stage
 COPY --from=builder /app/node_modules ./node_modules
 
+# Copy start script
+COPY start.sh .
+
 # Create data directory for SQLite database
 RUN mkdir -p /app/data
 
@@ -51,5 +54,5 @@ ENV NODE_ENV=production
 ENV PORT=3001
 
 # Start the server using compiled JavaScript
-CMD ["node", "dist-server/main.js"]
+CMD ["./start.sh"]
 

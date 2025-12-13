@@ -4,16 +4,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
 
+import type { NotificationChannelType } from "../../../generated/client/enums";
+import type {
+  EmailChannelConfig,
+  TelegramChannelConfig,
+} from "../../../server/notifications/channels/notification-channel.interface";
 import { CHANNEL_CONFIGS } from "./config";
 import { FormField } from "./FormField";
 import { FieldConfig } from "./types";
 
 interface ChannelCardProps {
-  channel: {
-    channel_type: string;
-    configured: boolean;
-  };
-  config: Record<string, any>;
+  channelType: NotificationChannelType;
+  configured: boolean;
+  config: EmailChannelConfig | TelegramChannelConfig;
   enabled: boolean;
   isExpanded: boolean;
   onConfigChange: (key: string, value: string) => void;
@@ -26,7 +29,8 @@ interface ChannelCardProps {
 }
 
 export function ChannelCard({
-  channel,
+  channelType,
+  configured,
   config,
   enabled,
   isExpanded,
@@ -38,7 +42,7 @@ export function ChannelCard({
   isSaving,
   isTesting,
 }: ChannelCardProps) {
-  const channelConfig = CHANNEL_CONFIGS[channel.channel_type];
+  const channelConfig = CHANNEL_CONFIGS[channelType];
   if (!channelConfig) return null;
 
   const Icon = channelConfig.icon;
@@ -67,7 +71,11 @@ export function ChannelCard({
                 <FormField
                   key={f.key}
                   field={f}
-                  value={config[f.key] || ""}
+                  value={
+                    (config as unknown as Record<string, string>)[
+                      f.key
+                    ]?.toString() || ""
+                  }
                   onChange={(value) => onConfigChange(f.key, value)}
                 />
               ))}
@@ -81,7 +89,11 @@ export function ChannelCard({
           <FormField
             key={field.key}
             field={field}
-            value={config[field.key] || ""}
+            value={
+              (config as unknown as Record<string, string>)[
+                field.key
+              ]?.toString() || ""
+            }
             onChange={(value) => onConfigChange(field.key, value)}
           />
         );
@@ -99,7 +111,11 @@ export function ChannelCard({
             <FormField
               key={f.key}
               field={f}
-              value={config[f.key] || ""}
+              value={
+                (config as unknown as Record<string, string>)[
+                  f.key
+                ]?.toString() || ""
+              }
               onChange={(value) => onConfigChange(f.key, value)}
             />
           ))}
@@ -119,7 +135,7 @@ export function ChannelCard({
             {channelConfig.label}
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
-            {channel.configured && (
+            {configured && (
               <Badge
                 variant="default"
                 className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"

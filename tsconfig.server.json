@@ -4,7 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "outDir": "./dist-server",
-    "rootDir": "./server",
+    "rootDir": "./",
     "noEmit": false,
     "allowImportingTsExtensions": false,
     "allowSyntheticDefaultImports": true,
@@ -20,5 +20,5 @@
     "baseUrl": "."
   },
   "include": ["server/**/*"],
-  "exclude": ["node_modules", "dist", "dist-server"]
+  "exclude": ["node_modules", "dist", "dist-server", "generated"]
 }

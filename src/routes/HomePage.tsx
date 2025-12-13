@@ -3,18 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { AppsGrid } from "@/components/AppsGrid";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingState } from "@/components/LoadingState";
-import { type App } from "@/lib/api";
 import { useApps, useCheckAppUpdates, useDeleteApp } from "@/lib/use-apps";
 import { toast } from "@/lib/use-toast";
 import { groupAppsByCategory, sortCategories } from "@/lib/utils";
+import type { App } from "@/types";
 
 export function HomePage() {
   const navigate = useNavigate();
   const { data: apps = [], isLoading: loadingApps } = useApps();
   const deleteAppMutation = useDeleteApp();
   const checkAppUpdatesMutation = useCheckAppUpdates();
-
-  const loading = loadingApps;
 
   const handleAdd = () => {
     navigate("/new");
@@ -55,7 +53,7 @@ export function HomePage() {
     }
   };
 
-  if (loading) {
+  if (loadingApps) {
     return <LoadingState />;
   }
 

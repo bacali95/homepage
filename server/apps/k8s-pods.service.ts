@@ -2,8 +2,8 @@ import * as k8s from "@kubernetes/client-node";
 import { Injectable, Logger } from "@nestjs/common";
 
 @Injectable()
-export class PodsService {
-  private readonly logger = new Logger(PodsService.name);
+export class K8sPodsService {
+  private readonly logger = new Logger(K8sPodsService.name);
   private k8sApi: k8s.CoreV1Api;
 
   constructor() {
@@ -30,7 +30,8 @@ export class PodsService {
       // The API returns V1PodList directly, but at runtime it may have a body property
       // We'll handle both cases for compatibility
       const response = await api.listNamespacedPod({ namespace });
-      const pods = (response as any).body || response;
+      const pods =
+        (response as unknown as { body: k8s.V1PodList }).body || response;
       if (!pods?.items || pods.items.length === 0) {
         return null;
       }

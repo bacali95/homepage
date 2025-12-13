@@ -1,16 +1,17 @@
-import type { ClassValue } from "clsx";
-import { clsx } from "clsx";
+import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatVersion(version: string): string {
+export function formatVersion(version: string | null): string {
+  if (!version) return "";
+
   return version.startsWith("v") ? version : `v${version}`;
 }
 
-export function groupAppsByCategory<T extends { category: string | null }>(
+export function groupAppsByCategory<T extends { category: string }>(
   apps: T[]
 ): Record<string, T[]> {
   return apps.reduce(

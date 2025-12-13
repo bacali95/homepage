@@ -5,5 +5,20 @@ export interface NotificationChannel {
 }
 
 export interface NotificationChannelConfig {
-  [key: string]: any;
+  [key: string]: string | number | boolean;
+}
+
+export interface EmailChannelConfig {
+  smtpHost: string;
+  smtpPort: number;
+  security: "auto" | "none" | "tls" | "starttls";
+  fromEmail: string;
+  toEmail: string;
+  smtpUser?: string;
+  smtpPassword?: string;
+}
+
+export interface TelegramChannelConfig {
+  chatId: string;
+  botToken: string;
 }

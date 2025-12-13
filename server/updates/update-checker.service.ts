@@ -1,8 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 
-import { App, DatabaseService } from "../database/database.service.js";
+import type { App } from "../../src/types.js";
+import { AppsService } from "../apps/apps.service.js";
+import { DatabaseService } from "../database/database.service.js";
 import { NotificationsService } from "../notifications/notifications.service.js";
-import { PodsService } from "../pods/pods.service.js";
 import { isVersionsDifferent } from "../tags-fetchers/common.js";
 import { DockerhubFetcherService } from "../tags-fetchers/dockerhub-fetcher.service.js";
 import { GhcrFetcherService } from "../tags-fetchers/ghcr-fetcher.service.js";
@@ -14,7 +15,7 @@ export class UpdateCheckerService {
   private readonly logger = new Logger(UpdateCheckerService.name);
 
   constructor(
-    private readonly podsService: PodsService,
+    private readonly appsService: AppsService,
     private readonly databaseService: DatabaseService,
     private readonly ghcrFetcherService: GhcrFetcherService,
     private readonly dockerhubFetcherService: DockerhubFetcherService,
@@ -27,19 +28,27 @@ export class UpdateCheckerService {
    * Gets the latest version for an app based on its source type
    */
   private async getLatestVersionForApp(app: App): Promise<string | null> {
-    if (!app.repo || !app.source_type) {
+    if (!app.versionPreferences?.enabled) {
       return null;
     }
 
-    if (app.source_type === "dockerhub") {
-      return await this.dockerhubFetcherService.getLatestTag(app.repo);
-    } else if (app.source_type === "ghcr") {
-      return await this.ghcrFetcherService.getLatestTag(app.repo);
-    } else if (app.source_type === "k8s") {
-      return await this.k8sRegistryFetcherService.getLatestTag(app.repo);
+    if (app.versionPreferences.sourceType === "DOCKER_HUB") {
+      return await this.dockerhubFetcherService.getLatestTag(
+        app.versionPreferences.sourceRepo
+      );
+    } else if (app.versionPreferences.sourceType === "GHCR") {
+      return await this.ghcrFetcherService.getLatestTag(
+        app.versionPreferences.sourceRepo
+      );
+    } else if (app.versionPreferences.sourceType === "K8S_REGISTRY") {
+      return await this.k8sRegistryFetcherService.getLatestTag(
+        app.versionPreferences.sourceRepo
+      );
     } else {
       // Default to GitHub Releases
-      return await this.githubReleasesFetcherService.getLatestTag(app.repo);
+      return await this.githubReleasesFetcherService.getLatestTag(
+        app.versionPreferences.sourceRepo
+      );
     }
   }
 
@@ -51,16 +60,23 @@ export class UpdateCheckerService {
     latestVersion: string | null,
     runningVersion: string | null
   ): Promise<void> {
-    const hadUpdate = app.has_update;
+    const hadUpdate = app.versionPreferences?.hasUpdate;
 
     if (
       latestVersion &&
       runningVersion &&
       isVersionsDifferent(latestVersion, runningVersion)
     ) {
-      this.databaseService.updateApp(app.id, {
-        latest_version: latestVersion,
-        has_update: true,
+      await this.databaseService.app.update({
+        where: { id: app.id },
+        data: {
+          versionPreferences: {
+            update: {
+              latestVersion: latestVersion,
+              hasUpdate: true,
+            },
+          },
+        },
       });
       this.logger.log(
         `App ${app.name}: Update available (current: ${runningVersion}, latest: ${latestVersion})`
@@ -70,7 +86,14 @@ export class UpdateCheckerService {
       if (!hadUpdate) {
         try {
           // Get the updated app to send notification
-          const updatedApp = this.databaseService.getApp(app.id);
+          const updatedApp = await this.databaseService.app.findUnique({
+            where: { id: app.id },
+            include: {
+              versionPreferences: true,
+              pingPreferences: true,
+              appNotificationPreferences: true,
+            },
+          });
           if (updatedApp) {
             await this.notificationsService.notifyAppUpdate(updatedApp);
           }
@@ -83,17 +106,17 @@ export class UpdateCheckerService {
         }
       }
     } else if (latestVersion) {
-      this.databaseService.updateApp(app.id, {
-        latest_version: latestVersion,
-        has_update: false,
+      await this.databaseService.appVersionPreference.update({
+        where: { appId: app.id },
+        data: { latestVersion: latestVersion, hasUpdate: false },
       });
       this.logger.log(
         `App ${app.name}: Already up to date at version ${latestVersion}`
       );
     } else {
-      this.databaseService.updateApp(app.id, {
-        latest_version: null,
-        has_update: false,
+      await this.databaseService.appVersionPreference.update({
+        where: { appId: app.id },
+        data: { latestVersion: null, hasUpdate: false },
       });
       this.logger.log(`App ${app.name}: No latest version found`);
     }
@@ -104,27 +127,18 @@ export class UpdateCheckerService {
    */
   private async checkAndUpdateApp(app: App): Promise<void> {
     // Skip apps without version checking enabled
-    if (
-      !app.repo ||
-      !app.source_type ||
-      !app.docker_image ||
-      !app.k8s_namespace
-    ) {
+    if (!app.versionPreferences?.enabled) {
       this.logger.log(`Skipping ${app.name}: No version checking enabled`);
       return;
     }
 
-    const runningVersion = await this.podsService.getVersionFromPod(
-      app.docker_image,
-      app.k8s_namespace
+    const runningVersion = await this.appsService.getRunningVersion(
+      app.versionPreferences
     );
-    if (
-      runningVersion &&
-      app.current_version &&
-      isVersionsDifferent(runningVersion, app.current_version)
-    ) {
-      this.databaseService.updateApp(app.id, {
-        current_version: runningVersion,
+    if (runningVersion) {
+      await this.databaseService.appVersionPreference.update({
+        where: { appId: app.id },
+        data: { currentVersion: runningVersion },
       });
     }
 
@@ -133,7 +147,13 @@ export class UpdateCheckerService {
   }
 
   async checkForUpdates() {
-    const apps = this.databaseService.getAllApps();
+    const apps = await this.databaseService.app.findMany({
+      include: {
+        versionPreferences: true,
+        pingPreferences: true,
+        appNotificationPreferences: true,
+      },
+    });
     let successCount = 0;
     let errorCount = 0;
 
@@ -155,7 +175,14 @@ export class UpdateCheckerService {
   }
 
   async checkForUpdate(appId: number) {
-    const app = this.databaseService.getApp(appId);
+    const app = await this.databaseService.app.findUnique({
+      where: { id: appId },
+      include: {
+        versionPreferences: true,
+        pingPreferences: true,
+        appNotificationPreferences: true,
+      },
+    });
     if (!app) {
       throw new Error(`App with id ${appId} not found`);
     }

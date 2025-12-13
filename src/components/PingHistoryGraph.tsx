@@ -1,4 +1,3 @@
-import type { PingHistoryEntry } from "@/lib/api";
 import { useMemo } from "react";
 import {
   CartesianGrid,
@@ -11,22 +10,10 @@ import {
   YAxis,
 } from "recharts";
 
-// Parse SQLite datetime string (UTC) to Date object
-function parseSqliteDate(dateString: string): Date {
-  if (
-    dateString.includes("T") ||
-    dateString.includes("Z") ||
-    dateString.includes("+") ||
-    dateString.includes("-", 10)
-  ) {
-    return new Date(dateString);
-  }
-  const isoString = dateString.replace(" ", "T") + "Z";
-  return new Date(isoString);
-}
+import type { PingHistory } from "../../generated/client/client";
 
 interface PingHistoryGraphProps {
-  history: PingHistoryEntry[];
+  history: PingHistory[];
 }
 
 interface CustomDotProps {
@@ -104,22 +91,21 @@ export function PingHistoryGraph({ history }: PingHistoryGraphProps) {
     // Sort by time (oldest first for the chart)
     const sortedHistory = [...history].sort(
       (a, b) =>
-        parseSqliteDate(a.created_at).getTime() -
-        parseSqliteDate(b.created_at).getTime()
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
 
     return sortedHistory.map((entry) => {
-      const time = parseSqliteDate(entry.created_at);
+      const time = new Date(entry.createdAt);
       return {
         time: time.getTime(),
         timeLabel: time.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         }),
-        latency: entry.response_time ?? (entry.status ? 0 : 1000),
+        latency: entry.responseTime ?? (entry.status ? 0 : 1000),
         status: entry.status,
-        statusCode: entry.status_code,
-        errorMessage: entry.error_message,
+        statusCode: entry.statusCode,
+        errorMessage: entry.errorMessage,
       };
     });
   }, [history]);

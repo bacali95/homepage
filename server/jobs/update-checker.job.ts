@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { Cron } from "@nestjs/schedule";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 import { UpdateCheckerService } from "../updates/update-checker.service.js";
 
@@ -10,7 +10,7 @@ export class UpdateCheckerJob implements OnModuleInit {
   constructor(private readonly updateCheckerService: UpdateCheckerService) {}
 
   // Run every 1 hour
-  @Cron("0 */1 * * *", {
+  @Cron(CronExpression.EVERY_HOUR, {
     name: "update-checker",
   })
   async handleCron() {

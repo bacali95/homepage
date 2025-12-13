@@ -1,7 +1,6 @@
-import { Bell, Database, Settings } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
-import { BackupSettingsContent } from "@/components/BackupSettingsContent";
 import { GeneralSettingsContent } from "@/components/GeneralSettingsContent";
 import { NotificationsSettingsContent } from "@/components/NotificationsSettingsContent";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,6 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const isGeneral = location.pathname === "/settings";
   const isNotifications = location.pathname === "/settings/notifications";
-  const isBackup = location.pathname === "/settings/backup";
 
   return (
     <div className="flex flex-col lg:flex-row gap-6">
@@ -41,14 +39,6 @@ export function SettingsPage() {
               <Bell className="mr-2 h-4 w-4" />
               <span className="whitespace-nowrap">Notifications</span>
             </Button>
-            <Button
-              variant={isBackup ? "secondary" : "ghost"}
-              className="sm:w-full justify-start shrink-0 lg:shrink"
-              onClick={() => navigate("/settings/backup")}
-            >
-              <Database className="mr-2 h-4 w-4" />
-              <span className="whitespace-nowrap">Backup & Restore</span>
-            </Button>
           </nav>
         </div>
       </aside>
@@ -61,7 +51,6 @@ export function SettingsPage() {
             path="notifications"
             element={<NotificationsSettingsContent />}
           />
-          <Route path="backup" element={<BackupSettingsContent />} />
         </Routes>
       </div>
     </div>

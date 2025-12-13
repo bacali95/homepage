@@ -1,72 +1,78 @@
 import { useEffect, useState } from "react";
+import type {
+  AppNotificationPreference,
+  NotificationChannelType,
+} from "generated/client/client";
+import { useFormContext, useWatch } from "react-hook-form";
 
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  useAppNotificationPreferences,
-  useNotificationChannels,
-  useSetAppNotificationPreference,
-} from "@/lib/use-notifications";
+import { useNotificationChannels } from "@/lib/use-notifications";
+import type { App } from "@/types";
 
-interface NotificationPreferencesSectionProps {
-  appId: number | null;
-}
+export function NotificationPreferencesSection() {
+  const form = useFormContext<Partial<App>>();
+  const preferences = useWatch({
+    name: "appNotificationPreferences",
+    control: form.control,
+    defaultValue: [],
+  }) as AppNotificationPreference[];
 
-export function NotificationPreferencesSection({
-  appId,
-}: NotificationPreferencesSectionProps) {
   const { data: channels = [] } = useNotificationChannels();
-  const { data: preferences = [] } = useAppNotificationPreferences(appId || 0);
-  const setPreferenceMutation = useSetAppNotificationPreference();
 
   const [localPreferences, setLocalPreferences] = useState<
-    Record<string, boolean>
+    Partial<Record<NotificationChannelType, boolean>>
   >({});
 
   // Initialize local preferences from fetched data
   useEffect(() => {
-    if (preferences.length > 0) {
-      const prefs: Record<string, boolean> = {};
+    if (form.watch("appNotificationPreferences", [])!.length > 0) {
+      const prefs: Partial<Record<NotificationChannelType, boolean>> = {};
       preferences.forEach((pref) => {
-        prefs[pref.channel_type] = pref.enabled;
+        prefs[pref.channelType] = pref.enabled;
       });
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocalPreferences(prefs);
     } else {
       // Default to enabled for all channels if no preferences exist
-      const defaultPrefs: Record<string, boolean> = {};
+      const defaultPrefs: Partial<Record<NotificationChannelType, boolean>> =
+        {};
       channels.forEach((channel) => {
-        defaultPrefs[channel.channel_type] = true;
+        defaultPrefs[channel.channelType] = true;
       });
       setLocalPreferences(defaultPrefs);
     }
-  }, [preferences, channels]);
+  }, [preferences, channels, form]);
 
-  const handleToggle = async (channelType: string, enabled: boolean) => {
-    if (!appId) return;
-
+  const handleToggle = async (
+    channelType: NotificationChannelType,
+    enabled: boolean
+  ) => {
     setLocalPreferences((prev) => ({
       ...prev,
       [channelType]: enabled,
     }));
 
-    try {
-      await setPreferenceMutation.mutateAsync({
-        appId,
-        channelType,
-        enabled,
-      });
-    } catch (error) {
-      // Revert on error
-      setLocalPreferences((prev) => ({
-        ...prev,
-        [channelType]: !enabled,
-      }));
-      console.error("Failed to update notification preference:", error);
+    const prevPreference = form
+      .getValues("appNotificationPreferences")
+      ?.find((pref) => pref.channelType === channelType);
+
+    if (prevPreference) {
+      form.setValue(
+        "appNotificationPreferences",
+        preferences.map((pref) =>
+          pref.channelType === channelType ? { ...pref, enabled } : pref
+        )
+      );
+    } else {
+      form.setValue("appNotificationPreferences", [
+        ...(preferences ?? []),
+        { appId: form.watch("id") ?? 0, channelType, enabled },
+      ]);
     }
   };
 
-  if (!appId || channels.length === 0) {
+  if (channels.length === 0) {
     return null;
   }
 
@@ -92,15 +98,15 @@ export function NotificationPreferencesSection({
       ) : (
         <div className="space-y-2">
           {enabledChannels.map((channel) => (
-            <Card key={channel.channel_type} className="p-4">
+            <Card key={channel.channelType} className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-base font-medium">
-                    {channel.channel_type.charAt(0).toUpperCase() +
-                      channel.channel_type.slice(1)}
+                    {channel.channelType.charAt(0).toUpperCase() +
+                      channel.channelType.slice(1)}
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    {channel.configured
+                    {channel.config !== "{}"
                       ? "Configured and ready"
                       : "Not configured"}
                   </p>
@@ -108,15 +114,14 @@ export function NotificationPreferencesSection({
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={localPreferences[channel.channel_type] ?? true}
+                    checked={localPreferences[channel.channelType] ?? true}
                     onChange={(e) =>
-                      handleToggle(channel.channel_type, e.target.checked)
+                      handleToggle(channel.channelType, e.target.checked)
                     }
-                    disabled={setPreferenceMutation.isPending}
                     className="w-4 h-4"
                   />
                   <span className="text-sm">
-                    {(localPreferences[channel.channel_type] ?? true)
+                    {(localPreferences[channel.channelType] ?? true)
                       ? "Enabled"
                       : "Disabled"}
                   </span>

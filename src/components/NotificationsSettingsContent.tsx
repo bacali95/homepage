@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { NotificationChannelType } from "generated/client/enums";
 
 import { LoadingState } from "@/components/LoadingState";
 import {
@@ -8,6 +9,10 @@ import {
 } from "@/lib/use-notifications";
 import { toast } from "@/lib/use-toast";
 
+import type {
+  EmailChannelConfig,
+  TelegramChannelConfig,
+} from "../../server/notifications/channels/notification-channel.interface";
 import { ChannelCard } from "./notification-channels/ChannelCard";
 
 export function NotificationsSettingsContent() {
@@ -15,9 +20,9 @@ export function NotificationsSettingsContent() {
   const updateChannelMutation = useUpdateNotificationChannel();
   const testChannelMutation = useTestNotificationChannel();
 
-  const [configs, setConfigs] = useState<Record<string, Record<string, any>>>(
-    {}
-  );
+  const [configs, setConfigs] = useState<
+    Record<string, EmailChannelConfig | TelegramChannelConfig>
+  >({});
   const [enabled, setEnabled] = useState<Record<string, boolean>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [savingChannel, setSavingChannel] = useState<string | null>(null);
@@ -26,12 +31,15 @@ export function NotificationsSettingsContent() {
   // Initialize state from channels data
   useEffect(() => {
     if (channels.length > 0) {
-      const initialConfigs: Record<string, Record<string, any>> = {};
+      const initialConfigs: Record<
+        string,
+        EmailChannelConfig | TelegramChannelConfig
+      > = {};
       const initialEnabled: Record<string, boolean> = {};
 
       channels.forEach((channel) => {
-        initialConfigs[channel.channel_type] = { ...channel.config };
-        initialEnabled[channel.channel_type] = channel.enabled;
+        initialConfigs[channel.channelType] = JSON.parse(channel.config);
+        initialEnabled[channel.channelType] = channel.enabled;
       });
 
       setConfigs(initialConfigs);
@@ -53,20 +61,25 @@ export function NotificationsSettingsContent() {
     }));
   };
 
-  const handleEnabledChange = (channelType: string, value: boolean) => {
+  const handleEnabledChange = (
+    channelType: NotificationChannelType,
+    value: boolean
+  ) => {
     setEnabled((prev) => ({
       ...prev,
       [channelType]: value,
     }));
   };
 
-  const handleSave = async (channelType: string) => {
+  const handleSave = async (channelType: NotificationChannelType) => {
     setSavingChannel(channelType);
     try {
       await updateChannelMutation.mutateAsync({
         channelType,
         enabled: enabled[channelType] || false,
-        config: configs[channelType] || {},
+        config: (configs[channelType] || {}) as
+          | EmailChannelConfig
+          | TelegramChannelConfig,
       });
       toast.success(
         `${channelType} channel updated`,
@@ -82,7 +95,7 @@ export function NotificationsSettingsContent() {
     }
   };
 
-  const handleTest = async (channelType: string) => {
+  const handleTest = async (channelType: NotificationChannelType) => {
     setTestingChannel(channelType);
     try {
       await testChannelMutation.mutateAsync({
@@ -105,7 +118,7 @@ export function NotificationsSettingsContent() {
     }
   };
 
-  const toggleExpanded = (channelType: string) => {
+  const toggleExpanded = (channelType: NotificationChannelType) => {
     setExpanded((prev) => ({
       ...prev,
       [channelType]: !prev[channelType],
@@ -129,11 +142,12 @@ export function NotificationsSettingsContent() {
 
       <div className="space-y-4 sm:space-y-6">
         {channels.map((channel) => {
-          const channelType = channel.channel_type;
+          const channelType = channel.channelType;
           return (
             <ChannelCard
               key={channelType}
-              channel={channel}
+              channelType={channelType}
+              configured={channel.config !== "{}"}
               config={configs[channelType] || {}}
               enabled={enabled[channelType] || false}
               isExpanded={expanded[channelType] || false}

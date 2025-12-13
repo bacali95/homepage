@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Activity, ChevronLeft, ChevronRight } from "lucide-react";
 
-import { api } from "@/lib/api";
+import { useAppPingHistory } from "@/lib/use-apps";
 
 import { LoadingState } from "./LoadingState";
 import { PingHistoryGraph } from "./PingHistoryGraph";
@@ -28,18 +27,11 @@ export function PingHistoryDialog({
   const prevOpenRef = useRef(open);
 
   const {
-    data: historyResponse,
+    data: [history, total] = [[], 0],
     isLoading,
     isFetching,
-  } = useQuery({
-    queryKey: ["ping-history", appId, offset],
-    queryFn: () => api.getPingHistory(appId, PAGE_SIZE, offset),
-    enabled: open,
-    placeholderData: (previousData) => previousData,
-  });
+  } = useAppPingHistory(appId, PAGE_SIZE, offset);
 
-  const history = historyResponse?.data || [];
-  const total = historyResponse?.total || 0;
   const hasMore = offset + PAGE_SIZE < total;
   const hasPrevious = offset > 0;
   const hasData = history.length > 0;

@@ -1,18 +1,15 @@
+import { useFormContext } from "react-hook-form";
+
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useCategories } from "@/lib/use-apps";
+import type { App } from "@/types";
 
-import { type FormSectionProps } from "./types";
+export function BasicInformationSection() {
+  const form = useFormContext<Partial<App>>();
+  const { data: categories = [] } = useCategories();
 
-interface BasicInformationSectionProps extends FormSectionProps {
-  categories: string[];
-}
-
-export function BasicInformationSection({
-  formData,
-  categories,
-  onFormDataChange,
-}: BasicInformationSectionProps) {
   return (
     <div>
       <div className="mb-6 sm:mb-8">
@@ -32,8 +29,8 @@ export function BasicInformationSection({
             </Label>
             <Input
               id="name"
-              value={formData.name}
-              onChange={(e) => onFormDataChange({ name: e.target.value })}
+              value={form.watch("name")}
+              onChange={(e) => form.setValue("name", e.target.value)}
               required
               placeholder="My App"
             />
@@ -50,8 +47,8 @@ export function BasicInformationSection({
             <Input
               id="category"
               list="category-options"
-              value={formData.category}
-              onChange={(e) => onFormDataChange({ category: e.target.value })}
+              value={form.watch("category")}
+              onChange={(e) => form.setValue("category", e.target.value)}
               required
               placeholder="e.g., Media, Development, Infrastructure"
             />
@@ -70,8 +67,8 @@ export function BasicInformationSection({
             <Input
               id="url"
               type="url"
-              value={formData.url}
-              onChange={(e) => onFormDataChange({ url: e.target.value })}
+              value={form.watch("url") ?? ""}
+              onChange={(e) => form.setValue("url", e.target.value)}
               placeholder="https://app.example.com (leave empty for services without URLs)"
             />
             <p className="text-xs text-muted-foreground">
@@ -84,8 +81,8 @@ export function BasicInformationSection({
             <Input
               id="icon"
               type="url"
-              value={formData.icon}
-              onChange={(e) => onFormDataChange({ icon: e.target.value })}
+              value={form.watch("icon") ?? ""}
+              onChange={(e) => form.setValue("icon", e.target.value)}
               placeholder="https://example.com/icon.png"
             />
             <p className="text-xs text-muted-foreground">

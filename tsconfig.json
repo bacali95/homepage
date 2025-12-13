@@ -22,7 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"],
-  "exclude": ["server"],
-  "references": [{ "path": "./tsconfig.server.json" }]
+  "include": ["src/**/*"],
+  "exclude": ["server", "generated"]
 }

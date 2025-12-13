@@ -32,8 +32,8 @@ export function useTheme() {
     // Update resolved theme when theme preference changes
     if (theme === "system") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      const updateResolvedTheme = () => {
-        setResolvedTheme(mediaQuery.matches ? "dark" : "light");
+      const updateResolvedTheme = (event?: MediaQueryListEvent) => {
+        setResolvedTheme((event ?? mediaQuery).matches ? "dark" : "light");
       };
 
       // Set initial value

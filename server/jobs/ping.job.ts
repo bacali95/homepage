@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 
 import { DatabaseService } from "../database/database.service.js";
-import { PingService } from "./ping.service.js";
+import { PingService } from "../ping/ping.service.js";
 
 @Injectable()
 export class PingJob implements OnModuleInit {
@@ -19,20 +19,33 @@ export class PingJob implements OnModuleInit {
   })
   async handleCron() {
     try {
-      const apps = this.databaseService.getAppsWithPingEnabled();
+      const apps = await this.databaseService.app.findMany({
+        where: { pingPreferences: { enabled: true } },
+        include: {
+          pingPreferences: true,
+          versionPreferences: true,
+          appNotificationPreferences: true,
+        },
+      });
       const now = Date.now();
 
       for (const app of apps) {
-        if (!app.ping_frequency || app.ping_frequency <= 0) {
+        if (
+          !app.pingPreferences?.enabled ||
+          app.pingPreferences.frequency <= 0
+        ) {
           continue;
         }
 
         // Get the last ping time
-        const latestPing = this.databaseService.getLatestPingStatus(app.id);
+        const latestPing = await this.databaseService.pingHistory.findFirst({
+          where: { appId: app.id },
+          orderBy: { createdAt: "desc" },
+        });
         if (latestPing) {
-          const lastPingTime = new Date(latestPing.created_at).getTime();
+          const lastPingTime = new Date(latestPing.createdAt).getTime();
           const timeSinceLastPing = now - lastPingTime;
-          const frequencyMs = app.ping_frequency * 60 * 1000; // Convert minutes to ms
+          const frequencyMs = app.pingPreferences.frequency * 60 * 1000; // Convert minutes to ms
 
           // Only ping if enough time has passed
           if (timeSinceLastPing < frequencyMs) {
@@ -57,7 +70,7 @@ export class PingJob implements OnModuleInit {
   async cleanupOldPingHistory() {
     this.logger.log("Running ping history cleanup");
     try {
-      const deletedCount = this.databaseService.cleanupOldPingHistory(7);
+      const deletedCount = await this.pingService.cleanupOldPingHistory(7);
       this.logger.log(
         `Ping history cleanup completed: deleted ${deletedCount} old entries`
       );
@@ -75,7 +88,7 @@ export class PingJob implements OnModuleInit {
       this.logger.log("Initial ping cycle completed");
 
       // Also run cleanup on startup to remove any old entries
-      const deletedCount = this.databaseService.cleanupOldPingHistory(7);
+      const deletedCount = await this.pingService.cleanupOldPingHistory(7);
       if (deletedCount > 0) {
         this.logger.log(
           `Cleaned up ${deletedCount} old ping history entries on startup`

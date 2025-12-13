@@ -1,9 +1,17 @@
 import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import checker from "vite-plugin-checker";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    tsconfigPaths({
+      projects: [path.resolve(__dirname, "tsconfig.json")],
+    }),
+    checker({ typescript: true }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -11,7 +19,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": {
+      "/rpc": {
         target: "http://localhost:3001",
         changeOrigin: true,
       },

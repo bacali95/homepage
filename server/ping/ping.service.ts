@@ -2,7 +2,8 @@ import https from "https";
 import { URL } from "url";
 import { Injectable, Logger } from "@nestjs/common";
 
-import { App, DatabaseService } from "../database/database.service.js";
+import type { App } from "../../src/types.js";
+import { DatabaseService } from "../database/database.service.js";
 import { NotificationsService } from "../notifications/notifications.service.js";
 
 @Injectable()
@@ -110,7 +111,7 @@ export class PingService {
    * Ping a single app
    */
   async pingApp(app: App): Promise<void> {
-    if (!app.ping_enabled || !app.ping_url) {
+    if (!app.pingPreferences?.enabled) {
       return;
     }
 
@@ -125,8 +126,8 @@ export class PingService {
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
       const response = await this.executePingRequest(
-        app.ping_url,
-        app.ping_ignore_ssl,
+        app.pingPreferences.url,
+        app.pingPreferences.ignoreSsl,
         controller.signal
       );
 
@@ -143,13 +144,15 @@ export class PingService {
     }
 
     // Store ping result in history
-    this.databaseService.addPingHistory(
-      app.id,
-      status,
-      responseTime,
-      statusCode,
-      errorMessage
-    );
+    await this.databaseService.pingHistory.create({
+      data: {
+        appId: app.id,
+        status,
+        responseTime,
+        statusCode,
+        errorMessage,
+      },
+    });
 
     // Check for status change and send notification if needed
     const previousStatus = this.statusCache.get(app.id);
@@ -176,15 +179,22 @@ export class PingService {
    * Ping all apps that have ping enabled
    */
   async pingAllApps(): Promise<void> {
-    const apps = this.databaseService.getAppsWithPingEnabled();
+    const apps = await this.databaseService.app.findMany({
+      where: { pingPreferences: { enabled: true } },
+      include: {
+        pingPreferences: true,
+        versionPreferences: true,
+        appNotificationPreferences: true,
+      },
+    });
     this.logger.log(`Pinging ${apps.length} app(s)`);
 
     // Initialize cache with current statuses if not already set
     for (const app of apps) {
       if (!this.statusCache.has(app.id)) {
-        const latestPing = this.databaseService.getLatestPingStatus(app.id);
+        const latestPing = await this.getLatestPingStatus(app.id);
         if (latestPing) {
-          this.statusCache.set(app.id, latestPing.status === 1);
+          this.statusCache.set(app.id, latestPing.status);
         }
       }
     }
@@ -203,18 +213,43 @@ export class PingService {
   /**
    * Get current ping status for an app
    */
-  getAppStatus(appId: number): boolean | null {
+  async getAppStatus(appId: number): Promise<boolean | null> {
     if (this.statusCache.has(appId)) {
       return this.statusCache.get(appId)!;
     }
 
-    const latestPing = this.databaseService.getLatestPingStatus(appId);
+    const latestPing = await this.getLatestPingStatus(appId);
     if (latestPing) {
-      const status = latestPing.status === 1;
-      this.statusCache.set(appId, status);
-      return status;
+      this.statusCache.set(appId, latestPing.status);
+      return latestPing.status;
     }
 
     return null;
+  }
+
+  getLatestPingStatus(appId: number) {
+    return this.databaseService.pingHistory.findFirst({
+      where: { appId },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  /**
+   * Delete ping history entries older than the specified number of days
+   * @param daysToKeep Number of days of history to keep (default: 7)
+   * @returns Number of deleted rows
+   */
+  async cleanupOldPingHistory(daysToKeep: number = 7): Promise<number> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+
+    const result = await this.databaseService.pingHistory.deleteMany({
+      where: {
+        createdAt: {
+          lt: cutoffDate,
+        },
+      },
+    });
+    return result.count;
   }
 }

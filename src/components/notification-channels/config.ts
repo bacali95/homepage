@@ -1,9 +1,10 @@
 import { Mail, MessageSquare } from "lucide-react";
 
+import { NotificationChannelType } from "../../../generated/client/enums";
 import { ChannelConfig } from "./types";
 
-export const CHANNEL_CONFIGS: Record<string, ChannelConfig> = {
-  email: {
+export const CHANNEL_CONFIGS: Record<NotificationChannelType, ChannelConfig> = {
+  [NotificationChannelType.EMAIL]: {
     icon: Mail,
     label: "Email",
     fields: [
@@ -61,23 +62,23 @@ export const CHANNEL_CONFIGS: Record<string, ChannelConfig> = {
       },
     ],
   },
-  telegram: {
+  [NotificationChannelType.TELEGRAM]: {
     icon: MessageSquare,
     label: "Telegram",
     fields: [
-      {
-        key: "botToken",
-        label: "Bot Token",
-        type: "password",
-        placeholder: "123456789:ABCdefGHIjklMNOpqrsTUVwxyz",
-        helpText: "Get your bot token from @BotFather on Telegram",
-      },
       {
         key: "chatId",
         label: "Chat ID",
         type: "text",
         placeholder: "123456789",
         helpText: "Your Telegram user ID or group chat ID",
+      },
+      {
+        key: "botToken",
+        label: "Bot Token",
+        type: "password",
+        placeholder: "123456789:ABCdefGHIjklMNOpqrsTUVwxyz",
+        helpText: "Get your bot token from @BotFather on Telegram",
       },
     ],
   },

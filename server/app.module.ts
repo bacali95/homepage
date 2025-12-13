@@ -6,14 +6,13 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { ServeStaticModule } from "@nestjs/serve-static";
 
 import { AppsModule } from "./apps/apps.module.js";
-import { CategoriesModule } from "./categories/categories.module.js";
 import { DatabaseModule } from "./database/database.module.js";
 import { HealthModule } from "./health/health.module.js";
 import { JobsModule } from "./jobs/jobs.module.js";
 import { HttpLoggingInterceptor } from "./logger/http-logging.interceptor.js";
 import { NotificationsModule } from "./notifications/notifications.module.js";
 import { PingModule } from "./ping/ping.module.js";
-import { PodsModule } from "./pods/pods.module.js";
+import { RpcModule } from "./rpc/rpc.module.js";
 import { UpdatesModule } from "./updates/updates.module.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,15 +21,14 @@ const __dirname = dirname(__filename);
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    AppsModule,
     HealthModule,
     DatabaseModule,
-    AppsModule,
-    CategoriesModule,
     UpdatesModule,
-    PodsModule,
     JobsModule,
     NotificationsModule,
     PingModule,
+    RpcModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "../dist"),
       serveStaticOptions: {

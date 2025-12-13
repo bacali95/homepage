@@ -4,15 +4,15 @@ import nodemailer from "nodemailer";
 
 import {
   NotificationChannel,
-  NotificationChannelConfig,
+  type EmailChannelConfig,
 } from "./notification-channel.interface.js";
 
 @Injectable()
 export class EmailChannelService implements NotificationChannel {
   private readonly logger = new Logger(EmailChannelService.name);
-  private config: NotificationChannelConfig = {};
+  private config: EmailChannelConfig = {} as EmailChannelConfig;
 
-  configure(config: NotificationChannelConfig): void {
+  configure(config: EmailChannelConfig): void {
     this.config = config;
   }
 
@@ -22,13 +22,12 @@ export class EmailChannelService implements NotificationChannel {
 
   isConfigured(): boolean {
     return !!(
-      (
-        this.config.smtpHost &&
-        this.config.smtpPort &&
-        this.config.fromEmail &&
-        this.config.toEmail &&
-        (this.config.smtpUser || !this.config.smtpPassword)
-      ) // Either no auth or both user/pass
+      this.config.smtpHost &&
+      this.config.smtpPort &&
+      this.config.fromEmail &&
+      this.config.toEmail &&
+      this.config.smtpUser &&
+      this.config.smtpPassword
     );
   }
 
@@ -57,7 +56,7 @@ export class EmailChannelService implements NotificationChannel {
         // STARTTLS (ports 587, 25)
         requireTLS = true;
         tls = {
-          rejectUnauthorized: this.config.rejectUnauthorized !== false,
+          rejectUnauthorized: false,
         };
       } else if (security === "none") {
         // No encryption
@@ -69,7 +68,7 @@ export class EmailChannelService implements NotificationChannel {
         if (port === 587 || port === 25) {
           requireTLS = true;
           tls = {
-            rejectUnauthorized: this.config.rejectUnauthorized !== false,
+            rejectUnauthorized: false,
           };
         }
       }

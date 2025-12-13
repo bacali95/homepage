@@ -1,6 +1,7 @@
-import type { FormData } from "@/components/app-form/types";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { RunningEnvironment, SourceType } from "generated/client/enums";
 import { Activity, ArrowLeft, Bell, Info, Package } from "lucide-react";
+import { FormProvider, useForm } from "react-hook-form";
 import {
   Route,
   Routes,
@@ -15,115 +16,70 @@ import { PingConfigurationSection } from "@/components/app-form/PingConfiguratio
 import { VersionCheckingSection } from "@/components/app-form/VersionCheckingSection";
 import { LoadingState } from "@/components/LoadingState";
 import { Button } from "@/components/ui/button";
-import { type App, type SourceType } from "@/lib/api";
-import {
-  useApps,
-  useCategories,
-  useCreateApp,
-  useUpdateApp,
-} from "@/lib/use-apps";
+import { useApp, useCreateApp, useUpdateApp } from "@/lib/use-apps";
 import { toast } from "@/lib/use-toast";
+import type { App } from "@/types";
 
-const initialFormData: FormData = {
+const initialFormData: Partial<App> = {
   name: "",
   url: "",
-  repo: "",
-  source_type: "github",
-  current_version: "",
   category: "",
-  docker_image: "",
-  k8s_namespace: "",
   icon: "",
-  enableVersionChecking: false,
-  ping_enabled: false,
-  ping_url: "",
-  ping_frequency: "5",
-  ping_ignore_ssl: false,
-};
-
-// Helper function to determine if version checking should be enabled
-const shouldEnableVersionChecking = (data: App): boolean => {
-  return !!(
-    (data.repo && data.repo.trim()) ||
-    (data.docker_image && data.docker_image.trim()) ||
-    (data.k8s_namespace && data.k8s_namespace.trim()) ||
-    (data.current_version && data.current_version.trim())
-  );
+  versionPreferences: {
+    appId: 0,
+    enabled: false,
+    sourceType: SourceType.GITHUB_RELEASES,
+    sourceRepo: "",
+    runningEnvironment: RunningEnvironment.KUBERNETES,
+    runningConfig: "{}",
+    currentVersion: null,
+    latestVersion: null,
+    hasUpdate: false,
+  },
+  pingPreferences: {
+    appId: 0,
+    enabled: false,
+    url: "",
+    frequency: 1,
+    ignoreSsl: false,
+  },
+  appNotificationPreferences: [],
 };
 
 export function AppFormPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { app: appIdParam } = useParams<{ app: string }>();
-  const { data: apps = [], isLoading: loadingApps } = useApps();
-  const { data: categories = [] } = useCategories();
+  const { data: app, isLoading: loadingApp } = useApp(
+    parseInt(appIdParam ?? "0", 10)
+  );
   const createAppMutation = useCreateApp();
   const updateAppMutation = useUpdateApp();
 
-  const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [editingApp, setEditingApp] = useState<App | null>(null);
+  const form = useForm<Partial<App>>({
+    defaultValues: initialFormData,
+  });
 
   const isNewApp = appIdParam === "new";
-  const appId = isNewApp ? null : appIdParam ? parseInt(appIdParam, 10) : null;
 
   // Load app data if editing
   useEffect(() => {
-    if (appId && !isNewApp && apps.length > 0) {
-      const app = apps.find((a) => a.id === appId);
-      if (app) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setEditingApp(app);
-        const sourceType = app.source_type || "github";
-        setFormData({
-          name: app.name,
-          url: app.url || "",
-          repo: app.repo || "",
-          source_type: sourceType,
-          current_version: app.current_version || "",
-          category: app.category || "",
-          docker_image: app.docker_image || "",
-          k8s_namespace: app.k8s_namespace || "",
-          icon: app.icon || "",
-          enableVersionChecking: shouldEnableVersionChecking(app),
-          ping_enabled: app.ping_enabled || false,
-          ping_url: app.ping_url || "",
-          ping_frequency: app.ping_frequency?.toString() || "5",
-          ping_ignore_ssl: app.ping_ignore_ssl || false,
-        });
-      } else {
-        // App not found, redirect to home
-        navigate("/");
-        toast.error("App not found");
-      }
+    if (app && !isNewApp) {
+      form.reset(app);
     } else if (isNewApp) {
-      // Reset form for new app
-      setEditingApp(null);
-      setFormData(initialFormData);
+      form.reset(initialFormData);
     }
-  }, [appId, isNewApp, apps, navigate]);
+  }, [app, isNewApp, form]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = async (data: Partial<App>) => {
     try {
-      const submitData = {
-        ...formData,
-        url: formData.url.trim(),
-        ping_url: formData.ping_url.trim(),
-        ping_frequency:
-          formData.ping_enabled && formData.ping_frequency
-            ? parseInt(formData.ping_frequency, 10)
-            : null,
-      };
-      if (editingApp && appId) {
-        await updateAppMutation.mutateAsync({
-          id: appId,
-          app: submitData,
-        });
+      if (app?.id) {
+        await updateAppMutation.mutateAsync(data as App);
         toast.success("App updated successfully");
       } else {
-        await createAppMutation.mutateAsync(submitData);
+        await createAppMutation.mutateAsync(data as App);
         toast.success("App created successfully");
+        navigate("/");
       }
     } catch (error) {
       console.error("Error saving app:", error);
@@ -138,21 +94,7 @@ export function AppFormPage() {
     navigate("/");
   };
 
-  const handleFormDataChange = (data: Partial<FormData>) => {
-    setFormData({ ...formData, ...data });
-  };
-
-  const handleSourceTypeChange = (sourceType: SourceType) => {
-    setFormData({
-      ...formData,
-      source_type: sourceType,
-      repo: "",
-      current_version: "",
-      docker_image: formData.docker_image, // Keep docker_image when changing source type
-    });
-  };
-
-  if (loadingApps) {
+  if (loadingApp) {
     return <LoadingState />;
   }
 
@@ -164,26 +106,19 @@ export function AppFormPage() {
   const isNotifications =
     !isNewApp && location.pathname === `${basePath}/notifications`;
 
-  const getBasePath = () => {
-    if (isNewApp) return "/new";
-    return `/${appIdParam}`;
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
       <div className="mb-8">
         <div className="flex items-center justify-between gap-4 mb-2">
           <h1 className="text-2xl sm:text-3xl font-bold">
-            {editingApp ? "Edit App" : "Add New App"}
+            {app?.id ? "Edit App" : "Add New App"}
           </h1>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={handleCancel} type="button">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Apps
             </Button>
-            <Button type="submit">
-              {editingApp ? "Update App" : "Add App"}
-            </Button>
+            <Button type="submit">{app?.id ? "Update App" : "Add App"}</Button>
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
@@ -200,7 +135,7 @@ export function AppFormPage() {
                 variant={isBasic ? "secondary" : "ghost"}
                 className="sm:w-full justify-start shrink-0 lg:shrink"
                 type="button"
-                onClick={() => navigate(getBasePath())}
+                onClick={() => navigate(basePath)}
               >
                 <Info className="mr-2 h-4 w-4" />
                 <span className="whitespace-nowrap">Basic Information</span>
@@ -209,7 +144,7 @@ export function AppFormPage() {
                 variant={isVersion ? "secondary" : "ghost"}
                 className="sm:w-full justify-start shrink-0 lg:shrink"
                 type="button"
-                onClick={() => navigate(`${getBasePath()}/version`)}
+                onClick={() => navigate(`${basePath}/version`)}
               >
                 <Package className="mr-2 h-4 w-4" />
                 <span className="whitespace-nowrap">Version Checking</span>
@@ -218,17 +153,17 @@ export function AppFormPage() {
                 variant={isPing ? "secondary" : "ghost"}
                 className="sm:w-full justify-start shrink-0 lg:shrink"
                 type="button"
-                onClick={() => navigate(`${getBasePath()}/ping`)}
+                onClick={() => navigate(`${basePath}/ping`)}
               >
                 <Activity className="mr-2 h-4 w-4" />
                 <span className="whitespace-nowrap">Ping Monitoring</span>
               </Button>
-              {editingApp && editingApp?.id && (
+              {app?.id && (
                 <Button
                   variant={isNotifications ? "secondary" : "ghost"}
                   className="sm:w-full justify-start shrink-0 lg:shrink"
                   type="button"
-                  onClick={() => navigate(`/${editingApp.id}/notifications`)}
+                  onClick={() => navigate(`${basePath}/notifications`)}
                 >
                   <Bell className="mr-2 h-4 w-4" />
                   <span className="whitespace-nowrap">Notifications</span>
@@ -240,55 +175,20 @@ export function AppFormPage() {
 
         {/* Content */}
         <div className="flex-1 min-w-0 w-full">
-          <Routes>
-            <Route
-              index
-              element={
-                <BasicInformationSection
-                  formData={formData}
-                  categories={categories}
-                  onFormDataChange={handleFormDataChange}
+          <FormProvider {...form}>
+            <Routes>
+              <Route index element={<BasicInformationSection />} />
+              <Route path="basic" element={<BasicInformationSection />} />
+              <Route path="version" element={<VersionCheckingSection />} />
+              <Route path="ping" element={<PingConfigurationSection />} />
+              {app?.id && (
+                <Route
+                  path="notifications"
+                  element={<NotificationPreferencesSection />}
                 />
-              }
-            />
-            <Route
-              path="basic"
-              element={
-                <BasicInformationSection
-                  formData={formData}
-                  categories={categories}
-                  onFormDataChange={handleFormDataChange}
-                />
-              }
-            />
-            <Route
-              path="version"
-              element={
-                <VersionCheckingSection
-                  formData={formData}
-                  onFormDataChange={handleFormDataChange}
-                  onSourceTypeChange={handleSourceTypeChange}
-                />
-              }
-            />
-            <Route
-              path="ping"
-              element={
-                <PingConfigurationSection
-                  formData={formData}
-                  onFormDataChange={handleFormDataChange}
-                />
-              }
-            />
-            {editingApp && editingApp.id && (
-              <Route
-                path="notifications"
-                element={
-                  <NotificationPreferencesSection appId={editingApp.id} />
-                }
-              />
-            )}
-          </Routes>
+              )}
+            </Routes>
+          </FormProvider>
         </div>
       </div>
     </form>

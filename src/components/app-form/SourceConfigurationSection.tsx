@@ -1,46 +1,45 @@
+import { SourceType } from "generated/client/enums";
+import { useFormContext } from "react-hook-form";
+
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { type SourceType } from "@/lib/api";
-
-import { type FormSectionProps } from "./types";
-
-interface SourceConfigurationSectionProps extends FormSectionProps {
-  onSourceTypeChange: (sourceType: SourceType) => void;
-}
+import type { App } from "@/types";
 
 const getRepoLabel = (sourceType: SourceType) => {
   switch (sourceType) {
-    case "dockerhub":
+    case SourceType.DOCKER_HUB:
       return "Docker Image";
-    case "ghcr":
+    case SourceType.GHCR:
       return "GitHub Container Registry Image";
-    case "k8s":
+    case SourceType.K8S_REGISTRY:
       return "Kubernetes Registry Image";
+    case SourceType.GITHUB_RELEASES:
+      return "GitHub Releases";
     default:
-      return "GitHub Repository";
+      throw new Error(`Invalid source type: ${sourceType}`);
   }
 };
 
 const getRepoPlaceholder = (sourceType: SourceType) => {
   switch (sourceType) {
-    case "dockerhub":
+    case SourceType.DOCKER_HUB:
       return "owner/image or library/image";
-    case "ghcr":
+    case SourceType.GHCR:
       return "owner/repo or owner/repo/image";
-    case "k8s":
+    case SourceType.K8S_REGISTRY:
       return "image-name or owner/image-name";
-    default:
+    case SourceType.GITHUB_RELEASES:
       return "owner/repo or https://github.com/owner/repo";
+    default:
+      throw new Error(`Invalid source type: ${sourceType}`);
   }
 };
 
-export function SourceConfigurationSection({
-  formData,
-  onFormDataChange,
-  onSourceTypeChange,
-}: SourceConfigurationSectionProps) {
+export function SourceConfigurationSection() {
+  const form = useFormContext<Partial<App>>();
+
   return (
     <Card className="p-6">
       <div className="space-y-4">
@@ -58,14 +57,23 @@ export function SourceConfigurationSection({
             </Label>
             <Select
               id="source_type"
-              value={formData.source_type}
-              onChange={(e) => onSourceTypeChange(e.target.value as SourceType)}
-              required={formData.enableVersionChecking}
+              value={form.watch("versionPreferences.sourceType")}
+              onChange={(e) =>
+                form.setValue(
+                  "versionPreferences.sourceType",
+                  e.target.value as SourceType
+                )
+              }
+              required
             >
-              <option value="github">GitHub Releases</option>
-              <option value="ghcr">GitHub Container Registry</option>
-              <option value="dockerhub">Docker Hub</option>
-              <option value="k8s">Kubernetes Registry (registry.k8s.io)</option>
+              <option value={SourceType.GITHUB_RELEASES}>
+                GitHub Releases
+              </option>
+              <option value={SourceType.GHCR}>GitHub Container Registry</option>
+              <option value={SourceType.DOCKER_HUB}>Docker Hub</option>
+              <option value={SourceType.K8S_REGISTRY}>
+                Kubernetes Registry (registry.k8s.io)
+              </option>
             </Select>
             <p className="text-xs text-muted-foreground">
               Choose where your application releases are published
@@ -74,17 +82,23 @@ export function SourceConfigurationSection({
 
           <div className="space-y-2">
             <Label htmlFor="repo" className="flex items-center gap-1">
-              {getRepoLabel(formData.source_type)}
+              {getRepoLabel(
+                form.watch("versionPreferences.sourceType") ??
+                  SourceType.GITHUB_RELEASES
+              )}
               <span className="text-destructive">*</span>
             </Label>
             <Input
               id="repo"
-              value={formData.repo}
+              value={form.watch("versionPreferences.sourceRepo")}
               onChange={(e) => {
-                onFormDataChange({ repo: e.target.value });
+                form.setValue("versionPreferences.sourceRepo", e.target.value);
               }}
-              required={formData.enableVersionChecking}
-              placeholder={getRepoPlaceholder(formData.source_type)}
+              required
+              placeholder={getRepoPlaceholder(
+                form.watch("versionPreferences.sourceType") ??
+                  SourceType.GITHUB_RELEASES
+              )}
             />
             <p className="text-xs text-muted-foreground">
               Repository or image identifier based on the selected source type

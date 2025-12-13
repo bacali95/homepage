@@ -1,5 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import type { NotificationChannelType } from "../../generated/client/enums";
+import type {
+  EmailChannelConfig,
+  TelegramChannelConfig,
+} from "../../server/notifications/channels/notification-channel.interface";
 import { api } from "./api";
 
 const queryKeys = {
@@ -11,7 +16,7 @@ const queryKeys = {
 export function useNotificationChannels() {
   return useQuery({
     queryKey: queryKeys.notificationChannels,
-    queryFn: () => api.getNotificationChannels(),
+    queryFn: () => api.notificationChannel.getAll({}),
   });
 }
 
@@ -24,46 +29,18 @@ export function useUpdateNotificationChannel() {
       enabled,
       config,
     }: {
-      channelType: string;
+      channelType: NotificationChannelType;
       enabled: boolean;
-      config: Record<string, any>;
-    }) => api.updateNotificationChannel(channelType, { enabled, config }),
+      config: EmailChannelConfig | TelegramChannelConfig;
+    }) =>
+      api.notificationChannel.update({
+        channelType,
+        enabled,
+        config: JSON.stringify(config),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.notificationChannels,
-      });
-    },
-  });
-}
-
-export function useAppNotificationPreferences(appId: number) {
-  return useQuery({
-    queryKey: queryKeys.appNotificationPreferences(appId),
-    queryFn: () => api.getAppNotificationPreferences(appId),
-    enabled: !!appId,
-  });
-}
-
-export function useSetAppNotificationPreference() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      appId,
-      channelType,
-      enabled,
-    }: {
-      appId: number;
-      channelType: string;
-      enabled: boolean;
-    }) =>
-      api.setAppNotificationPreference(appId, {
-        channel_type: channelType,
-        enabled,
-      }),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.appNotificationPreferences(variables.appId),
       });
     },
   });
@@ -75,8 +52,8 @@ export function useTestNotificationChannel() {
       channelType,
       config,
     }: {
-      channelType: string;
-      config: Record<string, any>;
-    }) => api.testNotificationChannel(channelType, config),
+      channelType: NotificationChannelType;
+      config: EmailChannelConfig | TelegramChannelConfig;
+    }) => api.notificationChannel.test({ channelType, config }),
   });
 }

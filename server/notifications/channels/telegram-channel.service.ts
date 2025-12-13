@@ -2,15 +2,15 @@ import { Injectable, Logger } from "@nestjs/common";
 
 import {
   NotificationChannel,
-  NotificationChannelConfig,
+  type TelegramChannelConfig,
 } from "./notification-channel.interface.js";
 
 @Injectable()
 export class TelegramChannelService implements NotificationChannel {
   private readonly logger = new Logger(TelegramChannelService.name);
-  private config: NotificationChannelConfig = {};
+  private config: TelegramChannelConfig = {} as TelegramChannelConfig;
 
-  configure(config: NotificationChannelConfig): void {
+  configure(config: TelegramChannelConfig): void {
     this.config = config;
   }
 

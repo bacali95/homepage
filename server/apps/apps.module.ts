@@ -1,14 +1,12 @@
 import { Module } from "@nestjs/common";
 
 import { DatabaseModule } from "../database/database.module.js";
-import { UpdatesModule } from "../updates/updates.module.js";
-import { AppsController } from "./apps.controller.js";
 import { AppsService } from "./apps.service.js";
+import { K8sPodsService } from "./k8s-pods.service.js";
 
 @Module({
-  imports: [DatabaseModule, UpdatesModule],
-  controllers: [AppsController],
-  providers: [AppsService],
+  imports: [DatabaseModule],
+  providers: [AppsService, K8sPodsService],
   exports: [AppsService],
 })
 export class AppsModule {}

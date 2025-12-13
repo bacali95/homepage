@@ -1,6 +1,4 @@
-import type { App } from "@/lib/api";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   AlertCircle,
@@ -16,16 +14,11 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Menu, MenuItem, MenuTrigger } from "@/components/ui/menu";
-import { api } from "@/lib/api";
+import { useAppPingStatus } from "@/lib/use-apps";
 import { formatVersion, truncateText } from "@/lib/utils";
+import type { App } from "@/types";
 
 import { PingHistoryDialog } from "./PingHistoryDialog";
 
@@ -44,12 +37,14 @@ export function AppCard({
 }: AppCardProps) {
   const [pingHistoryOpen, setPingHistoryOpen] = useState(false);
 
-  const { data: pingStatus } = useQuery({
-    queryKey: ["ping-status", app.id],
-    queryFn: () => api.getPingStatus(app.id),
-    enabled: app.ping_enabled,
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
+  const { data: pingStatus } = useAppPingStatus(app.id);
+
+  const { dockerImage, k8sNamespace } = JSON.parse(
+    app.versionPreferences?.runningConfig || "{}"
+  ) as {
+    dockerImage?: string;
+    k8sNamespace?: string;
+  };
 
   const handleClick = () => {
     if (app.url) {
@@ -59,7 +54,7 @@ export function AppCard({
 
   const handlePingStatusClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (app.ping_enabled) {
+    if (app.pingPreferences?.enabled) {
       setPingHistoryOpen(true);
     }
   };
@@ -82,11 +77,11 @@ export function AppCard({
                   />
                 )}
                 <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <CardTitle className="text-lg sm:text-xl font-semibold truncate group-hover:text-primary transition-colors">
                       {app.name}
                     </CardTitle>
-                    {app.ping_enabled && (
+                    {app.pingPreferences?.enabled && (
                       <button
                         onClick={handlePingStatusClick}
                         className="shrink-0 p-1 rounded hover:bg-accent transition-colors"
@@ -102,14 +97,31 @@ export function AppCard({
                       </button>
                     )}
                   </div>
-                  {app.category && (
-                    <Badge
-                      variant="outline"
-                      className="text-xs font-normal w-fit"
-                    >
-                      {app.category}
-                    </Badge>
-                  )}
+                  <div className="flex items-center justify-between gap-2 w-full">
+                    {app.versionPreferences?.enabled && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline" className="text-xs font-mono">
+                          {formatVersion(app.versionPreferences.currentVersion)}
+                        </Badge>
+                        {app.versionPreferences.hasUpdate &&
+                          app.versionPreferences.latestVersion && (
+                            <>
+                              <span className="text-muted-foreground/60 text-xs">
+                                →
+                              </span>
+                              <Badge
+                                variant="destructive"
+                                className="text-xs font-mono"
+                              >
+                                {formatVersion(
+                                  app.versionPreferences.latestVersion
+                                )}
+                              </Badge>
+                            </>
+                          )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -134,7 +146,7 @@ export function AppCard({
                     <span>Edit</span>
                   </div>
                 </MenuItem>
-                {app.current_version && (
+                {app.versionPreferences?.enabled && (
                   <MenuItem onClick={() => onCheckUpdates(app)}>
                     <div className="flex items-center gap-2">
                       <RefreshCw className="h-4 w-4" />
@@ -163,59 +175,24 @@ export function AppCard({
                 <span className="truncate">{truncateText(app.url, 50)}</span>
               </div>
             )}
-            {app.docker_image && (
+            {dockerImage && (
               <div className="flex items-center gap-1.5 truncate">
                 <Box className="h-3 w-3 shrink-0 text-muted-foreground/60" />
                 <span className="truncate">
-                  {truncateText(app.docker_image, 40)}
+                  {truncateText(dockerImage, 40)}
                 </span>
               </div>
             )}
-            {app.k8s_namespace && (
+            {k8sNamespace && (
               <div className="flex items-center gap-1.5 truncate">
                 <Layers className="h-3 w-3 shrink-0 text-muted-foreground/60" />
-                <span className="truncate">Namespace: {app.k8s_namespace}</span>
+                <span className="truncate">Namespace: {k8sNamespace}</span>
               </div>
             )}
           </div>
         </CardContent>
-        <CardFooter>
-          <div className="flex items-center justify-between gap-2 w-full">
-            {app.current_version && (
-              <div className="flex items-center gap-2 flex-wrap h-8">
-                <Badge variant="outline" className="text-xs font-mono">
-                  {formatVersion(app.current_version)}
-                </Badge>
-                {app.has_update && app.latest_version && (
-                  <>
-                    <span className="text-muted-foreground/60 text-xs">→</span>
-                    <Badge variant="destructive" className="text-xs font-mono">
-                      {formatVersion(app.latest_version)}
-                    </Badge>
-                  </>
-                )}
-              </div>
-            )}
-            {app.url && (
-              <a
-                href={app.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-transform hover:scale-110 shrink-0 ml-auto"
-              >
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 w-8 p-0 hover:bg-primary hover:text-primary-foreground"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Button>
-              </a>
-            )}
-          </div>
-        </CardFooter>
       </Card>
-      {app.ping_enabled && (
+      {app.pingPreferences?.enabled && (
         <PingHistoryDialog
           appId={app.id}
           appName={app.name}

@@ -1,13 +1,13 @@
+import { useFormContext } from "react-hook-form";
+
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { App } from "@/types";
 
-import { type FormSectionProps } from "./types";
+export function PingConfigurationSection() {
+  const form = useFormContext<Partial<App>>();
 
-export function PingConfigurationSection({
-  formData,
-  onFormDataChange,
-}: FormSectionProps) {
   return (
     <div>
       <div className="mb-6 sm:mb-8">
@@ -23,11 +23,9 @@ export function PingConfigurationSection({
               <input
                 type="checkbox"
                 id="ping_enabled"
-                checked={formData.ping_enabled}
+                checked={form.watch("pingPreferences.enabled")}
                 onChange={(e) =>
-                  onFormDataChange({
-                    ping_enabled: e.target.checked,
-                  })
+                  form.setValue("pingPreferences.enabled", e.target.checked)
                 }
                 className="h-4 w-4 rounded border border-input bg-background text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
               />
@@ -45,7 +43,7 @@ export function PingConfigurationSection({
           </div>
         </Card>
 
-        {formData.ping_enabled && (
+        {form.watch("pingPreferences.enabled") && (
           <Card className="p-6">
             <div className="space-y-4">
               <div className="space-y-2">
@@ -56,11 +54,11 @@ export function PingConfigurationSection({
                 <Input
                   id="ping_url"
                   type="url"
-                  value={formData.ping_url}
+                  value={form.watch("pingPreferences.url")}
                   onChange={(e) =>
-                    onFormDataChange({ ping_url: e.target.value })
+                    form.setValue("pingPreferences.url", e.target.value)
                   }
-                  required={formData.ping_enabled}
+                  required
                   placeholder="https://app.example.com"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -82,12 +80,15 @@ export function PingConfigurationSection({
                   type="number"
                   min="1"
                   max="1440"
-                  value={formData.ping_frequency}
+                  value={form.watch("pingPreferences.frequency")}
                   onChange={(e) =>
-                    onFormDataChange({ ping_frequency: e.target.value })
+                    form.setValue(
+                      "pingPreferences.frequency",
+                      parseInt(e.target.value)
+                    )
                   }
-                  required={formData.ping_enabled}
-                  placeholder="5"
+                  required
+                  placeholder="1"
                 />
                 <p className="text-xs text-muted-foreground">
                   How often to ping the URL (in minutes). Minimum: 1 minute,
@@ -99,11 +100,9 @@ export function PingConfigurationSection({
                 <input
                   type="checkbox"
                   id="ping_ignore_ssl"
-                  checked={formData.ping_ignore_ssl}
+                  checked={form.watch("pingPreferences.ignoreSsl")}
                   onChange={(e) =>
-                    onFormDataChange({
-                      ping_ignore_ssl: e.target.checked,
-                    })
+                    form.setValue("pingPreferences.ignoreSsl", e.target.checked)
                   }
                   className="h-4 w-4 rounded border border-input bg-background text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
                 />

@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../shared/generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum SourceType {
+  GITHUB_RELEASES
+  GHCR
+  DOCKER_HUB
+  K8S_REGISTRY
+}
+
+enum RunningEnvironment {
+  KUBERNETES
+}
+
+enum NotificationChannelType {
+  EMAIL
+  TELEGRAM
+}
+
+model App {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  category  String
+  url       String?
+  icon      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  versionPreferences         AppVersionPreference?
+  pingPreferences            AppPingPreference?
+  pingHistory                PingHistory[]
+  appNotificationPreferences AppNotificationPreference[]
+}
+
+model AppVersionPreference {
+  enabled            Boolean            @default(true)
+  sourceType         SourceType
+  sourceRepo         String
+  runningEnvironment RunningEnvironment
+  runningConfig      String // JSON string
+  currentVersion     String?
+  latestVersion      String?
+  hasUpdate          Boolean            @default(false)
+
+  appId Int @unique
+  app   App @relation(fields: [appId], references: [id], onDelete: Cascade)
+}
+
+model AppPingPreference {
+  enabled   Boolean @default(true)
+  url       String
+  frequency Int
+  ignoreSsl Boolean @default(false)
+
+  appId Int @unique
+  app   App @relation(fields: [appId], references: [id], onDelete: Cascade)
+}
+
+model PingHistory {
+  id           Int      @id @default(autoincrement())
+  appId        Int
+  status       Boolean
+  responseTime Int?
+  statusCode   Int?
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  app App @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@index([appId])
+  @@index([createdAt(sort: Desc)])
+}
+
+model NotificationChannel {
+  id          Int                     @id @default(autoincrement())
+  channelType NotificationChannelType @unique
+  enabled     Boolean                 @default(false)
+  config      String // JSON string
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @default(now()) @updatedAt
+
+  appNotificationPreferences AppNotificationPreference[]
+}
+
+model AppNotificationPreference {
+  appId       Int
+  channelType NotificationChannelType
+  enabled     Boolean                 @default(true)
+
+  app                 App                 @relation(fields: [appId], references: [id], onDelete: Cascade)
+  notificationChannel NotificationChannel @relation(fields: [channelType], references: [channelType])
+
+  @@unique([appId, channelType])
+}

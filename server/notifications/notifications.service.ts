@@ -1,14 +1,21 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 
-import { App, DatabaseService } from "../database/database.service.js";
+import { NotificationChannelType } from "../../generated/client/enums.js";
+import type { App } from "../../src/types.js";
+import { DatabaseService } from "../database/database.service.js";
 import { EmailChannelService } from "./channels/email-channel.service.js";
-import { NotificationChannel } from "./channels/notification-channel.interface.js";
+import {
+  NotificationChannel,
+  type EmailChannelConfig,
+  type TelegramChannelConfig,
+} from "./channels/notification-channel.interface.js";
 import { TelegramChannelService } from "./channels/telegram-channel.service.js";
 
 @Injectable()
-export class NotificationsService {
+export class NotificationsService implements OnModuleInit {
   private readonly logger = new Logger(NotificationsService.name);
-  private channels: Map<string, NotificationChannel> = new Map();
+  private channels: Map<NotificationChannelType, NotificationChannel> =
+    new Map();
 
   constructor(
     private readonly databaseService: DatabaseService,
@@ -16,19 +23,25 @@ export class NotificationsService {
     private readonly telegramChannel: TelegramChannelService
   ) {
     // Register channels
-    this.channels.set("email", this.emailChannel);
-    this.channels.set("telegram", this.telegramChannel);
+    this.channels.set(NotificationChannelType.EMAIL, this.emailChannel);
+    this.channels.set(NotificationChannelType.TELEGRAM, this.telegramChannel);
+  }
+
+  onModuleInit() {
+    this.initializeChannels();
   }
 
   /**
    * Initialize notification channels with their configurations
    */
-  async initializeChannels(): Promise<void> {
-    const dbChannels = this.databaseService.getNotificationChannels();
+  private async initializeChannels(): Promise<void> {
+    const dbChannels = await this.databaseService.notificationChannel.findMany({
+      orderBy: { channelType: "asc" },
+    });
 
     for (const dbChannel of dbChannels) {
       if (dbChannel.enabled) {
-        const channel = this.channels.get(dbChannel.channel_type);
+        const channel = this.channels.get(dbChannel.channelType);
         if (channel) {
           try {
             const config = JSON.parse(dbChannel.config || "{}");
@@ -38,11 +51,11 @@ export class NotificationsService {
               this.telegramChannel.configure(config);
             }
             this.logger.log(
-              `Initialized ${dbChannel.channel_type} notification channel`
+              `Initialized ${dbChannel.channelType} notification channel`
             );
           } catch (error) {
             this.logger.error(
-              `Failed to initialize ${dbChannel.channel_type} channel:`,
+              `Failed to initialize ${dbChannel.channelType} channel:`,
               error
             );
           }
@@ -55,14 +68,17 @@ export class NotificationsService {
    * Send a notification about an app update
    */
   async notifyAppUpdate(app: App): Promise<void> {
-    const channels = this.databaseService.getNotificationChannels();
-    const appPreferences = this.databaseService.getAppNotificationPreferences(
-      app.id
-    );
+    const channels = await this.databaseService.notificationChannel.findMany({
+      orderBy: { channelType: "asc" },
+    });
+    const appPreferences =
+      await this.databaseService.appNotificationPreference.findMany({
+        where: { appId: app.id },
+      });
 
     // Create a map of app preferences for quick lookup
     const appPrefsMap = new Map(
-      appPreferences.map((pref) => [pref.channel_type, pref.enabled === 1])
+      appPreferences.map((pref) => [pref.channelType, pref.enabled])
     );
 
     const message = this.formatUpdateMessage(app);
@@ -72,25 +88,25 @@ export class NotificationsService {
 
     for (const dbChannel of channels) {
       // Check if channel is globally enabled
-      if (dbChannel.enabled !== 1) {
+      if (!dbChannel.enabled) {
         continue;
       }
 
       // Check app-specific preference (default to enabled if not set)
-      const appEnabled = appPrefsMap.get(dbChannel.channel_type) ?? true;
+      const appEnabled = appPrefsMap.get(dbChannel.channelType) ?? true;
       if (!appEnabled) {
         this.logger.debug(
-          `Skipping ${dbChannel.channel_type} for app ${app.name} (disabled for this app)`
+          `Skipping ${dbChannel.channelType} for app ${app.name} (disabled for this app)`
         );
         continue;
       }
 
-      const channel = this.channels.get(dbChannel.channel_type);
+      const channel = this.channels.get(dbChannel.channelType);
       if (channel && channel.isConfigured()) {
         notifications.push(
           channel.send(message, subject).catch((error) => {
             this.logger.error(
-              `Failed to send ${dbChannel.channel_type} notification:`,
+              `Failed to send ${dbChannel.channelType} notification:`,
               error
             );
           })
@@ -107,8 +123,8 @@ export class NotificationsService {
   private formatUpdateMessage(app: App): string {
     return `An update is available for ${app.name}!
 
-Current Version: ${app.current_version || "Unknown"}
-Latest Version: ${app.latest_version || "Unknown"}
+Current Version: ${app.versionPreferences?.currentVersion || "Unknown"}
+Latest Version: ${app.versionPreferences?.latestVersion || "Unknown"}
 
 ${app.url ? `App URL: ${app.url}` : ""}`.trim();
   }
@@ -123,14 +139,17 @@ ${app.url ? `App URL: ${app.url}` : ""}`.trim();
     statusCode: number | null,
     errorMessage: string | null
   ): Promise<void> {
-    const channels = this.databaseService.getNotificationChannels();
-    const appPreferences = this.databaseService.getAppNotificationPreferences(
-      app.id
-    );
+    const channels = await this.databaseService.notificationChannel.findMany({
+      orderBy: { channelType: "asc" },
+    });
+    const appPreferences =
+      await this.databaseService.appNotificationPreference.findMany({
+        where: { appId: app.id },
+      });
 
     // Create a map of app preferences for quick lookup
     const appPrefsMap = new Map(
-      appPreferences.map((pref) => [pref.channel_type, pref.enabled === 1])
+      appPreferences.map((pref) => [pref.channelType, pref.enabled])
     );
 
     const message = this.formatPingStatusMessage(
@@ -146,25 +165,25 @@ ${app.url ? `App URL: ${app.url}` : ""}`.trim();
 
     for (const dbChannel of channels) {
       // Check if channel is globally enabled
-      if (dbChannel.enabled !== 1) {
+      if (!dbChannel.enabled) {
         continue;
       }
 
       // Check app-specific preference (default to enabled if not set)
-      const appEnabled = appPrefsMap.get(dbChannel.channel_type) ?? true;
+      const appEnabled = appPrefsMap.get(dbChannel.channelType) ?? true;
       if (!appEnabled) {
         this.logger.debug(
-          `Skipping ${dbChannel.channel_type} for app ${app.name} (disabled for this app)`
+          `Skipping ${dbChannel.channelType} for app ${app.name} (disabled for this app)`
         );
         continue;
       }
 
-      const channel = this.channels.get(dbChannel.channel_type);
+      const channel = this.channels.get(dbChannel.channelType);
       if (channel && channel.isConfigured()) {
         notifications.push(
           channel.send(message, subject).catch((error) => {
             this.logger.error(
-              `Failed to send ${dbChannel.channel_type} notification:`,
+              `Failed to send ${dbChannel.channelType} notification:`,
               error
             );
           })
@@ -186,7 +205,7 @@ ${app.url ? `App URL: ${app.url}` : ""}`.trim();
     errorMessage: string | null
   ): string {
     const status = isUp ? "UP" : "DOWN";
-    const pingUrl = app.ping_url || app.url || "N/A";
+    const pingUrl = app.pingPreferences?.url || app.url || "N/A";
 
     let message = `${app.name} is now ${status}!\n\n`;
     message += `Ping URL: ${pingUrl}\n`;
@@ -209,54 +228,31 @@ ${app.url ? `App URL: ${app.url}` : ""}`.trim();
   }
 
   /**
-   * Get all notification channels with their status
+   * Reinitialize a channel with new configuration
    */
-  getChannels() {
-    const dbChannels = this.databaseService.getNotificationChannels();
-    return dbChannels.map((dbChannel) => {
-      const channel = this.channels.get(dbChannel.channel_type);
-      const config = JSON.parse(dbChannel.config || "{}");
-      return {
-        channel_type: dbChannel.channel_type,
-        enabled: dbChannel.enabled === 1,
-        configured: channel ? channel.isConfigured() : false,
-        config,
-      };
-    });
-  }
-
-  /**
-   * Update channel configuration
-   */
-  async updateChannel(
-    channelType: string,
-    enabled: boolean,
-    config: Record<string, any>
+  async reinitializeChannel(
+    channelType: NotificationChannelType,
+    config: EmailChannelConfig | TelegramChannelConfig
   ): Promise<void> {
-    this.databaseService.updateNotificationChannel(channelType, {
-      enabled,
-      config,
-    });
-
     // Reinitialize the channel
     const channel = this.channels.get(channelType);
     if (channel) {
       if (channel === this.emailChannel) {
-        this.emailChannel.configure(config);
+        this.emailChannel.configure(config as EmailChannelConfig);
       } else if (channel === this.telegramChannel) {
-        this.telegramChannel.configure(config);
+        this.telegramChannel.configure(config as TelegramChannelConfig);
       }
     }
 
-    this.logger.log(`Updated ${channelType} notification channel`);
+    this.logger.log(`Reinitialized ${channelType} notification channel`);
   }
 
   /**
    * Test a notification channel with the provided configuration
    */
   async testChannel(
-    channelType: string,
-    config: Record<string, any>
+    channelType: NotificationChannelType,
+    config: EmailChannelConfig | TelegramChannelConfig
   ): Promise<void> {
     const channel = this.channels.get(channelType);
     if (!channel) {
@@ -265,9 +261,9 @@ ${app.url ? `App URL: ${app.url}` : ""}`.trim();
 
     // Temporarily configure the channel with test config
     if (channel === this.emailChannel) {
-      this.emailChannel.configure(config);
+      this.emailChannel.configure(config as EmailChannelConfig);
     } else if (channel === this.telegramChannel) {
-      this.telegramChannel.configure(config);
+      this.telegramChannel.configure(config as TelegramChannelConfig);
     }
 
     // Check if configured
