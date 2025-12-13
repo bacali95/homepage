@@ -57,5 +57,5 @@ ENV NODE_ENV=production
 ENV PORT=3001
 
 # Start the server using compiled JavaScript
-CMD ["/app/start.sh"]
+ENTRYPOINT [ "/app/start.sh" ]
 
