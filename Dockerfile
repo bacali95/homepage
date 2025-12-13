@@ -19,6 +19,9 @@ RUN yarn install --immutable
 # Copy source files
 COPY . .
 
+# Set dump DATABASE_URL to a dummy value
+ENV DATABASE_URL=file:./data/database.sqlite
+
 # Build both frontend and server
 RUN yarn build
 
