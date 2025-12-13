@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { useNotificationChannels } from "@/lib/use-notifications";
 import type { App } from "@/types";
 
+import { CHANNEL_CONFIGS } from "../notification-channels/config";
+
 export function NotificationPreferencesSection() {
   const form = useFormContext<Partial<App>>();
   const preferences = useWatch({
@@ -97,38 +99,41 @@ export function NotificationPreferencesSection() {
         </p>
       ) : (
         <div className="space-y-2">
-          {enabledChannels.map((channel) => (
-            <Card key={channel.channelType} className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-base font-medium">
-                    {channel.channelType.charAt(0).toUpperCase() +
-                      channel.channelType.slice(1)}
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    {channel.config !== "{}"
-                      ? "Configured and ready"
-                      : "Not configured"}
-                  </p>
+          {enabledChannels.map((channel) => {
+            const channelConfig = CHANNEL_CONFIGS[channel.channelType];
+
+            return (
+              <Card key={channel.channelType} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">
+                      {channelConfig.label}
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      {channel.config !== "{}"
+                        ? "Configured and ready"
+                        : "Not configured"}
+                    </p>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={localPreferences[channel.channelType] ?? true}
+                      onChange={(e) =>
+                        handleToggle(channel.channelType, e.target.checked)
+                      }
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">
+                      {(localPreferences[channel.channelType] ?? true)
+                        ? "Enabled"
+                        : "Disabled"}
+                    </span>
+                  </label>
                 </div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={localPreferences[channel.channelType] ?? true}
-                    onChange={(e) =>
-                      handleToggle(channel.channelType, e.target.checked)
-                    }
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm">
-                    {(localPreferences[channel.channelType] ?? true)
-                      ? "Enabled"
-                      : "Disabled"}
-                  </span>
-                </label>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
