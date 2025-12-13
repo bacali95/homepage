@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.4](https://github.com/bacali95/homepage/compare/v2.0.3...v2.0.4) (2025-12-13)
+
+
+### Features
+
+* **NotificationPreferences:** Integrate channel configurations into notification preferences display ([989cece](https://github.com/bacali95/homepage/commit/989cecece373738991f1b5774fe71aa107c7a55c))
+
 ### [2.0.3](https://github.com/bacali95/homepage/compare/v2.0.2...v2.0.3) (2025-12-13)
 
 
