@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.1](https://github.com/bacali95/homepage/compare/v2.0.0...v2.0.1) (2025-12-13)
+
+
+### Bug Fixes
+
+* **Dockerfile:** Update CMD instruction to use absolute path for start script ([f1a0239](https://github.com/bacali95/homepage/commit/f1a0239ae79c4e488dd7e7745450232b236b2959))
+
 ## [2.0.0](https://github.com/bacali95/homepage/compare/v1.12.1...v2.0.0) (2025-12-13)
 
 
