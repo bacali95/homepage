@@ -30,7 +30,7 @@ export function PingHistoryDialog({
     data: [history, total] = [[], 0],
     isLoading,
     isFetching,
-  } = useAppPingHistory(appId, PAGE_SIZE, offset);
+  } = useAppPingHistory(appId, PAGE_SIZE, offset, open);
 
   const hasMore = offset + PAGE_SIZE < total;
   const hasPrevious = offset > 0;

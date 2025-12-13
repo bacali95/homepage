@@ -97,6 +97,7 @@ export const appHandler = {
         where: { appId },
         skip: offset,
         take: pageSize,
+        orderBy: { createdAt: "desc" },
       }),
       prisma.pingHistory.count({ where: { appId } }),
     ])

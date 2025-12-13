@@ -111,10 +111,13 @@ export function useAppPingStatus(appId: number) {
 export function useAppPingHistory(
   appId: number,
   pageSize: number,
-  offset: number
+  offset: number,
+  open: boolean
 ) {
   return useQuery({
-    queryKey: ["ping-history", appId],
+    queryKey: ["ping-history", appId, offset],
     queryFn: () => api.app.getPingHistory({ appId, pageSize, offset }),
+    enabled: open,
+    placeholderData: (prevData) => prevData,
   });
 }
