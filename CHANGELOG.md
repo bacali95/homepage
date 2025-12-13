@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.5](https://github.com/bacali95/homepage/compare/v2.0.4...v2.0.5) (2025-12-13)
+
+
+### Bug Fixes
+
+* **PingHistory:** Enhance ping history retrieval with ordering and open state management ([7225087](https://github.com/bacali95/homepage/commit/7225087fa6520b12a5db92ec4012331b34e04b49))
+
 ### [2.0.4](https://github.com/bacali95/homepage/compare/v2.0.3...v2.0.4) (2025-12-13)
 
 
