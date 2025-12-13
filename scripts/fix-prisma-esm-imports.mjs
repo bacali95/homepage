@@ -11,11 +11,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const PRISMA_GENERATED_DIR = join(__dirname, "../shared/generated/client");
-const PRISMA_COMPILED_DIR = join(
-  __dirname,
-  "../dist-server/shared/generated/client"
-);
+const PRISMA_GENERATED_DIR = join(__dirname, "../generated/client");
+const PRISMA_COMPILED_DIR = join(__dirname, "../dist-server/generated/client");
 
 async function isFile(path) {
   try {

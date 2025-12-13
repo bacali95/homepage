@@ -1,7 +1,7 @@
-#! /bin/bash
+#!/bin/sh
 
 # Deploy database migrations
-yarn prisma deploy
+./node_modules/.bin/prisma migrate deploy
 
 # Start the server
-node dist-server/main.js
+node ./dist-server/server/main.js

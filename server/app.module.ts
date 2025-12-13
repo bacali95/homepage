@@ -30,7 +30,7 @@ const __dirname = dirname(__filename);
     PingModule,
     RpcModule,
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, "../dist"),
+      rootPath: join(__dirname, "../../dist"),
       serveStaticOptions: {
         cacheControl: true,
         maxAge: 31536000,
