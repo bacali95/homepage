@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/bacali95/homepage/compare/v1.12.1...v2.0.0) (2025-12-13)
+
+
+### Features
+
+* Enhance application structure and functionality ([a125ed9](https://github.com/bacali95/homepage/commit/a125ed95104e21ae7a8429ab7fbad0184148543b))
+
+
+### Bug Fixes
+
+* **prisma:** Update client output path in schema.prisma for correct generation location ([e7d2cf0](https://github.com/bacali95/homepage/commit/e7d2cf083c0b5130faa4c6e480fc01c95796fa85))
+
 ### [1.12.1](https://github.com/bacali95/homepage/compare/v1.12.0...v1.12.1) (2025-12-09)
 
 
