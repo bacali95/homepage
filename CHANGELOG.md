@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.7](https://github.com/bacali95/homepage/compare/v2.0.6...v2.0.7) (2025-12-14)
+
+
+### Features
+
+* **useTheme:** Refactor theme handling to improve responsiveness to system preferences ([9549198](https://github.com/bacali95/homepage/commit/9549198e0c683d8f3a3c0569685a440cf92a32c3))
+
 ### [2.0.6](https://github.com/bacali95/homepage/compare/v2.0.5...v2.0.6) (2025-12-14)
 
 ### [2.0.5](https://github.com/bacali95/homepage/compare/v2.0.4...v2.0.5) (2025-12-13)
