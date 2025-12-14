@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 export type Theme = "light" | "dark" | "system";
 
+export const THEME_MEDIA_QUERY = "(prefers-color-scheme: dark)";
+
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     // Get theme from localStorage or default to system
@@ -9,44 +11,35 @@ export function useTheme() {
     return stored || "system";
   });
 
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() => {
-    if (theme === "system") {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    }
-    return theme;
-  });
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(
+    theme === "system" ? getSystemTheme() : theme
+  );
 
   useEffect(() => {
-    const root = document.documentElement;
-
-    // Remove existing theme classes
-    root.classList.remove("light", "dark");
-
-    // Apply the resolved theme
-    root.classList.add(resolvedTheme);
+    if (resolvedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }, [resolvedTheme]);
 
   useEffect(() => {
-    // Update resolved theme when theme preference changes
-    if (theme === "system") {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      const updateResolvedTheme = (event?: MediaQueryListEvent) => {
-        setResolvedTheme((event ?? mediaQuery).matches ? "dark" : "light");
-      };
-
-      // Set initial value
-      updateResolvedTheme();
-
-      // Listen for changes
-      mediaQuery.addEventListener("change", updateResolvedTheme);
-      return () =>
-        mediaQuery.removeEventListener("change", updateResolvedTheme);
-    } else {
+    if (theme !== "system") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setResolvedTheme(theme);
+      return;
     }
+
+    setResolvedTheme(getSystemTheme());
+
+    const handleMediaQuery = (e: MediaQueryListEvent | MediaQueryList) =>
+      setResolvedTheme(getSystemTheme(e));
+
+    const mediaQuery = window.matchMedia(THEME_MEDIA_QUERY);
+
+    mediaQuery.addEventListener("change", handleMediaQuery);
+
+    return () => mediaQuery.removeEventListener("change", handleMediaQuery);
   }, [theme]);
 
   const setThemeWithStorage = (newTheme: Theme) => {
@@ -59,4 +52,12 @@ export function useTheme() {
     resolvedTheme,
     setTheme: setThemeWithStorage,
   };
+}
+
+function getSystemTheme(e?: MediaQueryList | MediaQueryListEvent) {
+  if (typeof window === "undefined") return "light";
+
+  if (!e) e = window.matchMedia(THEME_MEDIA_QUERY);
+
+  return e.matches ? "dark" : "light";
 }
