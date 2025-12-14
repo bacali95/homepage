@@ -59,7 +59,7 @@
     "rxjs": "^7.8.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
-    "typesafe-rpc": "^0.0.8"
+    "typesafe-rpc": "^0.0.15"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

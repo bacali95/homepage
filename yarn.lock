@@ -7702,7 +7702,7 @@ __metadata:
     tailwind-merge: "npm:^3.4.0"
     tailwindcss: "npm:^4.1.17"
     tsx: "npm:^4.21.0"
-    typesafe-rpc: "npm:^0.0.8"
+    typesafe-rpc: "npm:^0.0.15"
     typescript: "npm:^5.9.3"
     typescript-eslint: "npm:^8.49.0"
     vite: "npm:^7.2.7"
@@ -11861,10 +11861,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typesafe-rpc@npm:^0.0.8":
-  version: 0.0.8
-  resolution: "typesafe-rpc@npm:0.0.8"
-  checksum: 10c0/fef10286e396a601a1c58bb44593eaceca4e54f046487f2c842f7a32e644848eedf7f729917f4f88cd976822ba344cbb1f4f46f33b2dc129cd40dbac9cb6e01e
+"typesafe-rpc@npm:^0.0.15":
+  version: 0.0.15
+  resolution: "typesafe-rpc@npm:0.0.15"
+  checksum: 10c0/04b971c29f65473fe83625c22bb5789637de061ce62fe3abd59500a85061f1f7dd610473fe5ee8ffe727d6a3afccb320e53f1fe1053854e2b8b0b0c8c9b81a2f
   languageName: node
   linkType: hard
 
