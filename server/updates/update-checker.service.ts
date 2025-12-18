@@ -4,7 +4,7 @@ import type { App } from "../../src/types.js";
 import { AppsService } from "../apps/apps.service.js";
 import { DatabaseService } from "../database/database.service.js";
 import { NotificationsService } from "../notifications/notifications.service.js";
-import { isVersionsDifferent } from "../tags-fetchers/common.js";
+import { compareVersions } from "../tags-fetchers/common.js";
 import { DockerhubFetcherService } from "../tags-fetchers/dockerhub-fetcher.service.js";
 import { GhcrFetcherService } from "../tags-fetchers/ghcr-fetcher.service.js";
 import { GithubReleasesFetcherService } from "../tags-fetchers/github-releases-fetcher.service.js";
@@ -32,22 +32,29 @@ export class UpdateCheckerService {
       return null;
     }
 
+    const versionExtractionRegex =
+      app.versionPreferences.versionExtractionRegex;
+
     if (app.versionPreferences.sourceType === "DOCKER_HUB") {
       return await this.dockerhubFetcherService.getLatestTag(
-        app.versionPreferences.sourceRepo
+        app.versionPreferences.sourceRepo,
+        versionExtractionRegex
       );
     } else if (app.versionPreferences.sourceType === "GHCR") {
       return await this.ghcrFetcherService.getLatestTag(
-        app.versionPreferences.sourceRepo
+        app.versionPreferences.sourceRepo,
+        versionExtractionRegex
       );
     } else if (app.versionPreferences.sourceType === "K8S_REGISTRY") {
       return await this.k8sRegistryFetcherService.getLatestTag(
-        app.versionPreferences.sourceRepo
+        app.versionPreferences.sourceRepo,
+        versionExtractionRegex
       );
     } else {
       // Default to GitHub Releases
       return await this.githubReleasesFetcherService.getLatestTag(
-        app.versionPreferences.sourceRepo
+        app.versionPreferences.sourceRepo,
+        versionExtractionRegex
       );
     }
   }
@@ -62,10 +69,13 @@ export class UpdateCheckerService {
   ): Promise<void> {
     const hadUpdate = app.versionPreferences?.hasUpdate;
 
+    const versionExtractionRegex =
+      app.versionPreferences?.versionExtractionRegex;
+
     if (
       latestVersion &&
       runningVersion &&
-      isVersionsDifferent(latestVersion, runningVersion)
+      compareVersions(latestVersion, runningVersion, versionExtractionRegex) < 0
     ) {
       await this.databaseService.app.update({
         where: { id: app.id },

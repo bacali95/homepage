@@ -35,6 +35,7 @@ const initialFormData: Partial<App> = {
     currentVersion: null,
     latestVersion: null,
     hasUpdate: false,
+    versionExtractionRegex: null,
   },
   pingPreferences: {
     appId: 0,

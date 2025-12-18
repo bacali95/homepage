@@ -86,6 +86,32 @@ export function VersionManagementSection() {
               Specify the namespace to search for the pod
             </p>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="version_extraction_regex">
+              Version Extraction Regex (Optional)
+            </Label>
+            <Input
+              id="version_extraction_regex"
+              value={
+                form.watch("versionPreferences.versionExtractionRegex") || ""
+              }
+              onChange={(e) =>
+                form.setValue(
+                  "versionPreferences.versionExtractionRegex",
+                  e.target.value || null
+                )
+              }
+              placeholder="e.g., (\d+)\.(\d+)\.(\d+)-beta\.(\d+)"
+            />
+            <p className="text-xs text-muted-foreground">
+              Custom regex pattern to extract version numbers for comparison.
+              Use capture groups to extract numbers. For example, for versions
+              like &quot;v4.0.0-beta.455&quot;, use a pattern like
+              &quot;(\d+)\.(\d+)\.(\d+)-beta\.(\d+)&quot;. Do not include
+              forward slashes. Leave empty to use default extraction.
+            </p>
+          </div>
         </div>
       </div>
     </Card>

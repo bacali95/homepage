@@ -29,7 +29,10 @@ export class DockerhubFetcherService {
     transformResponse: (data) => data.results.map((result) => result.name),
   });
 
-  getLatestTag(repo: string): Promise<string | null> {
-    return this.fetcher(repo);
+  getLatestTag(
+    repo: string,
+    versionExtractionRegex: string | undefined | null
+  ): Promise<string | null> {
+    return this.fetcher(repo, versionExtractionRegex);
   }
 }

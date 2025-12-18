@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 
 import type { AppVersionPreference } from "../../generated/client/client.js";
 import { DatabaseService } from "../database/database.service.js";
-import { isVersionsDifferent } from "../tags-fetchers/common.js";
+import { compareVersions } from "../tags-fetchers/common.js";
 import { K8sPodsService } from "./k8s-pods.service.js";
 
 @Injectable()
@@ -38,10 +38,11 @@ export class AppsService {
         const version = await this.getRunningVersion(app.versionPreferences);
         if (
           version &&
-          isVersionsDifferent(
+          compareVersions(
             version,
-            app.versionPreferences.currentVersion ?? ""
-          )
+            app.versionPreferences.currentVersion ?? "",
+            app.versionPreferences.versionExtractionRegex
+          ) != 0
         ) {
           await this.databaseService.appVersionPreference.update({
             where: { appId: app.id },

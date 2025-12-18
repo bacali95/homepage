@@ -10,16 +10,27 @@ const log = new Logger("TagsFetcher");
  * Check if a tag matches semantic versioning format
  * Matches: 1.0.0, v1.0.0, 1.2.3-beta, 2.0.0-rc.1, 1.0.0+build.1, etc.
  */
-export function isSemver(tag: string): boolean {
-  const semverPattern = /^v?(\d+)\.(\d+)\.(\d+)$/i;
+export function isSemver(
+  tag: string,
+  versionExtractionRegex: string | undefined | null
+): boolean {
+  const semverPattern = versionExtractionRegex
+    ? new RegExp(versionExtractionRegex)
+    : /^v?(\d+)\.(\d+)\.(\d+)$/i;
   return semverPattern.test(tag);
 }
 
 /**
  * Extract the semantic version from a tag
  */
-export function extractSemverFromTag(tag: string): string {
-  const semverPattern = /v?(\d+)\.(\d+)\.(\d+)/i;
+export function extractSemverFromTag(
+  tag: string,
+  versionExtractionRegex: string | undefined | null
+): string {
+  const semverPattern = versionExtractionRegex
+    ? new RegExp(versionExtractionRegex)
+    : /v?(\d+)\.(\d+)\.(\d+)/i;
+
   const match = tag.match(semverPattern);
   return match ? match[0] : tag;
 }
@@ -47,15 +58,107 @@ export function normalizePath(
 /**
  * Filter tags to exclude 'latest' and only keep semver-formatted tags
  */
-export function filterSemverTags(tags: string[]): string[] {
-  return tags.filter((tag) => tag !== "latest" && isSemver(tag));
+export function filterSemverTags(
+  tags: string[],
+  versionExtractionRegex: string | undefined | null
+): string[] {
+  return tags.filter(
+    (tag) => tag !== "latest" && isSemver(tag, versionExtractionRegex)
+  );
+}
+
+/**
+ * Extract version numbers from a tag using a custom regex
+ * The regex should capture groups of digits that represent version numbers
+ * Returns an array of numbers extracted from the tag
+ */
+export function extractVersionNumbers(
+  tag: string,
+  regex: string | undefined | null
+): number[] {
+  if (!regex) {
+    // Default behavior: extract all numbers from the tag
+    const matches = tag.match(/\d+/g);
+    return matches ? matches.map((m) => parseInt(m, 10)) : [];
+  }
+
+  try {
+    const regexObj = new RegExp(regex);
+    const match = tag.match(regexObj);
+
+    if (!match) {
+      // No match found, fallback to default extraction
+      const matches = tag.match(/\d+/g);
+      return matches ? matches.map((m) => parseInt(m, 10)) : [];
+    }
+
+    const numbers: number[] = [];
+
+    // Check if regex has capture groups (match.length > 1 means we have groups)
+    if (match.length > 1) {
+      // Extract all captured groups (skip index 0 which is the full match)
+      for (let i = 1; i < match.length; i++) {
+        const group = match[i];
+        if (group !== undefined && group !== null) {
+          const num = parseInt(group, 10);
+          if (!isNaN(num)) {
+            numbers.push(num);
+          }
+        }
+      }
+    } else {
+      // No capture groups, extract all numbers from the full match
+      const fullMatch = match[0];
+      if (fullMatch) {
+        const numberMatches = fullMatch.match(/\d+/g);
+        if (numberMatches) {
+          numbers.push(...numberMatches.map((m) => parseInt(m, 10)));
+        }
+      }
+    }
+
+    return numbers.length > 0 ? numbers : [];
+  } catch (error) {
+    log.warn(
+      `Invalid regex pattern "${regex}": ${error}. Falling back to default extraction.`
+    );
+    // Fallback to default behavior
+    const matches = tag.match(/\d+/g);
+    return matches ? matches.map((m) => parseInt(m, 10)) : [];
+  }
 }
 
 /**
  * Compare two semantic version strings
  * Returns: negative if a > b, positive if a < b, 0 if equal
+ * @param a First version string
+ * @param b Second version string
+ * @param versionExtractionRegex Optional regex to extract version numbers for comparison
  */
-export function compareVersions(a: string, b: string): number {
+export function compareVersions(
+  a: string,
+  b: string,
+  versionExtractionRegex: string | undefined | null
+): number {
+  // If custom regex is provided, use it to extract numbers
+  if (versionExtractionRegex) {
+    const aNumbers = extractVersionNumbers(a, versionExtractionRegex);
+    const bNumbers = extractVersionNumbers(b, versionExtractionRegex);
+
+    // Compare the extracted numbers
+    const maxLength = Math.max(aNumbers.length, bNumbers.length);
+    for (let i = 0; i < maxLength; i++) {
+      const aNum = aNumbers[i] ?? 0;
+      const bNum = bNumbers[i] ?? 0;
+
+      if (aNum < bNum) return 1;
+      if (aNum > bNum) return -1;
+    }
+
+    return 0;
+  }
+
+  // Default behavior: original comparison logic
   // Remove 'v' prefix if present
   const aClean = a.replace(/^v/i, "");
   const bClean = b.replace(/^v/i, "");
@@ -86,14 +189,6 @@ export function compareVersions(a: string, b: string): number {
   }
 
   return 0;
-}
-
-/**
- * Check if two semantic version strings are different
- * Returns: true if a > b or a < b, false if equal
- */
-export function isVersionsDifferent(a: string, b: string): boolean {
-  return compareVersions(a, b) !== 0;
 }
 
 /**
@@ -161,7 +256,10 @@ export interface FetcherConfig<TResponse> {
   /** Function to create request headers */
   getHeaders?: () => HeadersInit;
   /** Function to transform API response to Tag array */
-  transformResponse: (response: TResponse, originalPath: string) => string[];
+  transformResponse: (
+    response: TResponse,
+    versionExtractionRegex: string | undefined | null
+  ) => string[];
 }
 
 /**
@@ -169,7 +267,10 @@ export interface FetcherConfig<TResponse> {
  */
 export interface TagsFetcher {
   /** Fetch all tags */
-  (source: string): Promise<string | null>;
+  (
+    source: string,
+    versionExtractionRegex: string | undefined | null
+  ): Promise<string | null>;
 }
 
 /**
@@ -186,7 +287,10 @@ export function createTagsFetcher<TResponse>(
     transformResponse,
   } = config;
 
-  async function fetchTags(source: string): Promise<string[]> {
+  async function fetchTags(
+    source: string,
+    versionExtractionRegex: string | undefined | null
+  ): Promise<string[]> {
     try {
       const normalizedPath = normalizePath(source, pathReplacements);
       const url = buildUrl(normalizedPath);
@@ -201,13 +305,13 @@ export function createTagsFetcher<TResponse>(
       }
 
       const data: TResponse = await response.json();
-      let tags = transformResponse(data, source);
+      let tags = transformResponse(data, versionExtractionRegex);
 
       // Apply filtering
-      tags = filterSemverTags(tags);
+      tags = filterSemverTags(tags, versionExtractionRegex);
 
-      // Sort tags by name
-      tags = tags.sort((a, b) => compareVersions(a, b));
+      // Sort tags by name using custom regex if provided
+      tags = tags.sort((a, b) => compareVersions(a, b, versionExtractionRegex));
 
       return tags;
     } catch (error) {
@@ -220,8 +324,11 @@ export function createTagsFetcher<TResponse>(
     }
   }
 
-  return async function getLatestTag(source: string): Promise<string | null> {
-    const tags = await fetchTags(source);
+  return async function getLatestTag(
+    source: string,
+    versionExtractionRegex: string | undefined | null
+  ): Promise<string | null> {
+    const tags = await fetchTags(source, versionExtractionRegex);
     return tags.length > 0 ? tags[0] : null;
   };
 }

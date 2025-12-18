@@ -42,14 +42,15 @@ model App {
 }
 
 model AppVersionPreference {
-  enabled            Boolean            @default(true)
-  sourceType         SourceType
-  sourceRepo         String
-  runningEnvironment RunningEnvironment
-  runningConfig      String // JSON string
-  currentVersion     String?
-  latestVersion      String?
-  hasUpdate          Boolean            @default(false)
+  enabled                Boolean            @default(true)
+  sourceType             SourceType
+  sourceRepo             String
+  runningEnvironment     RunningEnvironment
+  runningConfig          String // JSON string
+  currentVersion         String?
+  latestVersion          String?
+  hasUpdate              Boolean            @default(false)
+  versionExtractionRegex String?
 
   appId Int @unique
   app   App @relation(fields: [appId], references: [id], onDelete: Cascade)

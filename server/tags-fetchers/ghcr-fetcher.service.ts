@@ -55,7 +55,10 @@ export class GhcrFetcherService {
         .flatMap((version) => version.metadata?.container?.tags ?? []),
   });
 
-  getLatestTag(repo: string): Promise<string | null> {
-    return this.fetcher(repo);
+  getLatestTag(
+    repo: string,
+    versionExtractionRegex: string | null
+  ): Promise<string | null> {
+    return this.fetcher(repo, versionExtractionRegex);
   }
 }
