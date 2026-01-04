@@ -41,7 +41,7 @@ jobs:
         run: bun format:check
 
       - name: Build
-        run: bun build
+        run: bun run build
 
       - name: Read version from package.json
         id: version
