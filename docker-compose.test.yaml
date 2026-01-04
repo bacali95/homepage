@@ -2,7 +2,7 @@ services:
   homepage:
     build:
       context: .
-      dockerfile: Dockerfile.test
+      dockerfile: Dockerfile
     ports:
       - 3001:3001
     environment:

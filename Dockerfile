@@ -1,33 +1,13 @@
 # Multi-stage build for Homelab Homepage
-FROM oven/bun:1.3.5 AS builder
+FROM oven/bun:1.3.5 AS dependencies
 
 WORKDIR /app
-
-# Install build dependencies for native modules (libsql)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    make \
-    g++ \
-    libsqlite3-dev \
-    && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package.json bun.lock* ./
 
 # Install all dependencies (needed for build)
-RUN bun install --frozen-lockfile
-
-# Copy source files
-COPY . .
-
-# Set dump DATABASE_URL to a dummy value
-ENV DATABASE_URL=file:./data/database.sqlite
-
-# Build both frontend and server
-RUN bun run build
-
-# Install production dependencies only (after build, replace node_modules)
-RUN bun install --production --frozen-lockfile
+RUN bun install --frozen-lockfile --production
 
 # Production stage
 FROM oven/bun:1.3.5
@@ -40,18 +20,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy built frontend and server from builder stage
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/dist-server ./dist-server
+COPY ./dist ./dist
+COPY ./dist-server ./dist-server
 
 # Copy node_modules from builder stage
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=dependencies /app/node_modules ./node_modules
 
 # Copy prisma schema from builder stage
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts .
+COPY ./prisma ./prisma
+COPY ./prisma.config.ts .
 
 # Copy start script
-COPY --from=builder /app/start.sh .
+COPY ./start.sh .
 RUN chmod +x /app/start.sh
 
 # Create data directory for SQLite database
