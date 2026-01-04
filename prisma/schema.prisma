@@ -2,8 +2,11 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/client"
+  provider               = "prisma-client"
+  output                 = "../generated/client"
+  runtime                = "bun"
+  generatedFileExtension = "ts"
+  importFileExtension    = "js"
 }
 
 datasource db {

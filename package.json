@@ -2,15 +2,15 @@
   "name": "homelab-homepage",
   "version": "2.1.0",
   "type": "module",
-  "packageManager": "yarn@4.12.0",
+  "packageManager": "bun@1.3.5",
   "scripts": {
-    "dev": "concurrently \"yarn dev:server\" \"yarn dev:client\"",
+    "dev": "concurrently \"bun --bun dev:server\" \"bun --bun dev:client\"",
     "dev:client": "vite",
     "dev:server": "nest start --watch",
-    "build": "yarn prisma:generate && yarn build:client && yarn build:server",
+    "build": "bun prisma:generate && bun build:client && bun build:server",
     "build:client": "vite build",
-    "build:server": "nest build && node scripts/fix-prisma-esm-imports.mjs",
-    "prisma:generate": "prisma generate && node scripts/fix-prisma-esm-imports.mjs",
+    "build:server": "nest build",
+    "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "preview": "vite preview",
@@ -19,8 +19,6 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint": "eslint \"**/*.{ts,tsx,js,jsx}\"",
     "lint:fix": "eslint \"**/*.{ts,tsx,js,jsx}\" --fix",
-    "deduplicate": "yarn-berry-deduplicate && yarn",
-    "deduplicate:list": "yarn-berry-deduplicate -l",
     "version": "standard-version",
     "version:patch": "standard-version --release-as patch",
     "version:minor": "standard-version --release-as minor",
@@ -35,11 +33,10 @@
     "@nestjs/platform-express": "^11.1.9",
     "@nestjs/schedule": "^6.1.0",
     "@nestjs/serve-static": "^5.0.4",
-    "@prisma/adapter-better-sqlite3": "^7.1.0",
+    "@prisma/adapter-libsql": "^7.2.0",
     "@prisma/client": "^7.1.0",
     "@radix-ui/react-toast": "^1.2.15",
     "@tanstack/react-query": "^5.90.12",
-    "better-sqlite3": "^12.5.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "class-variance-authority": "^0.7.1",
@@ -67,7 +64,6 @@
     "@nestjs/cli": "^11.0.14",
     "@nestjs/schematics": "^11.0.9",
     "@tailwindcss/postcss": "^4.1.17",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^24.10.2",
@@ -92,11 +88,6 @@
     "typescript-eslint": "^8.49.0",
     "vite": "^7.2.7",
     "vite-plugin-checker": "^0.12.0",
-    "vite-tsconfig-paths": "^5.1.4",
-    "yarn-berry-deduplicate": "^6.1.3"
-  },
-  "volta": {
-    "node": "24.11.1",
-    "yarn": "4.12.0"
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }

@@ -8,8 +8,7 @@ export class K8sPodsService {
 
   constructor() {
     const kc = new k8s.KubeConfig();
-    // This will use ~/.kube/config or KUBECONFIG env var
-    kc.loadFromDefault();
+    kc.loadFromCluster();
     this.k8sApi = kc.makeApiClient(k8s.CoreV1Api);
   }
 

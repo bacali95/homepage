@@ -1,20 +1,21 @@
 # Multi-stage build for Homelab Homepage
-FROM node:24-alpine AS builder
+FROM oven/bun:1.3.5 AS builder
 
 WORKDIR /app
 
-# Install build dependencies for native modules (better-sqlite3)
-RUN apk add --no-cache python3 make g++ sqlite-dev
-
-# Enable corepack for Yarn
-RUN corepack enable && corepack prepare yarn@4.11.0 --activate
+# Install build dependencies for native modules (libsql)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
-COPY package.json yarn.lock .yarnrc.yml* ./
-COPY .yarn ./.yarn
+COPY package.json bun.lock* ./
 
 # Install all dependencies (needed for build)
-RUN yarn install --immutable
+RUN bun install --frozen-lockfile
 
 # Copy source files
 COPY . .
@@ -23,16 +24,18 @@ COPY . .
 ENV DATABASE_URL=file:./data/database.sqlite
 
 # Build both frontend and server
-RUN yarn build
+RUN bun run build
 
 # Install production dependencies only (after build, replace node_modules)
-RUN yarn workspaces focus --production
+RUN bun install --production --frozen-lockfile
 
 # Production stage
-FROM node:24-alpine
+FROM oven/bun:1.3.5
 
-# Install SQLite runtime libraries for better-sqlite3
-RUN apk add --no-cache sqlite-libs
+# Install SQLite runtime libraries for libsql
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libsqlite3-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

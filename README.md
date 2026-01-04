@@ -15,20 +15,20 @@ A homepage application for managing and displaying your homelab services running
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Bun 1.0+ ([Install Bun](https://bun.sh/docs/installation))
 
 ### Installation
 
 1. Install dependencies:
 
 ```bash
-npm install
+bun install
 ```
 
 2. Start the development servers (both frontend and backend):
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 This will start:
@@ -99,13 +99,13 @@ The app periodically checks GitHub for new releases and displays update notifica
 1. Build the frontend:
 
 ```bash
-npm run build
+bun run build
 ```
 
 2. Start the production server:
 
 ```bash
-npm start
+bun start
 ```
 
 The frontend will be served from the `dist/` directory, and the API will run on port 3001 (or the PORT environment variable).
@@ -123,25 +123,25 @@ We use [standard-version](https://github.com/conventional-changelog/standard-ver
 For a patch release (bug fixes):
 
 ```bash
-yarn version:patch
+bun run version:patch
 ```
 
 For a minor release (new features):
 
 ```bash
-yarn version:minor
+bun run version:minor
 ```
 
 For a major release (breaking changes):
 
 ```bash
-yarn version:major
+bun run version:major
 ```
 
 For a prerelease:
 
 ```bash
-yarn version:prerelease
+bun run version:prerelease
 ```
 
 #### Manual Version Bump
@@ -149,7 +149,7 @@ yarn version:prerelease
 If you want to specify a specific version:
 
 ```bash
-yarn version
+bun run version
 ```
 
 This will:
@@ -170,7 +170,7 @@ git push --follow-tags origin main
 Or use the release script:
 
 ```bash
-yarn release
+bun run release
 ```
 
 ### Docker Image Tags
