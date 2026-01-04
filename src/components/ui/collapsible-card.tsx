@@ -19,10 +19,10 @@ export function CollapsibleCard({
   className,
 }: CollapsibleCardProps) {
   return (
-    <Card className={className || "p-4 sm:p-6"}>
+    <Card className={className || "p-4 md:p-6"}>
       {/* Header - Clickable */}
       <div
-        className="flex items-center gap-2 sm:gap-3 cursor-pointer"
+        className="flex items-center gap-2 md:gap-3 cursor-pointer"
         onClick={onToggleExpanded}
       >
         <div className="flex-1 min-w-0">{header}</div>
@@ -46,7 +46,7 @@ export function CollapsibleCard({
       {/* Expandable content */}
       {isExpanded && (
         <div
-          className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t"
+          className="mt-4 md:mt-6 pt-4 md:pt-6 border-t"
           onClick={(e) => e.stopPropagation()}
         >
           {children}

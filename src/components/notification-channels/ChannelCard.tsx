@@ -65,7 +65,7 @@ export function ChannelCard({
           result.push(
             <div
               key={`group-${index}`}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
               {currentGroup.map((f) => (
                 <FormField
@@ -105,7 +105,7 @@ export function ChannelCard({
       result.push(
         <div
           key="group-final"
-          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
           {currentGroup.map((f) => (
             <FormField
@@ -127,11 +127,11 @@ export function ChannelCard({
   };
 
   const header = (
-    <div className="flex items-center gap-2 sm:gap-3">
-      <Icon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+    <div className="flex items-center gap-2 md:gap-3">
+      <Icon className="h-4 w-4 md:h-5 md:w-5 shrink-0" />
       <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <h3 className="text-xl sm:text-2xl font-semibold">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
+          <h3 className="text-xl md:text-2xl font-semibold">
             {channelConfig.label}
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
@@ -143,26 +143,21 @@ export function ChannelCard({
                 Configured
               </Badge>
             )}
-            {enabled && (
-              <Badge variant="default" className="text-xs">
-                Enabled
-              </Badge>
-            )}
           </div>
         </div>
       </div>
       <div
-        className="flex items-center gap-2 sm:gap-3 shrink-0"
+        className="flex items-center gap-2 md:gap-3 shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
-        <label className="flex items-center gap-1.5 sm:gap-2 cursor-pointer">
+        <label className="flex items-center gap-1.5 md:gap-2 cursor-pointer">
           <input
             type="checkbox"
             checked={enabled}
             onChange={(e) => onEnabledChange(e.target.checked)}
             className="w-4 h-4"
           />
-          <span className="text-xs sm:text-sm whitespace-nowrap">Enable</span>
+          <span className="text-xs md:text-sm whitespace-nowrap">Enable</span>
         </label>
       </div>
     </div>
@@ -176,12 +171,12 @@ export function ChannelCard({
     >
       <div className="space-y-4">{renderFields()}</div>
 
-      <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
+      <div className="mt-6 flex flex-col md:flex-row justify-end gap-2">
         <Button
           variant="outline"
           onClick={onTest}
           disabled={isTesting || isSaving}
-          className="w-full sm:w-auto"
+          className="w-full md:w-auto"
         >
           <Send className="mr-2 h-4 w-4" />
           {isTesting ? "Sending..." : "Test"}
@@ -189,7 +184,7 @@ export function ChannelCard({
         <Button
           onClick={onSave}
           disabled={isSaving || isTesting}
-          className="w-full sm:w-auto"
+          className="w-full md:w-auto"
         >
           <Save className="mr-2 h-4 w-4" />
           {isSaving ? "Saving..." : "Save"}

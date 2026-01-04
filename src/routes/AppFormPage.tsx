@@ -111,7 +111,7 @@ export function AppFormPage() {
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
       <div className="mb-8">
         <div className="flex items-center justify-between gap-4 mb-2">
-          <h1 className="text-2xl sm:text-3xl font-bold">
+          <h1 className="text-2xl md:text-3xl font-bold">
             {app?.id ? "Edit App" : "Add New App"}
           </h1>
           <div className="flex items-center gap-2">
@@ -127,14 +127,14 @@ export function AppFormPage() {
         </p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col md:flex-row gap-6">
         {/* Sidebar */}
-        <aside className="w-full lg:w-64 shrink-0">
-          <div className="lg:sticky lg:top-4">
-            <nav className="flex flex-row lg:flex-col gap-2 lg:gap-1 overflow-x-auto lg:overflow-x-visible">
+        <aside className="w-full md:w-64 shrink-0">
+          <div className="md:sticky md:top-4">
+            <nav className="flex flex-row md:flex-col gap-2 md:gap-1 overflow-x-auto md:overflow-x-visible">
               <Button
                 variant={isBasic ? "secondary" : "ghost"}
-                className="sm:w-full justify-start shrink-0 lg:shrink"
+                className="md:w-full justify-start shrink-0 md:shrink"
                 type="button"
                 onClick={() => navigate(basePath)}
               >
@@ -143,7 +143,7 @@ export function AppFormPage() {
               </Button>
               <Button
                 variant={isVersion ? "secondary" : "ghost"}
-                className="sm:w-full justify-start shrink-0 lg:shrink"
+                className="md:w-full justify-start shrink-0 md:shrink"
                 type="button"
                 onClick={() => navigate(`${basePath}/version`)}
               >
@@ -152,7 +152,7 @@ export function AppFormPage() {
               </Button>
               <Button
                 variant={isPing ? "secondary" : "ghost"}
-                className="sm:w-full justify-start shrink-0 lg:shrink"
+                className="md:w-full justify-start shrink-0 md:shrink"
                 type="button"
                 onClick={() => navigate(`${basePath}/ping`)}
               >
@@ -162,7 +162,7 @@ export function AppFormPage() {
               {app?.id && (
                 <Button
                   variant={isNotifications ? "secondary" : "ghost"}
-                  className="sm:w-full justify-start shrink-0 lg:shrink"
+                  className="md:w-full justify-start shrink-0 md:shrink"
                   type="button"
                   onClick={() => navigate(`${basePath}/notifications`)}
                 >

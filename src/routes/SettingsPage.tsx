@@ -12,20 +12,20 @@ export function SettingsPage() {
   const isNotifications = location.pathname === "/settings/notifications";
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
+    <div className="flex flex-col md:flex-row gap-6">
       {/* Sidebar */}
-      <aside className="w-full lg:w-64 shrink-0">
-        <div className="lg:sticky lg:top-4">
+      <aside className="w-full md:w-64 shrink-0">
+        <div className="md:sticky md:top-4">
           <div className="mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Settings</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Settings</h1>
             <p className="text-sm text-muted-foreground">
               Manage your application settings
             </p>
           </div>
-          <nav className="flex flex-row lg:flex-col gap-2 lg:gap-1 overflow-x-auto lg:overflow-x-visible">
+          <nav className="flex flex-row md:flex-col gap-2 md:gap-1 overflow-x-auto md:overflow-x-visible">
             <Button
               variant={isGeneral ? "secondary" : "ghost"}
-              className="sm:w-full justify-start shrink-0 lg:shrink"
+              className="md:w-full justify-start shrink-0 md:shrink"
               onClick={() => navigate("/settings")}
             >
               <Settings className="mr-2 h-4 w-4" />
@@ -33,7 +33,7 @@ export function SettingsPage() {
             </Button>
             <Button
               variant={isNotifications ? "secondary" : "ghost"}
-              className="sm:w-full justify-start shrink-0 lg:shrink"
+              className="md:w-full justify-start shrink-0 md:shrink"
               onClick={() => navigate("/settings/notifications")}
             >
               <Bell className="mr-2 h-4 w-4" />

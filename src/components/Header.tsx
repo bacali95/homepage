@@ -33,8 +33,8 @@ export function Header() {
   };
 
   return (
-    <div className="mb-8 sm:mb-12">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-6">
+    <div className="mb-8 md:mb-12">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6">
         <div className="flex items-start gap-3">
           <Link
             to="/"
@@ -43,27 +43,27 @@ export function Header() {
             <img
               src="/favicon.svg"
               alt="Homepage"
-              className="h-12 sm:h-16 w-12 sm:w-16 shrink-0 mt-1"
+              className="h-12 md:h-16 w-12 md:w-16 shrink-0 mt-1"
             />
             <div>
-              <h1 className="text-3xl sm:text-5xl font-bold mb-2 bg-linear-to-r from-foreground to-foreground/50 bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-5xl font-bold mb-2 bg-linear-to-r from-foreground to-foreground/50 bg-clip-text text-transparent">
                 Homepage
               </h1>
-              <p className="text-muted-foreground text-sm sm:text-base">
+              <p className="text-muted-foreground text-sm md:text-base">
                 Manage and monitor your self-hosted applications
               </p>
             </div>
           </Link>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
           <nav className="flex items-center gap-3">
             <Link to="/">
               <Button
                 variant={isHomePage ? "default" : "ghost"}
                 className="shadow-sm hover:shadow-md transition-shadow"
               >
-                <Home className="sm:mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Home</span>
+                <Home className="md:mr-2 h-4 w-4" />
+                <span className="hidden md:inline">Home</span>
               </Button>
             </Link>
             <Link to="/settings">
@@ -71,8 +71,8 @@ export function Header() {
                 variant={isSettingsPage ? "default" : "ghost"}
                 className="shadow-sm hover:shadow-md transition-shadow"
               >
-                <Settings className="sm:mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Settings</span>
+                <Settings className="md:mr-2 h-4 w-4" />
+                <span className="hidden md:inline">Settings</span>
               </Button>
             </Link>
           </nav>

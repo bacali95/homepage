@@ -82,11 +82,11 @@ export function NotificationPreferencesSection() {
 
   return (
     <div>
-      <div className="mb-6 sm:mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+      <div className="mb-6 md:mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold mb-2">
           Notification Preferences
         </h2>
-        <p className="text-sm sm:text-base text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           Choose which notification channels to use for this app&apos;s update
           alerts
         </p>

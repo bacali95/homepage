@@ -12,11 +12,11 @@ export function BasicInformationSection() {
 
   return (
     <div>
-      <div className="mb-6 sm:mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+      <div className="mb-6 md:mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold mb-2">
           Basic Information
         </h2>
-        <p className="text-sm sm:text-base text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           General details about your application or service
         </p>
       </div>
