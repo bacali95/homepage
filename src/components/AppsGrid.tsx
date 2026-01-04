@@ -17,15 +17,15 @@ export function AppsGrid({
   onCheckUpdates,
 }: AppsGridProps) {
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {sortedCategories.map((category) => (
-        <div key={category} className="space-y-6">
+        <div key={category} className="space-y-4 sm:space-y-6">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">
+            <h2 className="text-xl sm:text-3xl font-semibold text-foreground">
               {category}
             </h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
             {groupedApps[category].map((app) => (
               <AppCard
                 key={app.id}

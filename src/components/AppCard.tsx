@@ -62,37 +62,37 @@ export function AppCard({
   return (
     <>
       <Card
-        className="group hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 h-full flex flex-col hover:border-border cursor-pointer"
+        className="group sm:hover:shadow-xl sm:hover:shadow-primary/5 transition-all duration-300 h-full flex flex-col sm:hover:border-border cursor-pointer"
         onClick={handleClick}
       >
-        <CardHeader className="shrink-0 pb-3">
-          <div className="flex items-start justify-between gap-3">
+        <CardHeader className="shrink-0 p-3 pb-2 sm:p-5 sm:pb-3">
+          <div className="flex items-start justify-between gap-2 sm:gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-center gap-2">
                 {app.icon && (
                   <img
                     src={app.icon}
                     alt={`${app.name} icon`}
-                    className="w-14 h-14 rounded-lg object-contain bg-background/50 p-1 border border-border/50"
+                    className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg object-contain bg-background/50 p-0.5 sm:p-1 border border-border/50"
                   />
                 )}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-0.5 sm:gap-1">
                   <div className="flex items-center gap-1">
-                    <CardTitle className="text-lg sm:text-xl font-semibold truncate group-hover:text-primary transition-colors">
+                    <CardTitle className="text-base sm:text-xl font-semibold truncate sm:group-hover:text-primary transition-colors text-wrap text-center sm:text-left">
                       {app.name}
                     </CardTitle>
                     {app.pingPreferences?.enabled && (
                       <button
                         onClick={handlePingStatusClick}
-                        className="shrink-0 p-1 rounded hover:bg-accent transition-colors"
+                        className="shrink-0 p-0.5 sm:p-1 rounded sm:hover:bg-accent transition-colors hidden sm:block"
                         title="Click to view ping history"
                       >
                         {pingStatus?.status === true ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
                         ) : pingStatus?.status === false ? (
-                          <AlertCircle className="h-4 w-4 text-red-500" />
+                          <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500" />
                         ) : (
-                          <Activity className="h-4 w-4 text-muted-foreground animate-pulse" />
+                          <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground animate-pulse" />
                         )}
                       </button>
                     )}
@@ -100,7 +100,10 @@ export function AppCard({
                   <div className="flex items-center justify-between gap-2 w-full">
                     {app.versionPreferences?.enabled && (
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline" className="text-xs font-mono">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] sm:text-xs font-mono px-1.5 py-0.5 sm:px-2 sm:py-0.5 hidden sm:flex"
+                        >
                           {formatVersion(app.versionPreferences.currentVersion)}
                         </Badge>
                         {app.versionPreferences.hasUpdate &&
@@ -111,7 +114,7 @@ export function AppCard({
                               </span>
                               <Badge
                                 variant="destructive"
-                                className="text-xs font-mono"
+                                className="text-[10px] sm:text-xs font-mono px-1.5 py-0.5 sm:px-2 sm:py-0.5"
                               >
                                 {formatVersion(
                                   app.versionPreferences.latestVersion
@@ -125,7 +128,7 @@ export function AppCard({
                 </div>
               </div>
             </div>
-            <div className="shrink-0 flex flex-col items-end gap-2">
+            <div className="shrink-0 flex-col items-end gap-2 hidden sm:flex">
               <Menu
                 trigger={
                   <MenuTrigger>
@@ -167,7 +170,7 @@ export function AppCard({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col space-y-3 justify-between">
+        <CardContent className="hidden sm:flex flex-1 flex-col space-y-3 justify-between p-5 pt-0">
           <div className="space-y-2 text-xs text-muted-foreground/80">
             {app.url && (
               <div className="flex items-center gap-1.5 truncate">

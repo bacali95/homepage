@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "bun@1.3.5",
   "scripts": {
-    "dev": "concurrently \"bun --bun dev:server\" \"bun --bun dev:client\"",
+    "dev": "concurrently \"bun dev:server\" \"bun dev:client\"",
     "dev:client": "vite",
     "dev:server": "nest start --watch",
     "build": "bun prisma:generate && bun build:client && bun build:server",

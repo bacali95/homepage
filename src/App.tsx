@@ -9,7 +9,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/10">
-        <main className="container mx-auto px-4 py-12 max-w-7xl">
+        <main className="container mx-auto px-4 py-8 sm:py-12 max-w-7xl">
           <Header />
           <Routes>
             <Route path="/" element={<HomePage />} />
