@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.0](https://github.com/bacali95/homepage/compare/v2.2.1...v2.3.0) (2026-01-04)
+
+
+### Features
+
+* integrate PWA support with vite-plugin-pwa ([51c2f43](https://github.com/bacali95/homepage/commit/51c2f4308420a1b8f9f0aba4e8692ebb76994df9))
+
+
+### Bug Fixes
+
+* improve UI responsiveness ([0307fc8](https://github.com/bacali95/homepage/commit/0307fc8bafa5d540ce1c6d64bc148c96562f3fd0))
+
 ### [2.2.1](https://github.com/bacali95/homepage/compare/v2.2.0...v2.2.1) (2026-01-04)
 
 
