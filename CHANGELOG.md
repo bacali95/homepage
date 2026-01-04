@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.1](https://github.com/bacali95/homepage/compare/v2.2.0...v2.2.1) (2026-01-04)
+
+
+### Bug Fixes
+
+* update build command in Docker workflow to use 'bun run build' for consistency ([ded6f25](https://github.com/bacali95/homepage/commit/ded6f2530f8c64e134b26200875c015797b19f84))
+* update Docker build command to include DATABASE_URL for local database configuration ([18d5ee2](https://github.com/bacali95/homepage/commit/18d5ee28bc5af9ab33c124326c614daadf348a65))
+
+
+### Code Refactoring
+
+* streamline Dockerfile and remove Dockerfile.test ([6187d8a](https://github.com/bacali95/homepage/commit/6187d8a8366f6c088352ff4ea8e187eb230d8c6f))
+
 ## [2.2.0](https://github.com/bacali95/homepage/compare/v2.1.0...v2.2.0) (2026-01-04)
 
 ## [2.1.0](https://github.com/bacali95/homepage/compare/v2.0.7...v2.1.0) (2025-12-18)
