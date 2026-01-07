@@ -136,6 +136,10 @@ export class PingService {
       statusCode = response.statusCode;
       status = response.ok;
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        this.logger.debug(`Ping aborted for ${app.name}`);
+        return;
+      }
       responseTime = Date.now() - startTime;
       status = false;
       errorMessage =
