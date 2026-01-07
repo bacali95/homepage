@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.2](https://github.com/bacali95/homepage/compare/v2.3.1...v2.3.2) (2026-01-07)
+
+
+### Bug Fixes
+
+* handle AbortError in PingService ([18e4964](https://github.com/bacali95/homepage/commit/18e49649aadc83e45736e94c17b9208cb2a18da3))
+
 ### [2.3.1](https://github.com/bacali95/homepage/compare/v2.3.0...v2.3.1) (2026-01-04)
 
 
