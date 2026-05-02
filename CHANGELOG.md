@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.3](https://github.com/bacali95/homepage/compare/v2.3.2...v2.3.3) (2026-05-02)
+
+
+### Bug Fixes
+
+* update dependencies and improve theme handling ([2af88d6](https://github.com/bacali95/homepage/commit/2af88d6d3e610f820e1073d71df099e742bc1a7e))
+
 ### [2.3.2](https://github.com/bacali95/homepage/compare/v2.3.1...v2.3.2) (2026-01-07)
 
 
