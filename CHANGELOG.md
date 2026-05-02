@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.4](https://github.com/bacali95/homepage/compare/v2.3.3...v2.3.4) (2026-05-02)
+
+
+### Bug Fixes
+
+* update ESLint configuration and dependencies ([9840ab9](https://github.com/bacali95/homepage/commit/9840ab9ba89c40f1f655d269282d025e05d10e42))
+
 ### [2.3.3](https://github.com/bacali95/homepage/compare/v2.3.2...v2.3.3) (2026-05-02)
 
 
