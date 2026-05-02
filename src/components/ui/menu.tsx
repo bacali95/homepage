@@ -52,9 +52,11 @@ export function Menu({ trigger, children, align = "right" }: MenuProps) {
               align === "right" ? "right-0" : "left-0"
             )}
           >
-            {React.Children.map(children, (child) => {
+            {/* eslint-disable-next-line @eslint-react/no-children-to-array */}
+            {React.Children.toArray(children).map((child) => {
               if (React.isValidElement(child)) {
                 const originalOnClick = (child.props as MenuItemProps).onClick;
+                // eslint-disable-next-line @eslint-react/no-clone-element
                 return React.cloneElement(child, {
                   ...(child.props as MenuItemProps),
                   onClick: (e?: React.MouseEvent) => {

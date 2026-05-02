@@ -51,7 +51,6 @@ export function PingHistoryDialog({
   // Reset offset when dialog opens (transitions from closed to open)
   useEffect(() => {
     if (open && !prevOpenRef.current) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOffset(0);
     }
     prevOpenRef.current = open;

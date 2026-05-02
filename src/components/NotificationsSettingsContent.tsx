@@ -42,7 +42,9 @@ export function NotificationsSettingsContent() {
         initialEnabled[channel.channelType] = channel.enabled;
       });
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect
       setConfigs(initialConfigs);
+      // eslint-disable-next-line @eslint-react/set-state-in-effect
       setEnabled(initialEnabled);
     }
   }, [channels]);

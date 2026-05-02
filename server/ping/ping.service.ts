@@ -116,8 +116,8 @@ export class PingService {
     }
 
     const startTime = Date.now();
-    let status = false;
-    let responseTime: number | null = null;
+    let status: boolean;
+    let responseTime: number | null;
     let statusCode: number | null = null;
     let errorMessage: string | null = null;
 

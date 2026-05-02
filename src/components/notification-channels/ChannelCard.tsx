@@ -64,7 +64,7 @@ export function ChannelCard({
           // End of grid group
           result.push(
             <div
-              key={`group-${index}`}
+              key={`group-${field.key}`}
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
               {currentGroup.map((f) => (

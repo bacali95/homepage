@@ -33,7 +33,7 @@ export function NotificationPreferencesSection() {
       preferences.forEach((pref) => {
         prefs[pref.channelType] = pref.enabled;
       });
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect
       setLocalPreferences(prefs);
     } else {
       // Default to enabled for all channels if no preferences exist
@@ -42,6 +42,7 @@ export function NotificationPreferencesSection() {
       channels.forEach((channel) => {
         defaultPrefs[channel.channelType] = true;
       });
+      // eslint-disable-next-line @eslint-react/set-state-in-effect
       setLocalPreferences(defaultPrefs);
     }
   }, [preferences, channels, form]);
