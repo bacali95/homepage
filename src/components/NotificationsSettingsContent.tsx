@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import type { NotificationChannelType } from "generated/client/enums";
 
 import { LoadingState } from "@/components/LoadingState";
 import {
@@ -9,6 +8,7 @@ import {
 } from "@/lib/use-notifications";
 import { toast } from "@/lib/use-toast";
 
+import type { NotificationChannelType } from "../../generated/client/enums";
 import type {
   EmailChannelConfig,
   TelegramChannelConfig,

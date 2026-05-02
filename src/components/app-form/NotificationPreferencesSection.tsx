@@ -1,8 +1,4 @@
 import { useEffect, useState } from "react";
-import type {
-  AppNotificationPreference,
-  NotificationChannelType,
-} from "generated/client/client";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import { Card } from "@/components/ui/card";
@@ -10,6 +6,10 @@ import { Label } from "@/components/ui/label";
 import { useNotificationChannels } from "@/lib/use-notifications";
 import type { App } from "@/types";
 
+import type {
+  AppNotificationPreference,
+  NotificationChannelType,
+} from "../../../generated/client/client";
 import { CHANNEL_CONFIGS } from "../notification-channels/config";
 
 export function NotificationPreferencesSection() {

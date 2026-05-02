@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { RunningEnvironment, SourceType } from "generated/client/enums";
 import { Activity, ArrowLeft, Bell, Info, Package } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
 import {
@@ -19,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { useApp, useCreateApp, useUpdateApp } from "@/lib/use-apps";
 import { toast } from "@/lib/use-toast";
 import type { App } from "@/types";
+
+import { RunningEnvironment, SourceType } from "../../generated/client/enums";
 
 const initialFormData: Partial<App> = {
   name: "",

@@ -1,15 +1,12 @@
-import path from "path";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import checker from "vite-plugin-checker";
 import { VitePWA } from "vite-plugin-pwa";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    tsconfigPaths: true,
   },
   server: {
     proxy: {
@@ -21,9 +18,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    tsconfigPaths({
-      projects: [path.resolve(__dirname, "tsconfig.json")],
-    }),
+    tailwindcss(),
     checker({ typescript: true }),
     VitePWA({
       registerType: "autoUpdate",

@@ -1,4 +1,3 @@
-import { SourceType } from "generated/client/enums";
 import { useFormContext } from "react-hook-form";
 
 import { Card } from "@/components/ui/card";
@@ -6,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import type { App } from "@/types";
+
+import { SourceType } from "../../../generated/client/enums";
 
 const getRepoLabel = (sourceType: SourceType) => {
   switch (sourceType) {
