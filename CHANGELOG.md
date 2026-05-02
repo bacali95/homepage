@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.5](https://github.com/bacali95/homepage/compare/v2.3.4...v2.3.5) (2026-05-02)
+
+
+### Bug Fixes
+
+* remove postcss configuration file ([a0c0e21](https://github.com/bacali95/homepage/commit/a0c0e21ab0fcd82335c21ce06220406b3d015330))
+
 ### [2.3.4](https://github.com/bacali95/homepage/compare/v2.3.3...v2.3.4) (2026-05-02)
 
 
