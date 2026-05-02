@@ -10,3 +10,4 @@ coverage
 yarn.lock
 package-lock.json
 CHANGELOG.md
+.claude
