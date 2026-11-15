@@ -4,6 +4,7 @@ import { render } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "@/components/Toaster";
 import type { App } from "@/types";
 
 export function renderApp(ui: ReactElement, route = "/") {
@@ -14,6 +15,7 @@ export function renderApp(ui: ReactElement, route = "/") {
     <QueryClientProvider client={client}>
       <ThemeProvider>
         <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
+        <Toaster />
       </ThemeProvider>
     </QueryClientProvider>
   );
