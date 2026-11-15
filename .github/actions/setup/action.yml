@@ -1,0 +1,28 @@
+name: Setup
+description: Install Bun, restore the dependency cache, install dependencies and generate the Prisma client
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version-file: package.json
+
+    - name: Cache Bun install cache
+      uses: actions/cache@v6
+      with:
+        path: ~/.bun/install/cache
+        key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+        restore-keys: |
+          bun-${{ runner.os }}-
+
+    - name: Install dependencies
+      shell: bash
+      run: bun install --frozen-lockfile
+
+    - name: Generate Prisma client
+      shell: bash
+      run: bun prisma:generate
+      env:
+        DATABASE_URL: file:./data/apps.db

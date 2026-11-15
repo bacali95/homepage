@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
-  Dot,
-  Line,
-  LineChart,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -11,9 +11,17 @@ import {
 } from "recharts";
 
 import type { PingHistory } from "../../generated/client/client";
+import { pingStatusOf, type PingStatus } from "../lib/utils";
 
 const UP = "var(--up)";
 const DOWN = "var(--down)";
+const WARN = "var(--warn)";
+const STATUS_COLOR: Record<PingStatus, string> = {
+  up: UP,
+  down: DOWN,
+  slow: WARN,
+  unknown: "var(--line-strong)",
+};
 const AXIS_TICK = {
   fill: "var(--muted)",
   fontSize: 11,
@@ -23,34 +31,6 @@ const AXIS_TICK = {
 interface PingHistoryGraphProps {
   history: PingHistory[];
 }
-
-interface CustomDotProps {
-  cx?: number;
-  cy?: number;
-  payload?: {
-    status: boolean;
-    latency: number;
-    timeLabel: string;
-    statusCode?: number | null;
-    errorMessage?: string | null;
-  };
-}
-
-// Custom dot component that changes color based on status
-const CustomDot = ({ cx, cy, payload }: CustomDotProps) => {
-  if (!cx || !cy || !payload) return null;
-  const color = payload.status ? UP : DOWN;
-  return (
-    <Dot
-      cx={cx}
-      cy={cy}
-      r={3.5}
-      fill={color}
-      stroke="var(--surface)"
-      strokeWidth={2}
-    />
-  );
-};
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -121,6 +101,10 @@ export function PingHistoryGraph({ history }: PingHistoryGraphProps) {
         status: entry.status,
         statusCode: entry.statusCode,
         errorMessage: entry.errorMessage,
+        pingStatus: pingStatusOf({
+          status: entry.status,
+          responseTime: entry.responseTime,
+        }),
       };
     });
   }, [history]);
@@ -133,41 +117,33 @@ export function PingHistoryGraph({ history }: PingHistoryGraphProps) {
     );
   }
 
-  // Calculate domain for Y-axis (latency)
-  const latencies = chartData.map((d) => d.latency);
-  const maxLatency = Math.max(...latencies, 100);
-  const minLatency = Math.min(...latencies, 0);
-  const yDomain = [Math.max(0, minLatency - 10), maxLatency + 10];
+  // Y-axis runs from 0 to a little above the slowest up ping (at least 100ms).
+  // Down pings are drawn full height so outages stand out regardless of latency.
+  const maxUpLatency = Math.max(
+    0,
+    ...chartData.filter((d) => d.status).map((d) => d.latency)
+  );
+  const rawMax = Math.max(maxUpLatency, 100) * 1.1;
+  const step = 10 ** Math.floor(Math.log10(rawMax)) / 2;
+  const yMax = Math.ceil(rawMax / step) * step;
+  const tickStep = yMax / step > 6 ? step * 2 : step;
+  const yTicks = Array.from(
+    { length: Math.floor(yMax / tickStep) + 1 },
+    (_, i) => i * tickStep
+  );
 
-  // Prepare data with separate latency values for UP and DOWN
-  // Include transition points in both lines to connect them
-  const chartDataWithStatus = chartData.map((point, index) => {
-    const prevPoint = index > 0 ? chartData[index - 1] : null;
-    const isTransition = prevPoint && prevPoint.status !== point.status;
-
-    return {
-      ...point,
-      // For UP points: include latency, also include if it's a transition from DOWN
-      upLatency: point.status
-        ? point.latency
-        : isTransition
-          ? point.latency
-          : null,
-      // For DOWN points: include latency, also include if it's a transition from UP
-      downLatency: !point.status
-        ? point.latency
-        : isTransition
-          ? point.latency
-          : null,
-    };
-  });
+  const barData = chartData.map((point) => ({
+    ...point,
+    barValue: point.status ? point.latency : yMax,
+  }));
 
   return (
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={chartDataWithStatus}
+        <BarChart
+          data={barData}
           margin={{ top: 5, right: 28, left: 0, bottom: 0 }}
+          barCategoryGap="15%"
         >
           <CartesianGrid stroke="var(--line)" vertical={false} />
           <XAxis
@@ -178,7 +154,8 @@ export function PingHistoryGraph({ history }: PingHistoryGraphProps) {
             minTickGap={24}
           />
           <YAxis
-            domain={yDomain}
+            domain={[0, yMax]}
+            ticks={yTicks}
             stroke="var(--line)"
             tick={AXIS_TICK}
             width={52}
@@ -186,42 +163,19 @@ export function PingHistoryGraph({ history }: PingHistoryGraphProps) {
           />
           <Tooltip
             content={<CustomTooltip />}
-            cursor={{ stroke: "var(--line-strong)" }}
+            cursor={{ fill: "var(--raised)" }}
           />
-          {/* UP status line */}
-          <Line
-            type="linear"
-            dataKey="upLatency"
-            stroke={UP}
-            strokeWidth={2}
-            dot={false}
-            activeDot={{ r: 5, fill: UP }}
-            connectNulls={true}
+          <Bar
+            dataKey="barValue"
+            radius={[2, 2, 0, 0]}
+            maxBarSize={18}
             isAnimationActive={false}
-          />
-          {/* DOWN status line */}
-          <Line
-            type="linear"
-            dataKey="downLatency"
-            stroke={DOWN}
-            strokeWidth={2}
-            dot={false}
-            activeDot={{ r: 5, fill: DOWN }}
-            connectNulls={true}
-            isAnimationActive={false}
-          />
-          {/* Render all dots with custom colors */}
-          <Line
-            type="linear"
-            dataKey="latency"
-            stroke="transparent"
-            strokeWidth={0}
-            dot={<CustomDot />}
-            activeDot={false}
-            connectNulls={false}
-            isAnimationActive={false}
-          />
-        </LineChart>
+          >
+            {barData.map((point, index) => (
+              <Cell key={index} fill={STATUS_COLOR[point.pingStatus]} />
+            ))}
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );
