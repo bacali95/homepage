@@ -1,9 +1,8 @@
-import { useCallback } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { TextField } from "@/components/form-fields";
+import { SectionCard } from "@/components/primitives";
+import { parseRunningConfig } from "@/lib/utils";
 import type { App } from "@/types";
 
 export function VersionManagementSection() {
@@ -13,107 +12,65 @@ export function VersionManagementSection() {
     control: form.control,
     defaultValue: "{}",
   }) as string;
-
-  const getRunningConfigValue = useCallback(
-    (key: string) => {
-      const parsedRunningConfig = JSON.parse(runningConfig) as Record<
-        string,
-        string
-      >;
-
-      return parsedRunningConfig[key];
-    },
-    [runningConfig]
-  );
+  const parsed = parseRunningConfig(runningConfig) as Record<string, string>;
 
   const updateRunningConfig = (key: string, value: string) => {
-    const runningConfig = JSON.parse(
-      form.watch("versionPreferences.runningConfig") || "{}"
+    const current = parseRunningConfig(
+      form.getValues("versionPreferences.runningConfig")
     ) as Record<string, string>;
-
-    runningConfig[key] = value;
 
     form.setValue(
       "versionPreferences.runningConfig",
-      JSON.stringify(runningConfig)
+      JSON.stringify({ ...current, [key]: value }),
+      { shouldDirty: true }
     );
   };
 
   return (
-    <Card className="p-6">
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-xl font-semibold mb-1">Version Management</h3>
-          <p className="text-sm text-muted-foreground">
-            Track and update the current version of your application
-          </p>
-        </div>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="docker_image" className="flex items-center gap-1">
-              Docker Image
-              <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="docker_image"
-              value={getRunningConfigValue("dockerImage") || ""}
-              onChange={(e) =>
-                updateRunningConfig("dockerImage", e.target.value)
-              }
-              required={form.watch("versionPreferences.enabled")}
-              placeholder="nginx:1.21.0 or ghcr.io/owner/repo:v1.0.0"
-            />
-            <p className="text-xs text-muted-foreground">
-              Used to fetch the current running version from Kubernetes pods
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="k8s_namespace" className="flex items-center gap-1">
-              Kubernetes Namespace
-              <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="k8s_namespace"
-              value={getRunningConfigValue("k8sNamespace") || ""}
-              onChange={(e) =>
-                updateRunningConfig("k8sNamespace", e.target.value)
-              }
-              required={form.watch("versionPreferences.enabled")}
-              placeholder="default"
-            />
-            <p className="text-xs text-muted-foreground">
-              Specify the namespace to search for the pod
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="version_extraction_regex">
-              Version Extraction Regex (Optional)
-            </Label>
-            <Input
-              id="version_extraction_regex"
-              value={
-                form.watch("versionPreferences.versionExtractionRegex") || ""
-              }
-              onChange={(e) =>
-                form.setValue(
-                  "versionPreferences.versionExtractionRegex",
-                  e.target.value || null
-                )
-              }
-              placeholder="e.g., (\d+)\.(\d+)\.(\d+)-beta\.(\d+)"
-            />
-            <p className="text-xs text-muted-foreground">
-              Custom regex pattern to extract version numbers for comparison.
-              Use capture groups to extract numbers. For example, for versions
-              like &quot;v4.0.0-beta.455&quot;, use a pattern like
-              &quot;(\d+)\.(\d+)\.(\d+)-beta\.(\d+)&quot;. Do not include
-              forward slashes. Leave empty to use default extraction.
-            </p>
-          </div>
-        </div>
-      </div>
-    </Card>
+    <SectionCard
+      title="Version management"
+      description="Track and update the current version of your application"
+    >
+      <TextField
+        label="Docker image"
+        required
+        mono
+        value={parsed.dockerImage ?? ""}
+        onValueChange={(value) => updateRunningConfig("dockerImage", value)}
+        placeholder="nginx:1.21.0 or ghcr.io/owner/repo:v1.0.0"
+        description="Used to fetch the current running version from Kubernetes pods"
+      />
+      <TextField
+        label="Kubernetes namespace"
+        required
+        mono
+        value={parsed.k8sNamespace ?? ""}
+        onValueChange={(value) => updateRunningConfig("k8sNamespace", value)}
+        placeholder="default"
+        description="The namespace to search for the pod"
+      />
+      <TextField
+        label="Version extraction regex (optional)"
+        mono
+        value={form.watch("versionPreferences.versionExtractionRegex") ?? ""}
+        onValueChange={(value) =>
+          form.setValue(
+            "versionPreferences.versionExtractionRegex",
+            value || null,
+            { shouldDirty: true }
+          )
+        }
+        placeholder="(\d+)\.(\d+)\.(\d+)-beta\.(\d+)"
+        description={
+          <>
+            Custom pattern to extract version numbers for comparison. Use
+            capture groups, for example{" "}
+            <code>(\d+)\.(\d+)\.(\d+)-beta\.(\d+)</code> for versions like
+            v4.0.0-beta.455. Don&apos;t include forward slashes. Leave empty to
+            use the default extraction.
+          </>
+        }
+      />
+    </SectionCard>
   );
 }

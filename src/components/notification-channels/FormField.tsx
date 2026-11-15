@@ -1,6 +1,4 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { SelectField, TextField } from "@/components/form-fields";
 
 import { FieldConfig } from "./types";
 
@@ -11,48 +9,26 @@ interface FormFieldProps {
 }
 
 export function FormField({ field, value, onChange }: FormFieldProps) {
-  const fieldId = field.key;
-  const commonProps = {
-    id: fieldId,
-    value: value || "",
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      onChange(e.target.value),
-  };
-
-  const renderField = () => {
-    switch (field.type) {
-      case "select":
-        return (
-          <Select {...commonProps}>
-            {field.options?.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
-        );
-      case "email":
-      case "password":
-      case "number":
-      case "text":
-      default:
-        return (
-          <Input
-            {...commonProps}
-            type={field.type}
-            placeholder={field.placeholder}
-          />
-        );
-    }
-  };
+  if (field.type === "select") {
+    return (
+      <SelectField
+        label={field.label}
+        value={value || field.options?.[0]?.value || ""}
+        onValueChange={onChange}
+        options={field.options ?? []}
+        description={field.helpText}
+      />
+    );
+  }
 
   return (
-    <div className={field.gridCols ? undefined : "w-full"}>
-      <Label htmlFor={fieldId}>{field.label}</Label>
-      {renderField()}
-      {field.helpText && (
-        <p className="text-sm text-muted-foreground mt-1">{field.helpText}</p>
-      )}
-    </div>
+    <TextField
+      label={field.label}
+      type={field.type}
+      value={value}
+      onValueChange={onChange}
+      placeholder={field.placeholder}
+      description={field.helpText}
+    />
   );
 }

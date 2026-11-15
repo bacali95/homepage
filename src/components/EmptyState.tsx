@@ -1,6 +1,7 @@
-import { Plus } from "lucide-react";
+import { Button } from "@ui-sdk/react/button";
+import { LayoutGrid, Plus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Card } from "@/components/primitives";
 
 interface EmptyStateProps {
   onAdd: () => void;
@@ -8,24 +9,18 @@ interface EmptyStateProps {
 
 export function EmptyState({ onAdd }: EmptyStateProps) {
   return (
-    <div className="text-center py-20">
-      <div className="max-w-md mx-auto">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-          <Plus className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h2 className="text-2xl font-semibold mb-3">No apps configured yet</h2>
-        <p className="text-muted-foreground mb-6">
-          Get started by adding your first homelab service
-        </p>
-        <Button
-          onClick={onAdd}
-          size="lg"
-          className="shadow-sm hover:shadow-md transition-shadow"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add your first app
-        </Button>
+    <Card className="mx-auto mt-10 flex max-w-md flex-col items-center px-6 py-12 text-center">
+      <div className="mb-4 flex size-11 items-center justify-center rounded-xl border border-line bg-raised text-muted">
+        <LayoutGrid aria-hidden="true" className="size-5" />
       </div>
-    </div>
+      <h2 className="text-base font-semibold">No apps configured yet</h2>
+      <p className="mt-1 mb-6 text-sm text-muted">
+        Add your first homelab service to track its status and updates.
+      </p>
+      <Button data-variant="solid" onClick={onAdd}>
+        <Plus aria-hidden="true" />
+        Add your first app
+      </Button>
+    </Card>
   );
 }

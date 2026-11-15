@@ -2,9 +2,11 @@ import { StrictMode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRoot } from "react-dom/client";
 
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
 import "./index.css";
 
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/Toaster";
 
 import App from "./App";
 

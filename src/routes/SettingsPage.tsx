@@ -1,58 +1,58 @@
 import { Bell, Settings } from "lucide-react";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 
 import { GeneralSettingsContent } from "@/components/GeneralSettingsContent";
 import { NotificationsSettingsContent } from "@/components/NotificationsSettingsContent";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/primitives";
+import { SideNav } from "@/components/SideNav";
+
+import packageJson from "../../package.json";
 
 export function SettingsPage() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const isGeneral = location.pathname === "/settings";
   const isNotifications = location.pathname === "/settings/notifications";
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 shrink-0">
-        <div className="md:sticky md:top-4">
-          <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Settings</h1>
-            <p className="text-sm text-muted-foreground">
-              Manage your application settings
+    <>
+      <PageHeader
+        title="Settings"
+        description="Manage your application settings"
+      />
+      <div className="flex flex-col gap-6 md:flex-row">
+        <aside className="w-full shrink-0 md:w-56">
+          <div className="md:sticky md:top-20">
+            <SideNav
+              label="Settings sections"
+              items={[
+                {
+                  to: "/settings",
+                  label: "General",
+                  icon: Settings,
+                  active: !isNotifications,
+                },
+                {
+                  to: "/settings/notifications",
+                  label: "Notifications",
+                  icon: Bell,
+                  active: isNotifications,
+                },
+              ]}
+            />
+            <p className="mt-4 hidden px-3 font-mono text-xs text-muted md:block">
+              v{packageJson.version}
             </p>
           </div>
-          <nav className="flex flex-row md:flex-col gap-2 md:gap-1 overflow-x-auto md:overflow-x-visible">
-            <Button
-              variant={isGeneral ? "secondary" : "ghost"}
-              className="md:w-full justify-start shrink-0 md:shrink"
-              onClick={() => navigate("/settings")}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              <span className="whitespace-nowrap">General</span>
-            </Button>
-            <Button
-              variant={isNotifications ? "secondary" : "ghost"}
-              className="md:w-full justify-start shrink-0 md:shrink"
-              onClick={() => navigate("/settings/notifications")}
-            >
-              <Bell className="mr-2 h-4 w-4" />
-              <span className="whitespace-nowrap">Notifications</span>
-            </Button>
-          </nav>
+        </aside>
+        <div className="min-w-0 max-w-3xl flex-1">
+          <Routes>
+            <Route index element={<GeneralSettingsContent />} />
+            <Route
+              path="notifications"
+              element={<NotificationsSettingsContent />}
+            />
+          </Routes>
         </div>
-      </aside>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0 w-full">
-        <Routes>
-          <Route index element={<GeneralSettingsContent />} />
-          <Route
-            path="notifications"
-            element={<NotificationsSettingsContent />}
-          />
-        </Routes>
       </div>
-    </div>
+    </>
   );
 }

@@ -42,9 +42,9 @@ export function NotificationsSettingsContent() {
         initialEnabled[channel.channelType] = channel.enabled;
       });
 
-      // eslint-disable-next-line react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect
+      // oxlint-disable-next-line react/set-state-in-effect
       setConfigs(initialConfigs);
-      // eslint-disable-next-line @eslint-react/set-state-in-effect
+      // oxlint-disable-next-line react/set-state-in-effect
       setEnabled(initialEnabled);
     }
   }, [channels]);
@@ -80,8 +80,7 @@ export function NotificationsSettingsContent() {
         channelType,
         enabled: enabled[channelType] || false,
         config: (configs[channelType] || {}) as
-          | EmailChannelConfig
-          | TelegramChannelConfig,
+          EmailChannelConfig | TelegramChannelConfig,
       });
       toast.success(
         `${channelType} channel updated`,
@@ -128,21 +127,19 @@ export function NotificationsSettingsContent() {
   };
 
   if (isLoading) {
-    return <LoadingState />;
+    return <LoadingState label="Loading notification settings" />;
   }
 
   return (
     <div>
-      <div className="mb-6 md:mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2">
-          Notification Settings
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
+      <div className="mb-3">
+        <h2 className="text-sm font-semibold">Notification channels</h2>
+        <p className="mt-0.5 text-xs text-muted">
           Configure notification channels for update alerts
         </p>
       </div>
 
-      <div className="space-y-4 md:space-y-6">
+      <div className="space-y-3">
         {channels.map((channel) => {
           const channelType = channel.channelType;
           return (

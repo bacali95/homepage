@@ -12,6 +12,14 @@ import {
 
 import type { PingHistory } from "../../generated/client/client";
 
+const UP = "var(--up)";
+const DOWN = "var(--down)";
+const AXIS_TICK = {
+  fill: "var(--muted)",
+  fontSize: 11,
+  fontFamily: "var(--font-mono)",
+} as const;
+
 interface PingHistoryGraphProps {
   history: PingHistory[];
 }
@@ -31,9 +39,16 @@ interface CustomDotProps {
 // Custom dot component that changes color based on status
 const CustomDot = ({ cx, cy, payload }: CustomDotProps) => {
   if (!cx || !cy || !payload) return null;
-  const color = payload.status ? "#22c55e" : "#ef4444"; // green-500 : red-500
+  const color = payload.status ? UP : DOWN;
   return (
-    <Dot cx={cx} cy={cy} r={4} fill={color} stroke="white" strokeWidth={2} />
+    <Dot
+      cx={cx}
+      cy={cy}
+      r={3.5}
+      fill={color}
+      stroke="var(--surface)"
+      strokeWidth={2}
+    />
   );
 };
 
@@ -56,27 +71,27 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     const data = payload[0].payload;
     const time = new Date(data.time).toLocaleTimeString();
     return (
-      <div className="bg-background border border-border rounded-lg p-2 shadow-lg">
-        <p className="text-sm font-medium">
+      <div className="max-w-64 rounded-lg border border-line bg-raised p-2.5 text-xs shadow-lg">
+        <p className="font-medium">
           {data.status ? (
-            <span className="text-green-500">UP</span>
+            <span className="text-up">Up</span>
           ) : (
-            <span className="text-red-500">DOWN</span>
+            <span className="text-down">Down</span>
           )}
         </p>
-        <p className="text-xs text-muted-foreground">
-          Latency: {data.latency}ms
+        <p className="mt-1 text-muted">
+          Latency <span className="font-mono text-fg">{data.latency}ms</span>
         </p>
-        <p className="text-xs text-muted-foreground">Time: {time}</p>
+        <p className="text-muted">
+          Time <span className="font-mono text-fg">{time}</span>
+        </p>
         {!data.status && data.statusCode && (
-          <p className="text-xs text-muted-foreground">
-            Status Code: {data.statusCode}
+          <p className="text-muted">
+            Status <span className="font-mono text-fg">{data.statusCode}</span>
           </p>
         )}
         {!data.status && data.errorMessage && (
-          <p className="text-xs text-muted-foreground">
-            Error: {data.errorMessage}
-          </p>
+          <p className="text-muted break-words">Error {data.errorMessage}</p>
         )}
       </div>
     );
@@ -112,7 +127,7 @@ export function PingHistoryGraph({ history }: PingHistoryGraphProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
+      <div className="flex h-64 items-center justify-center text-muted">
         No data to display
       </div>
     );
@@ -148,55 +163,56 @@ export function PingHistoryGraph({ history }: PingHistoryGraphProps) {
   });
 
   return (
-    <div className="w-full h-80">
+    <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={chartDataWithStatus}
-          margin={{ top: 5, right: 20, left: -25, bottom: 5 }}
+          margin={{ top: 5, right: 28, left: 0, bottom: 0 }}
         >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="currentColor"
-            opacity={0.1}
-          />
+          <CartesianGrid stroke="var(--line)" vertical={false} />
           <XAxis
             dataKey="timeLabel"
-            stroke="currentColor"
-            style={{ fontSize: "12px" }}
-            tick={{ fill: "currentColor", opacity: 0.7 }}
+            stroke="var(--line)"
+            tick={AXIS_TICK}
+            tickMargin={6}
+            minTickGap={24}
           />
           <YAxis
             domain={yDomain}
-            stroke="currentColor"
-            style={{ fontSize: "12px" }}
-            tick={{ fill: "currentColor", opacity: 0.7 }}
+            stroke="var(--line)"
+            tick={AXIS_TICK}
+            width={52}
+            tickFormatter={(value: number) => `${Math.round(value)}ms`}
           />
-          <Tooltip content={<CustomTooltip />} />
-          {/* UP status line - green */}
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ stroke: "var(--line-strong)" }}
+          />
+          {/* UP status line */}
           <Line
-            type="monotone"
+            type="linear"
             dataKey="upLatency"
-            stroke="#22c55e"
+            stroke={UP}
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 6, fill: "#22c55e" }}
+            activeDot={{ r: 5, fill: UP }}
             connectNulls={true}
             isAnimationActive={false}
           />
-          {/* DOWN status line - red */}
+          {/* DOWN status line */}
           <Line
-            type="monotone"
+            type="linear"
             dataKey="downLatency"
-            stroke="#ef4444"
+            stroke={DOWN}
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 6, fill: "#ef4444" }}
+            activeDot={{ r: 5, fill: DOWN }}
             connectNulls={true}
             isAnimationActive={false}
           />
           {/* Render all dots with custom colors */}
           <Line
-            type="monotone"
+            type="linear"
             dataKey="latency"
             stroke="transparent"
             strokeWidth={0}

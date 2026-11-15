@@ -38,6 +38,8 @@ This will start:
 
 3. Open your browser to `http://localhost:5173`
 
+Useful checks: `bun lint` (oxlint), `bun check` (typecheck all tsconfig projects), `bun run test`.
+
 ## Usage
 
 1. Navigate to "Manage Apps" to add your first service
@@ -53,15 +55,16 @@ This will start:
 
 ```
 homepage/
-├── src/              # Frontend React application
-│   ├── components/  # UI components (shadcn/ui)
-│   ├── routes/      # Page components
-│   └── lib/         # Frontend utilities and API client
-├── server/          # Backend Express API
-│   ├── db.ts        # Database operations
-│   ├── github.ts    # GitHub API integration
-│   └── index.ts     # Express server
-└── data/            # SQLite database (created automatically)
+├── src/              # Frontend React app (components, routes, lib hooks/API client)
+├── server/           # Backend NestJS app, one module per feature
+│   ├── apps/         # App CRUD and Kubernetes pod discovery
+│   ├── notifications/, ping/, updates/, jobs/, health/, logger/
+│   ├── tags-fetchers/ # Docker Hub, GHCR, GitHub releases, k8s registry
+│   ├── database/     # Prisma/libSQL service
+│   └── rpc/          # typesafe-rpc endpoint used by the frontend
+├── prisma/           # Schema and migrations
+├── e2e/              # Playwright tests
+└── data/             # SQLite database (created automatically)
 ```
 
 ## Environment Variables

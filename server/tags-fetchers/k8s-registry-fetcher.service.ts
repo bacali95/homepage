@@ -12,8 +12,7 @@ export class K8sRegistryFetcherService {
   private readonly fetcher = createTagsFetcher<K8sRegistryResponse>({
     name: "Kubernetes registry",
     pathReplacements: [
-      { pattern: /^https?:\/\/registry\.k8s\.io\//, replacement: "" },
-      { pattern: /^registry\.k8s\.io\//, replacement: "" },
+      { pattern: /^registry\.k8s\.io\/(?:v2\/)?/, replacement: "" },
     ],
     buildUrl: (normalizedPath) =>
       `https://registry.k8s.io/v2/${normalizedPath}/tags/list`,

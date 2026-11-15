@@ -27,8 +27,8 @@ export class NotificationsService implements OnModuleInit {
     this.channels.set(NotificationChannelType.TELEGRAM, this.telegramChannel);
   }
 
-  onModuleInit() {
-    this.initializeChannels();
+  async onModuleInit() {
+    await this.initializeChannels();
   }
 
   /**

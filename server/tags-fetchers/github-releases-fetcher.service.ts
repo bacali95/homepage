@@ -18,7 +18,13 @@ export class GithubReleasesFetcherService {
   private readonly fetcher = createTagsFetcher<GitHubRelease>({
     name: "GitHub Releases",
     pathReplacements: [
-      { pattern: /^https?:\/\/github\.com\//, replacement: "" },
+      { pattern: /^(?:www\.)?github\.com\//, replacement: "" },
+      // owner/repo/tree/main, /releases/tag/v1, /issues, ... -> owner/repo
+      {
+        pattern:
+          /^([^/]+\/[^/]+)\/(?:tree|blob|releases|tags|packages|pkgs|issues|pull|pulls|actions|wiki|commits)(?:\/.*)?$/,
+        replacement: "$1",
+      },
     ],
     buildUrl: (normalizedPath) =>
       `https://api.github.com/repos/${normalizedPath}/releases/latest`,

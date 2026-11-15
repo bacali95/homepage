@@ -16,42 +16,40 @@ export class DatabaseService
     super({ adapter });
   }
 
-  onModuleInit() {
-    this.ensureDefaultNotificationChannels();
+  async onModuleInit() {
+    // Must be awaited: Nest runs dependents' (NotificationsService) init hooks
+    // only after this module's hooks settle, and failures must abort boot.
+    await this.ensureDefaultNotificationChannels();
   }
 
   async onModuleDestroy() {
     await this.$disconnect();
   }
 
-  private async ensureDefaultNotificationChannels() {
-    try {
-      const existingChannels = await this.notificationChannel.findMany({
-        select: { channelType: true },
-      });
-      const existingChannelTypes = existingChannels.map((c) => c.channelType);
+  /** Creates the default (disabled) notification channels if missing. */
+  async ensureDefaultNotificationChannels() {
+    const existingChannels = await this.notificationChannel.findMany({
+      select: { channelType: true },
+    });
+    const existingChannelTypes = existingChannels.map((c) => c.channelType);
 
-      if (!existingChannelTypes.includes(NotificationChannelType.EMAIL)) {
-        await this.notificationChannel.create({
-          data: {
-            channelType: NotificationChannelType.EMAIL,
-            enabled: false,
-            config: JSON.stringify({}),
-          },
-        });
-      }
-      if (!existingChannelTypes.includes(NotificationChannelType.TELEGRAM)) {
-        await this.notificationChannel.create({
-          data: {
-            channelType: NotificationChannelType.TELEGRAM,
-            enabled: false,
-            config: JSON.stringify({}),
-          },
-        });
-      }
-    } catch (error) {
-      // If tables don't exist yet, we'll handle it via migrations
-      console.warn("Could not ensure default notification channels:", error);
+    if (!existingChannelTypes.includes(NotificationChannelType.EMAIL)) {
+      await this.notificationChannel.create({
+        data: {
+          channelType: NotificationChannelType.EMAIL,
+          enabled: false,
+          config: JSON.stringify({}),
+        },
+      });
+    }
+    if (!existingChannelTypes.includes(NotificationChannelType.TELEGRAM)) {
+      await this.notificationChannel.create({
+        data: {
+          channelType: NotificationChannelType.TELEGRAM,
+          enabled: false,
+          config: JSON.stringify({}),
+        },
+      });
     }
   }
 }

@@ -1,7 +1,9 @@
 import { useEffect } from "react";
+import { Button } from "@ui-sdk/react/button";
 import { Activity, ArrowLeft, Bell, Info, Package } from "lucide-react";
 import { FormProvider, useForm } from "react-hook-form";
 import {
+  Link,
   Route,
   Routes,
   useLocation,
@@ -14,7 +16,8 @@ import { NotificationPreferencesSection } from "@/components/app-form/Notificati
 import { PingConfigurationSection } from "@/components/app-form/PingConfigurationSection";
 import { VersionCheckingSection } from "@/components/app-form/VersionCheckingSection";
 import { LoadingState } from "@/components/LoadingState";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/primitives";
+import { SideNav } from "@/components/SideNav";
 import { useApp, useCreateApp, useUpdateApp } from "@/lib/use-apps";
 import { toast } from "@/lib/use-toast";
 import type { App } from "@/types";
@@ -92,12 +95,8 @@ export function AppFormPage() {
     }
   };
 
-  const handleCancel = () => {
-    navigate("/");
-  };
-
   if (loadingApp) {
-    return <LoadingState />;
+    return <LoadingState label="Loading app" />;
   }
 
   const basePath = isNewApp ? "/new" : `/${appIdParam}`;
@@ -107,76 +106,55 @@ export function AppFormPage() {
   const isPing = location.pathname === `${basePath}/ping`;
   const isNotifications =
     !isNewApp && location.pathname === `${basePath}/notifications`;
+  const saving = createAppMutation.isPending || updateAppMutation.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-      <div className="mb-8">
-        <div className="flex items-center justify-between gap-4 mb-2">
-          <h1 className="text-2xl md:text-3xl font-bold">
-            {app?.id ? "Edit App" : "Add New App"}
-          </h1>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleCancel} type="button">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Apps
-            </Button>
-            <Button type="submit">{app?.id ? "Update App" : "Add App"}</Button>
-          </div>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Configure your homelab service details
-        </p>
-      </div>
+    <form onSubmit={form.handleSubmit(handleSubmit)}>
+      <PageHeader
+        title={app?.id ? "Edit app" : "Add new app"}
+        description="Configure your homelab service details"
+      />
 
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0">
-          <div className="md:sticky md:top-4">
-            <nav className="flex flex-row md:flex-col gap-2 md:gap-1 overflow-x-auto md:overflow-x-visible">
-              <Button
-                variant={isBasic ? "secondary" : "ghost"}
-                className="md:w-full justify-start shrink-0 md:shrink"
-                type="button"
-                onClick={() => navigate(basePath)}
-              >
-                <Info className="mr-2 h-4 w-4" />
-                <span className="whitespace-nowrap">Basic Information</span>
-              </Button>
-              <Button
-                variant={isVersion ? "secondary" : "ghost"}
-                className="md:w-full justify-start shrink-0 md:shrink"
-                type="button"
-                onClick={() => navigate(`${basePath}/version`)}
-              >
-                <Package className="mr-2 h-4 w-4" />
-                <span className="whitespace-nowrap">Version Checking</span>
-              </Button>
-              <Button
-                variant={isPing ? "secondary" : "ghost"}
-                className="md:w-full justify-start shrink-0 md:shrink"
-                type="button"
-                onClick={() => navigate(`${basePath}/ping`)}
-              >
-                <Activity className="mr-2 h-4 w-4" />
-                <span className="whitespace-nowrap">Ping Monitoring</span>
-              </Button>
-              {app?.id && (
-                <Button
-                  variant={isNotifications ? "secondary" : "ghost"}
-                  className="md:w-full justify-start shrink-0 md:shrink"
-                  type="button"
-                  onClick={() => navigate(`${basePath}/notifications`)}
-                >
-                  <Bell className="mr-2 h-4 w-4" />
-                  <span className="whitespace-nowrap">Notifications</span>
-                </Button>
-              )}
-            </nav>
+      <div className="flex flex-col gap-6 md:flex-row">
+        <aside className="w-full shrink-0 md:w-56">
+          <div className="md:sticky md:top-20">
+            <SideNav
+              label="App settings"
+              items={[
+                {
+                  to: basePath,
+                  label: "Basic information",
+                  icon: Info,
+                  active: isBasic,
+                },
+                {
+                  to: `${basePath}/version`,
+                  label: "Version checking",
+                  icon: Package,
+                  active: isVersion,
+                },
+                {
+                  to: `${basePath}/ping`,
+                  label: "Ping monitoring",
+                  icon: Activity,
+                  active: isPing,
+                },
+                ...(app?.id
+                  ? [
+                      {
+                        to: `${basePath}/notifications`,
+                        label: "Notifications",
+                        icon: Bell,
+                        active: isNotifications,
+                      },
+                    ]
+                  : []),
+              ]}
+            />
           </div>
         </aside>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0 w-full">
+        <div className="min-w-0 max-w-3xl flex-1">
           <FormProvider {...form}>
             <Routes>
               <Route index element={<BasicInformationSection />} />
@@ -191,6 +169,23 @@ export function AppFormPage() {
               )}
             </Routes>
           </FormProvider>
+        </div>
+      </div>
+
+      <div className="sticky bottom-0 z-20 -mx-4 mt-8 flex items-center justify-between gap-3 border-t border-line bg-bg/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
+        <p className="hidden text-xs text-muted sm:block">
+          {form.formState.isDirty
+            ? "You have unsaved changes."
+            : "No changes yet."}
+        </p>
+        <div className="ml-auto flex items-center gap-2">
+          <Button render={<Link to="/" />}>
+            <ArrowLeft aria-hidden="true" />
+            Back to apps
+          </Button>
+          <Button type="submit" data-variant="solid" disabled={saving}>
+            {saving ? "Saving…" : app?.id ? "Update App" : "Add App"}
+          </Button>
         </div>
       </div>
     </form>

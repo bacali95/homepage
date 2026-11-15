@@ -19,7 +19,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    checker({ typescript: true }),
+    checker({ typescript: { tsconfigPath: "tsconfig.app.json" } }),
     VitePWA({
       registerType: "autoUpdate",
       workbox: { globPatterns: ["**/*.{js,css}"] },
@@ -36,7 +36,7 @@ export default defineConfig({
           },
         ],
         display: "standalone",
-        theme_color: "#0f172a",
+        theme_color: "#0c0d10",
         orientation: "any",
         start_url: "/",
         scope: "/",
