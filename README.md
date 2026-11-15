@@ -38,6 +38,8 @@ This will start:
 
 3. Open your browser to `http://localhost:5173`
 
+Useful checks: `bun lint` (oxlint), `bun check` (typecheck all tsconfig projects), `bun run test`.
+
 ## Usage
 
 1. Navigate to "Manage Apps" to add your first service
@@ -53,15 +55,16 @@ This will start:
 
 ```
 homepage/
-├── src/              # Frontend React application
-│   ├── components/  # UI components (shadcn/ui)
-│   ├── routes/      # Page components
-│   └── lib/         # Frontend utilities and API client
-├── server/          # Backend Express API
-│   ├── db.ts        # Database operations
-│   ├── github.ts    # GitHub API integration
-│   └── index.ts     # Express server
-└── data/            # SQLite database (created automatically)
+├── src/              # Frontend React app (components, routes, lib hooks/API client)
+├── server/           # Backend NestJS app, one module per feature
+│   ├── apps/         # App CRUD and Kubernetes pod discovery
+│   ├── notifications/, ping/, updates/, jobs/, health/, logger/
+│   ├── tags-fetchers/ # Docker Hub, GHCR, GitHub releases, k8s registry
+│   ├── database/     # Prisma/libSQL service
+│   └── rpc/          # typesafe-rpc endpoint used by the frontend
+├── prisma/           # Schema and migrations
+├── e2e/              # Playwright tests
+└── data/             # SQLite database (created automatically)
 ```
 
 ## Environment Variables
@@ -173,21 +176,24 @@ Or use the release script:
 bun run release
 ```
 
+### CI
+
+`.github/workflows/ci.yml` runs on pull requests, pushes to `main` and `v*.*.*` tags (shared setup in `.github/actions/setup`):
+
+- `lint`: oxlint, typecheck (`bun check`) and prettier check
+- `test`: unit tests (vitest)
+- `build`: `bun run build`, uploads `dist/` and `dist-server/` as an artifact
+- `e2e`: Playwright (chromium) against the built artifact, without rebuilding
+- `docker`: after all of the above, builds the image from the artifact, smoke-tests it (`/healthz` and `/`), and pushes to GitHub Container Registry only for `v*.*.*` tags
+
 ### Docker Image Tags
 
-When pushing to GitHub Container Registry, images are tagged with:
+Images are pushed only when a version tag is pushed (e.g. `v1.2.3`), tagged with:
 
-- `latest` - Latest build from main branch
-- `<version>` - Version from package.json (e.g., `1.0.0`)
-- `<short-sha>` - Short commit SHA (e.g., `a1b2c3d`)
-- `<tag-version>` - If a version tag is pushed (e.g., `v1.0.1` creates tag `1.0.1`)
-
-### GitHub Container Registry
-
-The app automatically builds and pushes Docker images to GitHub Container Registry (ghcr.io) on:
-
-- Pushes to the `main` branch
-- Version tag pushes (e.g., `v1.0.0`)
+- `1.2.3` - full version
+- `1.2` - major.minor
+- `latest` - most recent version tag
+- `<short-sha>` - short commit SHA
 
 Images are available at: `ghcr.io/<your-username>/<repo-name>:<tag>`
 

@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import type { App } from "@/types";
 
@@ -101,13 +106,6 @@ export function useFetchVersionFromPod() {
   });
 }
 
-export function useAppPingStatus(appId: number) {
-  return useQuery({
-    queryKey: ["ping-status", appId],
-    queryFn: () => api.app.getPingStatus({ appId }),
-  });
-}
-
 export function useAppPingHistory(
   appId: number,
   pageSize: number,
@@ -119,5 +117,32 @@ export function useAppPingHistory(
     queryFn: () => api.app.getPingHistory({ appId, pageSize, offset }),
     enabled: open,
     placeholderData: (prevData) => prevData,
+  });
+}
+
+export const PING_SUMMARY_PAGE_SIZE = 20;
+
+// Shares its cache key with the ping history dialog's first page.
+export function useAppsPingSummary(apps: App[]) {
+  const pinged = apps.filter((app) => app.pingPreferences?.enabled);
+
+  return useQueries({
+    queries: pinged.map((app) => ({
+      queryKey: ["ping-history", app.id, 0],
+      queryFn: () =>
+        api.app.getPingHistory({
+          appId: app.id,
+          pageSize: PING_SUMMARY_PAGE_SIZE,
+          offset: 0,
+        }),
+      refetchInterval: 60_000,
+    })),
+    combine: (results) => {
+      const byApp = new Map<number, NonNullable<(typeof results)[0]["data"]>>();
+      results.forEach((result, index) => {
+        if (result.data) byApp.set(pinged[index].id, result.data);
+      });
+      return byApp;
+    },
   });
 }

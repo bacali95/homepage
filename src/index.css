@@ -1,58 +1,233 @@
+@layer ui-sdk;
 @import "tailwindcss";
-@config "../tailwind.config.js";
+@import "@ui-sdk/core/web.css" layer(components);
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 98%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 98%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 98%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 94%;
-    --input: 214.3 31.8% 94%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans:
+    "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono:
+    "Geist Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-warn: var(--warn);
+  --color-unknown: var(--unknown);
+
+  --radius-card: 0.625rem;
+  --animate-fade-in: fade-in 150ms ease-out;
+  --animate-pulse-soft: pulse-soft 1.6s ease-in-out infinite;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
-  .dark {
-    --background: 222.2 47.4% 12%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 47.4% 20%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 47.4% 20%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 16%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 16%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 16%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 20%;
-    --input: 217.2 32.6% 20%;
-    --ring: 212.7 26.8% 83.9%;
+  @keyframes pulse-soft {
+    50% {
+      opacity: 0.45;
+    }
   }
 }
 
+:root {
+  color-scheme: light;
+  --bg: oklch(0.972 0.003 260);
+  --surface: oklch(1 0 0);
+  --raised: oklch(0.955 0.004 260);
+  --line: oklch(0.905 0.005 260);
+  --line-strong: oklch(0.62 0.012 260);
+  --fg: oklch(0.2 0.01 260);
+  --muted: oklch(0.47 0.015 260);
+  --accent: oklch(0.5 0.1 185);
+  --accent-fg: oklch(0.99 0.005 185);
+  --accent-soft: oklch(0.94 0.04 185);
+  --up: oklch(0.5 0.14 150);
+  --down: oklch(0.52 0.19 27);
+  --warn: oklch(0.6 0.14 70);
+  --unknown: oklch(0.62 0.012 260);
+
+  --ui-background: var(--surface);
+  --ui-foreground: var(--fg);
+  --ui-muted: var(--raised);
+  --ui-muted-foreground: var(--muted);
+  --ui-border: var(--line);
+  --ui-input: var(--line-strong);
+  --ui-primary: var(--accent);
+  --ui-primary-foreground: var(--accent-fg);
+  --ui-destructive: var(--down);
+  --ui-ring: var(--accent);
+  --ui-ring-border: var(--accent);
+  --ui-overlay: oklch(0.2 0.01 260 / 0.4);
+  --ui-shadow:
+    0 1px 2px oklch(0 0 0 / 0.06), 0 12px 32px -12px oklch(0 0 0 / 0.22);
+  --ui-radius: 0.375rem;
+  --ui-font-size: 0.875rem;
+  --ui-font-sans: var(--font-sans);
+  --ui-font-mono: var(--font-mono);
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: oklch(0.145 0.005 260);
+  --surface: oklch(0.185 0.006 260);
+  --raised: oklch(0.235 0.008 260);
+  --line: oklch(0.28 0.008 260);
+  --line-strong: oklch(0.55 0.012 260);
+  --fg: oklch(0.96 0.004 260);
+  --muted: oklch(0.72 0.012 260);
+  --accent: oklch(0.78 0.12 180);
+  --accent-fg: oklch(0.2 0.03 185);
+  --accent-soft: oklch(0.28 0.045 185);
+  --up: oklch(0.78 0.17 150);
+  --down: oklch(0.72 0.19 25);
+  --warn: oklch(0.82 0.15 85);
+  --unknown: oklch(0.6 0.012 260);
+
+  --ui-background: oklch(0.215 0.007 260);
+  --ui-overlay: oklch(0 0 0 / 0.6);
+  --ui-shadow:
+    0 1px 2px oklch(0 0 0 / 0.4), 0 16px 40px -12px oklch(0 0 0 / 0.7);
+}
+
 @layer base {
-  * {
-    @apply border-border;
+  html {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings:
+      "ss01" 0,
+      "cv11" 1;
   }
   body {
-    @apply bg-background text-foreground;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  * {
+    border-color: var(--line);
+  }
+}
+
+/* Overrides for web.css, which lives in components.ui-sdk. */
+@layer components {
+  [data-slot]:focus-visible,
+  a:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  [data-slot="input"]:focus-visible,
+  [data-slot="textarea"]:focus-visible,
+  [data-slot="autocomplete-input"]:focus-visible,
+  [data-slot="command-input"]:focus-visible {
+    outline-offset: 0;
+  }
+
+  mark {
+    background: transparent;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  [data-slot="button"][data-variant="solid"] {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  [data-slot="button"][data-variant="solid"]:hover:not([data-disabled]) {
+    background: color-mix(in oklab, var(--accent) 88%, var(--fg));
+  }
+
+  :is(
+    [data-slot="button"],
+    [data-slot="menu-trigger"],
+    [data-slot="dialog-close"]
+  )[data-variant="ghost"] {
+    border-color: transparent;
+    background: transparent;
+    color: var(--muted);
+  }
+  :is(
+      [data-slot="button"],
+      [data-slot="menu-trigger"],
+      [data-slot="dialog-close"]
+    )[data-variant="ghost"]:hover:not([data-disabled]),
+  [data-slot="button"][data-variant="ghost"][aria-current="page"] {
+    background: var(--raised);
+    color: var(--fg);
+  }
+
+  [data-slot="button"],
+  [data-slot="menu-trigger"],
+  [data-slot="dialog-close"],
+  [data-slot="alert-dialog-close"] {
+    transition:
+      background-color 150ms,
+      border-color 150ms,
+      color 150ms;
+  }
+
+  [data-slot="menu-content"],
+  [data-slot="select-content"],
+  [data-slot="autocomplete-content"] {
+    box-shadow: var(--ui-shadow);
+  }
+
+  [data-slot="toast"] {
+    box-shadow: var(--ui-shadow);
+  }
+
+  [data-slot="dialog-backdrop"],
+  [data-slot="alert-dialog-backdrop"] {
+    backdrop-filter: blur(2px);
+  }
+
+  @media (max-width: 40rem) {
+    [data-slot="input"],
+    [data-slot="autocomplete-input"],
+    [data-slot="command-input"],
+    [data-slot="textarea"],
+    [data-slot="number-input-control"] {
+      font-size: 1rem;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
   }
 }

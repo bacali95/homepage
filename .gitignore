@@ -30,3 +30,11 @@ generated/
 # Database
 data/
 
+
+# Tests
+coverage/
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+.e2e/

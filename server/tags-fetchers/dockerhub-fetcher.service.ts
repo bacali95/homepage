@@ -14,8 +14,28 @@ export class DockerhubFetcherService {
   private readonly fetcher = createTagsFetcher<DockerHubResponse>({
     name: "Docker Hub",
     pathReplacements: [
-      { pattern: /^https?:\/\/hub\.docker\.com\/r\//, replacement: "" },
-      { pattern: /^docker\.io\//, replacement: "" },
+      // Official images: hub.docker.com/_/nginx -> library/nginx
+      {
+        pattern: /^(?:www\.)?hub\.docker\.com\/_\//,
+        replacement: "library/",
+      },
+      // User images: hub.docker.com/r/owner/app -> owner/app
+      { pattern: /^(?:www\.)?hub\.docker\.com\/(?:r\/)?/, replacement: "" },
+      {
+        pattern: /^(?:registry-1\.)?docker\.io\/_\//,
+        replacement: "library/",
+      },
+      {
+        pattern: /^(?:registry-1\.)?docker\.io\/(?:r\/)?/,
+        replacement: "",
+      },
+      // Trailing hub page segments: owner/app/tags, owner/app/general, ...
+      {
+        pattern: /^([^/]+\/[^/]+)\/(?:tags|general|layers)(?:\/.*)?$/,
+        replacement: "$1",
+      },
+      // Bare official image name: nginx -> library/nginx
+      { pattern: /^([^/]+)$/, replacement: "library/$1" },
     ],
     buildUrl: (normalizedPath) =>
       `https://hub.docker.com/v2/repositories/${normalizedPath}/tags?page_size=100`,

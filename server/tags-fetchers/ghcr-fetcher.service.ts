@@ -14,8 +14,19 @@ export class GhcrFetcherService {
   private readonly fetcher = createTagsFetcher<GhcrVersion[]>({
     name: "GitHub Container Registry",
     pathReplacements: [
-      { pattern: /^https?:\/\/github\.com\//, replacement: "" },
+      { pattern: /^(?:www\.)?github\.com\//, replacement: "" },
       { pattern: /^ghcr\.io\//, replacement: "" },
+      // owner/repo/pkgs/container/image[/...] -> owner/repo/image
+      {
+        pattern: /^([^/]+\/[^/]+)\/pkgs\/container\/([^/]+).*$/,
+        replacement: "$1/$2",
+      },
+      // owner/repo/tree/main, /releases/..., /packages, ... -> owner/repo
+      {
+        pattern:
+          /^([^/]+\/[^/]+)\/(?:tree|blob|releases|tags|packages|pkgs|issues|pull|pulls|actions|wiki|commits)(?:\/.*)?$/,
+        replacement: "$1",
+      },
     ],
     buildUrl: (normalizedPath) => {
       // For GitHub Container Registry, the image name is typically the repo name

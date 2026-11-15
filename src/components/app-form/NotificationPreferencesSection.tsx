@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { SwitchField } from "@/components/form-fields";
+import { SectionCard } from "@/components/primitives";
 import { useNotificationChannels } from "@/lib/use-notifications";
 import type { App } from "@/types";
 
@@ -14,129 +13,70 @@ import { CHANNEL_CONFIGS } from "../notification-channels/config";
 
 export function NotificationPreferencesSection() {
   const form = useFormContext<Partial<App>>();
-  const preferences = useWatch({
+  const preferences = (useWatch({
     name: "appNotificationPreferences",
     control: form.control,
     defaultValue: [],
-  }) as AppNotificationPreference[];
+  }) ?? []) as AppNotificationPreference[];
 
   const { data: channels = [] } = useNotificationChannels();
 
-  const [localPreferences, setLocalPreferences] = useState<
-    Partial<Record<NotificationChannelType, boolean>>
-  >({});
+  const isEnabled = (channelType: NotificationChannelType) =>
+    preferences.find((pref) => pref.channelType === channelType)?.enabled ??
+    true;
 
-  // Initialize local preferences from fetched data
-  useEffect(() => {
-    if (form.watch("appNotificationPreferences", [])!.length > 0) {
-      const prefs: Partial<Record<NotificationChannelType, boolean>> = {};
-      preferences.forEach((pref) => {
-        prefs[pref.channelType] = pref.enabled;
-      });
-      // eslint-disable-next-line react-hooks/set-state-in-effect, @eslint-react/set-state-in-effect
-      setLocalPreferences(prefs);
-    } else {
-      // Default to enabled for all channels if no preferences exist
-      const defaultPrefs: Partial<Record<NotificationChannelType, boolean>> =
-        {};
-      channels.forEach((channel) => {
-        defaultPrefs[channel.channelType] = true;
-      });
-      // eslint-disable-next-line @eslint-react/set-state-in-effect
-      setLocalPreferences(defaultPrefs);
-    }
-  }, [preferences, channels, form]);
-
-  const handleToggle = async (
+  const handleToggle = (
     channelType: NotificationChannelType,
     enabled: boolean
   ) => {
-    setLocalPreferences((prev) => ({
-      ...prev,
-      [channelType]: enabled,
-    }));
-
-    const prevPreference = form
-      .getValues("appNotificationPreferences")
-      ?.find((pref) => pref.channelType === channelType);
-
-    if (prevPreference) {
-      form.setValue(
-        "appNotificationPreferences",
-        preferences.map((pref) =>
-          pref.channelType === channelType ? { ...pref, enabled } : pref
-        )
-      );
-    } else {
-      form.setValue("appNotificationPreferences", [
-        ...(preferences ?? []),
-        { appId: form.watch("id") ?? 0, channelType, enabled },
-      ]);
-    }
+    const exists = preferences.some((pref) => pref.channelType === channelType);
+    form.setValue(
+      "appNotificationPreferences",
+      exists
+        ? preferences.map((pref) =>
+            pref.channelType === channelType ? { ...pref, enabled } : pref
+          )
+        : [
+            ...preferences,
+            { appId: form.getValues("id") ?? 0, channelType, enabled },
+          ],
+      { shouldDirty: true }
+    );
   };
 
   if (channels.length === 0) {
     return null;
   }
 
-  const enabledChannels = channels.filter((ch) => ch.enabled);
+  const enabledChannels = channels.filter((channel) => channel.enabled);
 
   return (
-    <div>
-      <div className="mb-6 md:mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2">
-          Notification Preferences
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Choose which notification channels to use for this app&apos;s update
-          alerts
-        </p>
-      </div>
-
+    <SectionCard
+      title="Notification preferences"
+      description="Choose which notification channels to use for this app's update alerts"
+    >
       {enabledChannels.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted">
           No notification channels are enabled. Configure channels in Settings
           to receive update notifications.
         </p>
       ) : (
-        <div className="space-y-2">
-          {enabledChannels.map((channel) => {
-            const channelConfig = CHANNEL_CONFIGS[channel.channelType];
-
-            return (
-              <Card key={channel.channelType} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-base font-medium">
-                      {channelConfig.label}
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      {channel.config !== "{}"
-                        ? "Configured and ready"
-                        : "Not configured"}
-                    </p>
-                  </div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={localPreferences[channel.channelType] ?? true}
-                      onChange={(e) =>
-                        handleToggle(channel.channelType, e.target.checked)
-                      }
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">
-                      {(localPreferences[channel.channelType] ?? true)
-                        ? "Enabled"
-                        : "Disabled"}
-                    </span>
-                  </label>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+        enabledChannels.map((channel) => (
+          <SwitchField
+            key={channel.channelType}
+            label={CHANNEL_CONFIGS[channel.channelType].label}
+            description={
+              channel.config !== "{}"
+                ? "Configured and ready"
+                : "Not configured"
+            }
+            checked={isEnabled(channel.channelType)}
+            onCheckedChange={(checked) =>
+              handleToggle(channel.channelType, checked)
+            }
+          />
+        ))
       )}
-    </div>
+    </SectionCard>
   );
 }

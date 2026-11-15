@@ -1,23 +1,16 @@
-import { Home, Settings } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@ui-sdk/react/button";
+import { Plus, RefreshCw, Settings } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
-import { Button } from "@/components/ui/button";
 import { useCheckUpdates } from "@/lib/use-apps";
 import { toast } from "@/lib/use-toast";
 
-import { SettingsMenu } from "./SettingsMenu";
+import { CommandPalette } from "./CommandPalette";
 
 export function Header() {
   const location = useLocation();
-  const navigate = useNavigate();
   const checkUpdatesMutation = useCheckUpdates();
-
-  const isHomePage = location.pathname === "/";
-  const isSettingsPage = location.pathname.startsWith("/settings");
-
-  const handleAdd = () => {
-    navigate("/new");
-  };
+  const isSettings = location.pathname.startsWith("/settings");
 
   const handleCheckUpdates = async () => {
     try {
@@ -33,56 +26,42 @@ export function Header() {
   };
 
   return (
-    <div className="mb-8 md:mb-12">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6">
-        <div className="flex items-start gap-3">
-          <Link
-            to="/"
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+    <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur-md">
+      <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4 sm:px-6">
+        <Link
+          to="/"
+          className="flex items-center gap-2 rounded-md font-semibold tracking-tight transition-opacity duration-150 hover:opacity-80"
+        >
+          <img src="/favicon.svg" alt="" className="size-6 shrink-0" />
+          Homepage
+        </Link>
+        <div className="ml-auto flex items-center gap-1.5">
+          <CommandPalette onCheckUpdates={handleCheckUpdates} />
+          <Button
+            aria-label="Check for updates"
+            data-variant="ghost"
+            disabled={checkUpdatesMutation.isPending}
+            onClick={handleCheckUpdates}
           >
-            <img
-              src="/favicon.svg"
-              alt="Homepage"
-              className="h-12 md:h-16 w-12 md:w-16 shrink-0 mt-1"
+            <RefreshCw
+              aria-hidden="true"
+              className={checkUpdatesMutation.isPending ? "animate-spin" : ""}
             />
-            <div>
-              <h1 className="text-3xl md:text-5xl font-bold mb-2 bg-linear-to-r from-foreground to-foreground/50 bg-clip-text text-transparent">
-                Homepage
-              </h1>
-              <p className="text-muted-foreground text-sm md:text-base">
-                Manage and monitor your self-hosted applications
-              </p>
-            </div>
-          </Link>
-        </div>
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-          <nav className="flex items-center gap-3">
-            <Link to="/">
-              <Button
-                variant={isHomePage ? "default" : "ghost"}
-                className="shadow-sm hover:shadow-md transition-shadow"
-              >
-                <Home className="md:mr-2 h-4 w-4" />
-                <span className="hidden md:inline">Home</span>
-              </Button>
-            </Link>
-            <Link to="/settings">
-              <Button
-                variant={isSettingsPage ? "default" : "ghost"}
-                className="shadow-sm hover:shadow-md transition-shadow"
-              >
-                <Settings className="md:mr-2 h-4 w-4" />
-                <span className="hidden md:inline">Settings</span>
-              </Button>
-            </Link>
-          </nav>
-          <SettingsMenu
-            onAdd={handleAdd}
-            onCheckUpdates={handleCheckUpdates}
-            isCheckingUpdates={checkUpdatesMutation.isPending}
-          />
+          </Button>
+          <Button
+            aria-label="Settings"
+            data-variant="ghost"
+            aria-current={isSettings ? "page" : undefined}
+            render={<Link to="/settings" />}
+          >
+            <Settings aria-hidden="true" />
+          </Button>
+          <Button data-variant="solid" render={<Link to="/new" />}>
+            <Plus aria-hidden="true" />
+            <span className="max-sm:sr-only">Add app</span>
+          </Button>
         </div>
       </div>
-    </div>
+    </header>
   );
 }

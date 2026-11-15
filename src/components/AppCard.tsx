@@ -1,208 +1,219 @@
-import { useState } from "react";
+import { useId } from "react";
+import { Button } from "@ui-sdk/react/button";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "@ui-sdk/react/menu";
 import {
-  Activity,
-  AlertCircle,
-  Box,
-  CheckCircle2,
-  Edit,
-  ExternalLink,
+  ArrowUpRight,
   Layers,
-  MoreVertical,
+  MoreHorizontal,
+  Pencil,
   RefreshCw,
   Trash2,
+  Waypoints,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Menu, MenuItem, MenuTrigger } from "@/components/ui/menu";
-import { useAppPingStatus } from "@/lib/use-apps";
-import { formatVersion, truncateText } from "@/lib/utils";
+import { Mono, StatusDot } from "@/components/primitives";
+import { Sparkline } from "@/components/Sparkline";
+import {
+  cn,
+  formatVersion,
+  parseRunningConfig,
+  pingStatusOf,
+  type PingStatus,
+} from "@/lib/utils";
 import type { App } from "@/types";
 
-import { PingHistoryDialog } from "./PingHistoryDialog";
+import type { PingHistory } from "../../generated/client/client";
 
 interface AppCardProps {
   app: App;
+  ping?: [PingHistory[], number];
   onEdit: (app: App) => void;
-  onDelete: (id: number) => void;
+  onDelete: (app: App) => void;
   onCheckUpdates: (app: App) => void;
+  onShowHistory: (app: App) => void;
+}
+
+const statusLabel: Record<PingStatus, string> = {
+  up: "Up",
+  down: "Down",
+  slow: "Slow",
+  unknown: "Pending",
+};
+
+const statusText: Record<PingStatus, string> = {
+  up: "text-fg",
+  down: "text-down",
+  slow: "text-fg",
+  unknown: "text-muted",
+};
+
+function AppIcon({ app }: { app: App }) {
+  if (app.icon) {
+    return (
+      <img
+        src={app.icon}
+        alt=""
+        loading="lazy"
+        className="size-9 shrink-0 rounded-lg border border-line bg-raised object-contain p-1"
+      />
+    );
+  }
+  return (
+    <span
+      aria-hidden="true"
+      className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-line bg-raised text-sm font-semibold text-muted uppercase"
+    >
+      {app.name.slice(0, 1)}
+    </span>
+  );
 }
 
 export function AppCard({
   app,
+  ping,
   onEdit,
   onDelete,
   onCheckUpdates,
+  onShowHistory,
 }: AppCardProps) {
-  const [pingHistoryOpen, setPingHistoryOpen] = useState(false);
+  const { dockerImage, k8sNamespace } = parseRunningConfig(
+    app.versionPreferences?.runningConfig
+  );
+  const version = app.versionPreferences;
+  const history = ping?.[0] ?? [];
+  const latest = history[0];
+  const status = pingStatusOf(latest);
+  const pingEnabled = app.pingPreferences?.enabled;
+  const detailsId = useId();
 
-  const { data: pingStatus } = useAppPingStatus(app.id);
-
-  const { dockerImage, k8sNamespace } = JSON.parse(
-    app.versionPreferences?.runningConfig || "{}"
-  ) as {
-    dockerImage?: string;
-    k8sNamespace?: string;
-  };
-
-  const handleClick = () => {
-    if (app.url) {
-      window.open(app.url, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  const handlePingStatusClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (app.pingPreferences?.enabled) {
-      setPingHistoryOpen(true);
-    }
-  };
-
-  return (
+  const body = (
     <>
-      <Card
-        className="group md:hover:shadow-xl md:hover:shadow-primary/5 transition-all duration-300 h-full flex flex-col md:hover:border-border cursor-pointer"
-        onClick={handleClick}
-      >
-        <CardHeader className="shrink-0 p-3 pb-2 md:p-5 md:pb-3">
-          <div className="flex items-start justify-between gap-2 md:gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-col md:flex-row items-center gap-2">
-                {app.icon && (
-                  <img
-                    src={app.icon}
-                    alt={`${app.name} icon`}
-                    className="w-10 h-10 md:w-14 md:h-14 rounded-lg object-contain bg-background/50 p-0.5 md:p-1 border border-border/50"
-                  />
-                )}
-                <div className="flex flex-col gap-0.5 md:gap-1">
-                  <div className="flex items-center gap-1">
-                    <CardTitle className="text-base md:text-xl font-semibold truncate md:group-hover:text-primary transition-colors text-wrap text-center md:text-left">
-                      {app.name}
-                    </CardTitle>
-                    {app.pingPreferences?.enabled && (
-                      <button
-                        onClick={handlePingStatusClick}
-                        className="shrink-0 p-0.5 md:p-1 rounded md:hover:bg-accent transition-colors hidden md:block"
-                        title="Click to view ping history"
-                      >
-                        {pingStatus?.status === true ? (
-                          <CheckCircle2 className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-500" />
-                        ) : pingStatus?.status === false ? (
-                          <AlertCircle className="h-3.5 w-3.5 md:h-4 md:w-4 text-red-500" />
-                        ) : (
-                          <Activity className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground animate-pulse" />
-                        )}
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between gap-2 w-full">
-                    {app.versionPreferences?.enabled && (
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] md:text-xs font-mono px-1.5 py-0.5 md:px-2 md:py-0.5 hidden md:flex"
-                        >
-                          {formatVersion(app.versionPreferences.currentVersion)}
-                        </Badge>
-                        {app.versionPreferences.hasUpdate &&
-                          app.versionPreferences.latestVersion && (
-                            <>
-                              <span className="text-muted-foreground/60 text-xs">
-                                →
-                              </span>
-                              <Badge
-                                variant="destructive"
-                                className="text-[10px] md:text-xs font-mono px-1.5 py-0.5 md:px-2 md:py-0.5"
-                              >
-                                {formatVersion(
-                                  app.versionPreferences.latestVersion
-                                )}
-                              </Badge>
-                            </>
-                          )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="shrink-0 flex-col items-end gap-2 hidden md:flex">
-              <Menu
-                trigger={
-                  <MenuTrigger>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </MenuTrigger>
-                }
-                align="right"
-              >
-                <MenuItem onClick={() => onEdit(app)}>
-                  <div className="flex items-center gap-2">
-                    <Edit className="h-4 w-4" />
-                    <span>Edit</span>
-                  </div>
-                </MenuItem>
-                {app.versionPreferences?.enabled && (
-                  <MenuItem onClick={() => onCheckUpdates(app)}>
-                    <div className="flex items-center gap-2">
-                      <RefreshCw className="h-4 w-4" />
-                      <span>Check for Updates</span>
-                    </div>
-                  </MenuItem>
-                )}
-                <MenuItem
-                  onClick={() => onDelete(app.id)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <div className="flex items-center gap-2">
-                    <Trash2 className="h-4 w-4" />
-                    <span>Delete</span>
-                  </div>
-                </MenuItem>
-              </Menu>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="hidden md:flex flex-1 flex-col space-y-3 justify-between p-5 pt-0">
-          <div className="space-y-2 text-xs text-muted-foreground/80">
+      <div className="flex items-center gap-3">
+        <AppIcon app={app} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1">
+            <h3 className="truncate text-[0.9375rem] leading-tight font-medium">
+              {app.name}
+            </h3>
             {app.url && (
-              <div className="flex items-center gap-1.5 truncate">
-                <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground/60" />
-                <span className="truncate">{truncateText(app.url, 50)}</span>
-              </div>
-            )}
-            {dockerImage && (
-              <div className="flex items-center gap-1.5 truncate">
-                <Box className="h-3 w-3 shrink-0 text-muted-foreground/60" />
-                <span className="truncate">
-                  {truncateText(dockerImage, 40)}
-                </span>
-              </div>
-            )}
-            {k8sNamespace && (
-              <div className="flex items-center gap-1.5 truncate">
-                <Layers className="h-3 w-3 shrink-0 text-muted-foreground/60" />
-                <span className="truncate">Namespace: {k8sNamespace}</span>
-              </div>
+              <ArrowUpRight
+                aria-hidden="true"
+                className="size-3.5 shrink-0 text-muted opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
+              />
             )}
           </div>
-        </CardContent>
-      </Card>
-      {app.pingPreferences?.enabled && (
-        <PingHistoryDialog
-          appId={app.id}
-          appName={app.name}
-          open={pingHistoryOpen}
-          onOpenChange={setPingHistoryOpen}
-        />
+          {(k8sNamespace || dockerImage) && (
+            <p className="mt-0.5 flex items-center gap-2 font-mono text-[0.6875rem] leading-tight text-muted">
+              {k8sNamespace && (
+                <span className="flex max-w-[45%] shrink-0 items-center gap-1 truncate">
+                  <Layers aria-hidden="true" className="size-3 shrink-0" />
+                  <span className="truncate">{k8sNamespace}</span>
+                </span>
+              )}
+              {dockerImage && <span className="truncate">{dockerImage}</span>}
+            </p>
+          )}
+        </div>
+      </div>
+      {version?.enabled && (
+        <div
+          id={detailsId}
+          className="mt-2.5 flex flex-wrap items-center gap-1.5 text-xs"
+        >
+          <Mono className={version.currentVersion ? "text-fg" : "text-muted"}>
+            {version.currentVersion
+              ? formatVersion(version.currentVersion)
+              : "version unknown"}
+          </Mono>
+          {version.hasUpdate && version.latestVersion && (
+            <Mono className="rounded-md bg-accent-soft px-1.5 py-0.5 text-[0.6875rem] font-medium text-accent">
+              update → {formatVersion(version.latestVersion)}
+            </Mono>
+          )}
+        </div>
       )}
     </>
+  );
+
+  const bodyClass =
+    "block rounded-t-card p-3 pr-11 outline-offset-[-2px] focus-visible:outline-2";
+
+  return (
+    <article className="group relative flex flex-col rounded-card border border-line bg-surface transition-colors duration-150 hover:border-line-strong">
+      {app.url ? (
+        <a
+          href={app.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={app.name}
+          aria-describedby={version?.enabled ? detailsId : undefined}
+          className={bodyClass}
+        >
+          {body}
+        </a>
+      ) : (
+        <div className={bodyClass}>{body}</div>
+      )}
+
+      <div className="mt-auto flex min-h-9 items-center justify-between gap-2 border-t border-line px-3 py-1.5 text-xs">
+        {pingEnabled ? (
+          <Button
+            data-variant="ghost"
+            onClick={() => onShowHistory(app)}
+            className="-mx-1.5 h-auto min-w-0 flex-1 justify-start gap-2 px-1.5 py-1 text-xs font-normal"
+          >
+            <StatusDot
+              status={status}
+              className={cn(status === "unknown" && "animate-pulse-soft")}
+            />
+            <span className={cn("font-medium", statusText[status])}>
+              {statusLabel[status]}
+            </span>
+            {latest?.responseTime != null && (
+              <Mono className="text-muted">{latest.responseTime}ms</Mono>
+            )}
+            <span className="sr-only">ping history for {app.name}</span>
+            <Sparkline history={history} className="ml-auto" />
+          </Button>
+        ) : (
+          <span className="flex items-center gap-2 text-muted">
+            <StatusDot status="unknown" />
+            Not monitored
+          </span>
+        )}
+      </div>
+
+      <Menu>
+        <MenuTrigger
+          aria-label={`Actions for ${app.name}`}
+          data-variant="ghost"
+          className="absolute top-2 right-2 size-7"
+        >
+          <MoreHorizontal aria-hidden="true" />
+        </MenuTrigger>
+        <MenuContent align="end">
+          <MenuItem onSelect={() => onEdit(app)}>
+            <Pencil aria-hidden="true" />
+            Edit
+          </MenuItem>
+          {version?.enabled && (
+            <MenuItem onSelect={() => onCheckUpdates(app)}>
+              <RefreshCw aria-hidden="true" />
+              Check updates
+            </MenuItem>
+          )}
+          {pingEnabled && (
+            <MenuItem onSelect={() => onShowHistory(app)}>
+              <Waypoints aria-hidden="true" />
+              Ping history
+            </MenuItem>
+          )}
+          <MenuItem onSelect={() => onDelete(app)} className="text-down">
+            <Trash2 aria-hidden="true" />
+            Delete
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    </article>
   );
 }

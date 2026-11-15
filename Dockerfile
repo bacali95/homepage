@@ -1,5 +1,5 @@
 # Multi-stage build for Homelab Homepage
-FROM oven/bun:1.3.5 AS dependencies
+FROM oven/bun:1.4.4 AS dependencies
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile --production
 
 # Production stage
-FROM oven/bun:1.3.5
+FROM oven/bun:1.4.4
 
 # Install SQLite runtime libraries for libsql
 RUN apt-get update && apt-get install -y --no-install-recommends \

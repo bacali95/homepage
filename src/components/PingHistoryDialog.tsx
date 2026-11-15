@@ -1,123 +1,154 @@
-import { useEffect, useRef, useState } from "react";
-import { Activity, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@ui-sdk/react/button";
+import {
+  createDialogController,
+  Dialog,
+  DialogBackdrop,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@ui-sdk/react/dialog";
+import { Activity, ChevronLeft, ChevronRight, X } from "lucide-react";
 
-import { useAppPingHistory } from "@/lib/use-apps";
+import { Mono, Skeleton } from "@/components/primitives";
+import { PING_SUMMARY_PAGE_SIZE, useAppPingHistory } from "@/lib/use-apps";
 
-import { LoadingState } from "./LoadingState";
 import { PingHistoryGraph } from "./PingHistoryGraph";
-import { Button } from "./ui/button";
-import { Dialog } from "./ui/dialog";
 
-interface PingHistoryDialogProps {
-  appId: number;
-  appName: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+export interface HistoryTarget {
+  id: number;
+  name: string;
 }
 
-const PAGE_SIZE = 20;
+export const createHistoryController = () =>
+  createDialogController<HistoryTarget>();
 
-export function PingHistoryDialog({
-  appId,
-  appName,
-  open,
-  onOpenChange,
-}: PingHistoryDialogProps) {
+function PingHistoryBody({ appId }: { appId: number }) {
   const [offset, setOffset] = useState(0);
-  const prevOpenRef = useRef(open);
-
   const {
     data: [history, total] = [[], 0],
     isLoading,
     isFetching,
-  } = useAppPingHistory(appId, PAGE_SIZE, offset, open);
+  } = useAppPingHistory(appId, PING_SUMMARY_PAGE_SIZE, offset, true);
 
-  const hasMore = offset + PAGE_SIZE < total;
-  const hasPrevious = offset > 0;
+  const hasOlder = offset + PING_SUMMARY_PAGE_SIZE < total;
+  const hasNewer = offset > 0;
   const hasData = history.length > 0;
 
-  const handleNext = () => {
-    if (hasPrevious) {
-      setOffset(Math.max(0, offset - PAGE_SIZE));
-    }
-  };
+  const up = history.filter((entry) => entry.status).length;
+  const timed = history.filter((entry) => entry.responseTime != null);
+  const average = timed.length
+    ? Math.round(
+        timed.reduce((sum, entry) => sum + (entry.responseTime ?? 0), 0) /
+          timed.length
+      )
+    : null;
 
-  const handlePrevious = () => {
-    if (hasMore) {
-      setOffset(offset + PAGE_SIZE);
-    }
-  };
+  if (isLoading && !hasData) {
+    return <Skeleton className="h-72 w-full" />;
+  }
 
-  // Reset offset when dialog opens (transitions from closed to open)
-  useEffect(() => {
-    if (open && !prevOpenRef.current) {
-      setOffset(0);
-    }
-    prevOpenRef.current = open;
-  }, [open]);
+  if (!hasData) {
+    return (
+      <div className="py-10 text-center text-muted">
+        <Activity
+          aria-hidden="true"
+          className="mx-auto mb-3 size-8 opacity-60"
+        />
+        <p>No ping history available yet.</p>
+        <p className="mt-1 text-xs">
+          Pings will appear here once monitoring starts.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title={`Ping History - ${appName}`}
-    >
-      <div className="p-4">
-        {isLoading && !hasData ? (
-          <LoadingState />
-        ) : !hasData && !isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No ping history available yet.</p>
-            <p className="text-sm mt-2">
-              Pings will appear here once monitoring starts.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="relative">
-              {hasData && <PingHistoryGraph history={history} />}
-              {isFetching && (
-                <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center rounded-lg z-10">
-                  <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
-                    <p className="text-sm text-muted-foreground">Loading...</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            {/* Pagination controls */}
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-              <div className="text-sm text-muted-foreground">
-                Showing {offset + 1}-{Math.min(offset + PAGE_SIZE, total)} of{" "}
-                {total} entries
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrevious}
-                  disabled={!hasMore || isLoading}
-                  className="flex items-center gap-1"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNext}
-                  disabled={!hasPrevious || isLoading}
-                  className="flex items-center gap-1"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </>
+    <>
+      <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
+        <span>
+          Uptime{" "}
+          <Mono className="text-fg">
+            {Math.round((up / history.length) * 100)}%
+          </Mono>
+        </span>
+        {average !== null && (
+          <span>
+            Avg latency <Mono className="text-fg">{average}ms</Mono>
+          </span>
         )}
       </div>
+      <div className="relative">
+        <PingHistoryGraph history={history} />
+        {isFetching && (
+          <div className="absolute inset-0 rounded-md bg-bg/60 backdrop-blur-[1px]" />
+        )}
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+        <p className="text-xs text-muted">
+          Showing{" "}
+          <Mono>
+            {offset + 1}-{Math.min(offset + PING_SUMMARY_PAGE_SIZE, total)}
+          </Mono>{" "}
+          of <Mono>{total}</Mono> entries
+        </p>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setOffset(offset + PING_SUMMARY_PAGE_SIZE)}
+            disabled={!hasOlder || isLoading}
+          >
+            <ChevronLeft aria-hidden="true" />
+            Previous
+          </Button>
+          <Button
+            onClick={() =>
+              setOffset(Math.max(0, offset - PING_SUMMARY_PAGE_SIZE))
+            }
+            disabled={!hasNewer || isLoading}
+          >
+            Next
+            <ChevronRight aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function PingHistoryDialog({
+  controller,
+}: {
+  controller: ReturnType<typeof createHistoryController>;
+}) {
+  return (
+    <Dialog controller={controller}>
+      <DialogBackdrop />
+      <DialogContent<HistoryTarget> className="w-[min(44rem,calc(100%-2rem))]">
+        {(state) => (
+          <>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <DialogTitle className="text-base font-semibold">
+                  Ping history
+                </DialogTitle>
+                <DialogDescription className="truncate text-sm text-muted">
+                  {state.payload?.name}
+                </DialogDescription>
+              </div>
+              <DialogClose aria-label="Close ping history" data-variant="ghost">
+                <X aria-hidden="true" />
+              </DialogClose>
+            </div>
+            {state.payload && (
+              <PingHistoryBody
+                key={state.payload.id}
+                appId={state.payload.id}
+              />
+            )}
+          </>
+        )}
+      </DialogContent>
     </Dialog>
   );
 }

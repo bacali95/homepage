@@ -1,24 +1,12 @@
-import { toast as sonnerToast } from "sonner";
+import { toast as uiToast } from "@ui-sdk/react/toast";
 
 export const toast = {
-  success: (message: string, description?: string) => {
-    sonnerToast.success(message, {
-      description,
-    });
-  },
-  error: (message: string, description?: string) => {
-    sonnerToast.error(message, {
-      description,
-    });
-  },
-  info: (message: string, description?: string) => {
-    sonnerToast.info(message, {
-      description,
-    });
-  },
-  warning: (message: string, description?: string) => {
-    sonnerToast.warning(message, {
-      description,
-    });
-  },
+  success: (message: string, description?: string) =>
+    uiToast.success(message, { description }),
+  error: (message: string, description?: string) =>
+    uiToast.error(message, { description }),
+  info: (message: string, description?: string) =>
+    uiToast.info(message, { description }),
+  warning: (message: string, description?: string) =>
+    uiToast.warning(message, { description }),
 };

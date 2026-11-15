@@ -1,8 +1,13 @@
-import { Save, Send } from "lucide-react";
+import { Button } from "@ui-sdk/react/button";
+import {
+  Collapsible,
+  CollapsiblePanel,
+  CollapsibleTrigger,
+} from "@ui-sdk/react/collapsible";
+import { Switch, SwitchThumb } from "@ui-sdk/react/switch";
+import { ChevronDown, Save, Send } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CollapsibleCard } from "@/components/ui/collapsible-card";
+import { Card } from "@/components/primitives";
 
 import type { NotificationChannelType } from "../../../generated/client/enums";
 import type {
@@ -126,70 +131,56 @@ export function ChannelCard({
     return result;
   };
 
-  const header = (
-    <div className="flex items-center gap-2 md:gap-3">
-      <Icon className="h-4 w-4 md:h-5 md:w-5 shrink-0" />
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-2 md:gap-3">
-          <h3 className="text-xl md:text-2xl font-semibold">
-            {channelConfig.label}
-          </h3>
-          <div className="flex items-center gap-2 flex-wrap">
-            {configured && (
-              <Badge
-                variant="default"
-                className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
-              >
-                Configured
-              </Badge>
-            )}
-          </div>
-        </div>
-      </div>
-      <div
-        className="flex items-center gap-2 md:gap-3 shrink-0"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <label className="flex items-center gap-1.5 md:gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={enabled}
-            onChange={(e) => onEnabledChange(e.target.checked)}
-            className="w-4 h-4"
-          />
-          <span className="text-xs md:text-sm whitespace-nowrap">Enable</span>
-        </label>
-      </div>
-    </div>
-  );
-
   return (
-    <CollapsibleCard
-      isExpanded={isExpanded}
-      onToggleExpanded={onToggleExpanded}
-      header={header}
-    >
-      <div className="space-y-4">{renderFields()}</div>
-
-      <div className="mt-6 flex flex-col md:flex-row justify-end gap-2">
-        <Button
-          variant="outline"
-          onClick={onTest}
-          disabled={isTesting || isSaving}
-          className="w-full md:w-auto"
-        >
-          <Send className="mr-2 h-4 w-4" />
-          {isTesting ? "Sending..." : "Test"}
-        </Button>
-        <Button
-          onClick={onSave}
-          disabled={isSaving || isTesting}
-          className="w-full md:w-auto"
-        >
-          <Save className="mr-2 h-4 w-4" />
-          {isSaving ? "Saving..." : "Save"}
-        </Button>
-      </div>
-    </CollapsibleCard>
+    <Card>
+      <Collapsible
+        open={isExpanded}
+        onOpenChange={(open) => {
+          if (open !== isExpanded) onToggleExpanded();
+        }}
+      >
+        <div className="flex items-center gap-3 px-4 py-2">
+          <CollapsibleTrigger className="w-full flex-1 gap-3 rounded-md py-1">
+            <Icon aria-hidden="true" className="size-4 shrink-0 text-muted" />
+            <span className="font-medium">{channelConfig.label}</span>
+            {configured && (
+              <span className="rounded-md bg-accent-soft px-1.5 py-0.5 text-[0.6875rem] font-medium text-accent">
+                Configured
+              </span>
+            )}
+            <ChevronDown
+              aria-hidden="true"
+              className="ml-auto size-4 text-muted transition-transform duration-150 in-data-open:rotate-180"
+            />
+          </CollapsibleTrigger>
+          <Switch
+            aria-label={`Enable ${channelConfig.label} notifications`}
+            checked={enabled}
+            onCheckedChange={onEnabledChange}
+          >
+            <SwitchThumb />
+          </Switch>
+        </div>
+        <CollapsiblePanel>
+          <div className="space-y-4 border-t border-line p-4">
+            {renderFields()}
+            <div className="flex flex-col justify-end gap-2 pt-2 sm:flex-row">
+              <Button onClick={onTest} disabled={isTesting || isSaving}>
+                <Send aria-hidden="true" />
+                {isTesting ? "Sending…" : "Test"}
+              </Button>
+              <Button
+                data-variant="solid"
+                onClick={onSave}
+                disabled={isSaving || isTesting}
+              >
+                <Save aria-hidden="true" />
+                {isSaving ? "Saving…" : "Save"}
+              </Button>
+            </div>
+          </div>
+        </CollapsiblePanel>
+      </Collapsible>
+    </Card>
   );
 }

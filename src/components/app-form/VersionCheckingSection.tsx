@@ -1,7 +1,7 @@
 import { useFormContext } from "react-hook-form";
 
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { SwitchField } from "@/components/form-fields";
+import { SectionCard } from "@/components/primitives";
 import type { App } from "@/types";
 
 import { SourceConfigurationSection } from "./SourceConfigurationSection";
@@ -9,53 +9,32 @@ import { VersionManagementSection } from "./VersionManagementSection";
 
 export function VersionCheckingSection() {
   const form = useFormContext<Partial<App>>();
+  const enabled = form.watch("versionPreferences.enabled") ?? false;
 
   return (
-    <div>
-      <div className="mb-6 md:mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2">
-          Version Checking
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Configure version tracking and update checking
-        </p>
-      </div>
+    <div className="space-y-6">
+      <SectionCard
+        title="Version checking"
+        description="Configure version tracking and update checking"
+      >
+        <SwitchField
+          label="Enable version checking"
+          description="Track the running version against GitHub, Docker Hub or Kubernetes registries. Leave disabled for apps that aren't version tracked, like a NAS or router."
+          checked={enabled}
+          onCheckedChange={(checked) =>
+            form.setValue("versionPreferences.enabled", checked, {
+              shouldDirty: true,
+            })
+          }
+        />
+      </SectionCard>
 
-      <div className="space-y-6">
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="enableVersionChecking"
-                checked={form.watch("versionPreferences.enabled") ?? false}
-                onChange={(e) =>
-                  form.setValue("versionPreferences.enabled", e.target.checked)
-                }
-                className="h-4 w-4 rounded border border-input bg-background text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
-              />
-              <Label
-                htmlFor="enableVersionChecking"
-                className="text-sm font-medium leading-none cursor-pointer"
-              >
-                Enable Version Checking
-              </Label>
-            </div>
-            <p className="text-xs text-muted-foreground pl-6">
-              Enable this to configure version tracking and update checking
-              (e.g., GitHub, Docker Hub, Kubernetes). Leave disabled for apps
-              not managed through version tracking (e.g., NAS, router).
-            </p>
-          </div>
-        </Card>
-
-        {form.watch("versionPreferences.enabled") && (
-          <>
-            <SourceConfigurationSection />
-            <VersionManagementSection />
-          </>
-        )}
-      </div>
+      {enabled && (
+        <>
+          <SourceConfigurationSection />
+          <VersionManagementSection />
+        </>
+      )}
     </div>
   );
 }

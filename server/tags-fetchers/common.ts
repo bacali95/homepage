@@ -36,23 +36,32 @@ export function extractSemverFromTag(
 }
 
 /**
- * Normalize a URL/repository path by removing protocols, trailing slashes, and .git suffix
+ * Normalize a URL/repository path: trims whitespace, removes the protocol,
+ * query string / fragment, trailing slashes and the .git suffix.
+ *
+ * Custom replacements run on the already-normalized (protocol-less) path, so
+ * their patterns must NOT be anchored on `https?://`; e.g. use
+ * `/^(?:www\.)?github\.com\//` to match `https://github.com/...` as well as
+ * `github.com/...`.
  */
 export function normalizePath(
   path: string,
   replacements: Array<{ pattern: RegExp; replacement: string }> = []
 ): string {
   let normalized = path
-    .replace(/^https?:\/\//, "")
+    .trim()
+    .replace(/^https?:\/\//i, "")
+    .replace(/[?#].*$/, "")
+    .replace(/\/+$/, "")
     .replace(/\.git$/, "")
-    .replace(/\/$/, "");
+    .replace(/\/+$/, "");
 
   // Apply custom replacements
   for (const { pattern, replacement } of replacements) {
     normalized = normalized.replace(pattern, replacement);
   }
 
-  return normalized;
+  return normalized.replace(/\/+$/, "");
 }
 
 /**

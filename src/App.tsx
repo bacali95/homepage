@@ -10,16 +10,24 @@ export default function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/10">
-          <main className="container mx-auto px-4 py-8 md:py-12 max-w-7xl">
-            <Header />
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/:app/*" element={<AppFormPage />} />
-              <Route path="/settings/*" element={<SettingsPage />} />
-            </Routes>
-          </main>
-        </div>
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-accent focus:px-3 focus:py-1.5 focus:text-accent-fg"
+        >
+          Skip to content
+        </a>
+        <Header />
+        <main
+          id="main"
+          tabIndex={-1}
+          className="mx-auto max-w-[1600px] px-4 py-6 outline-none sm:px-6"
+        >
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/:app/*" element={<AppFormPage />} />
+            <Route path="/settings/*" element={<SettingsPage />} />
+          </Routes>
+        </main>
       </BrowserRouter>
     </ThemeProvider>
   );

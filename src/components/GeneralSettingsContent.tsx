@@ -1,60 +1,44 @@
+import { Field, FieldDescription, FieldLabel } from "@ui-sdk/react/field";
+import {
+  SegmentedControl,
+  SegmentedControlIndicator,
+  SegmentedControlItem,
+} from "@ui-sdk/react/segmented-control";
 import { Monitor, Moon, Sun } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { SectionCard } from "@/components/primitives";
 import { useTheme, type Theme } from "@/lib/use-theme";
 
 export function GeneralSettingsContent() {
   const { theme, setTheme } = useTheme();
 
-  const getThemeIcon = () => {
-    switch (theme) {
-      case "light":
-        return <Sun className="h-5 w-5" />;
-      case "dark":
-        return <Moon className="h-5 w-5" />;
-      default:
-        return <Monitor className="h-5 w-5" />;
-    }
-  };
-
   return (
-    <div>
-      <div className="mb-6 md:mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold mb-2">General</h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Configure general application preferences
-        </p>
-      </div>
-
-      <div className="space-y-6">
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 mb-4">
-              {getThemeIcon()}
-              <div>
-                <h3 className="text-xl font-semibold">Appearance</h3>
-                <p className="text-sm text-muted-foreground">
-                  Choose your preferred theme
-                </p>
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="theme">Theme</Label>
-              <Select
-                id="theme"
-                value={theme}
-                onChange={(e) => setTheme(e.target.value as Theme)}
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="system">System</option>
-              </Select>
-            </div>
-          </div>
-        </Card>
-      </div>
-    </div>
+    <SectionCard title="Appearance" description="Choose your preferred theme">
+      <Field>
+        <FieldLabel>Theme</FieldLabel>
+        <SegmentedControl
+          value={theme}
+          onValueChange={(value) => value && setTheme(value as Theme)}
+          className="w-fit"
+        >
+          <SegmentedControlIndicator />
+          <SegmentedControlItem value="light" className="gap-1.5">
+            <Sun aria-hidden="true" />
+            Light
+          </SegmentedControlItem>
+          <SegmentedControlItem value="dark" className="gap-1.5">
+            <Moon aria-hidden="true" />
+            Dark
+          </SegmentedControlItem>
+          <SegmentedControlItem value="system" className="gap-1.5">
+            <Monitor aria-hidden="true" />
+            System
+          </SegmentedControlItem>
+        </SegmentedControl>
+        <FieldDescription>
+          System follows your device&apos;s light or dark setting.
+        </FieldDescription>
+      </Field>
+    </SectionCard>
   );
 }

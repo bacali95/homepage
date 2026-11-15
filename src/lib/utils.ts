@@ -39,3 +39,32 @@ export function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength - 3) + "...";
 }
+
+export type PingStatus = "up" | "down" | "slow" | "unknown";
+
+export const SLOW_PING_MS = 800;
+
+export interface PingSample {
+  status: boolean;
+  responseTime: number | null;
+}
+
+export function pingStatusOf(sample: PingSample | undefined): PingStatus {
+  if (!sample) return "unknown";
+  if (!sample.status) return "down";
+  if (sample.responseTime !== null && sample.responseTime >= SLOW_PING_MS) {
+    return "slow";
+  }
+  return "up";
+}
+
+export function parseRunningConfig(raw: string | null | undefined): {
+  dockerImage?: string;
+  k8sNamespace?: string;
+} {
+  try {
+    return JSON.parse(raw || "{}");
+  } catch {
+    return {};
+  }
+}
