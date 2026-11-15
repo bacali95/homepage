@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/bacali95/homepage/compare/v2.3.5...v3.0.0) (2026-11-15)
+
+
+### Features
+
+* ops-console redesign on ui-sdk, dependency upgrades and test suite ([8cbd8d1](https://github.com/bacali95/homepage/commit/8cbd8d13c2896261b0060c1849467ec4081f698f))
+
 ### [2.3.5](https://github.com/bacali95/homepage/compare/v2.3.4...v2.3.5) (2026-05-02)
 
 

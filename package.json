@@ -1,6 +1,6 @@
 {
   "name": "homelab-homepage",
-  "version": "2.3.5",
+  "version": "3.0.0",
   "type": "module",
   "packageManager": "bun@1.4.4",
   "scripts": {
